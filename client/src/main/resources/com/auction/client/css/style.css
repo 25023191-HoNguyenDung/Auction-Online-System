@@ -1,0 +1,148 @@
+/* ===== NỀN TOÀN MÀN HÌNH ===== */
+.root-bg {
+    -fx-background-color: #111827;
+}
+
+/* ===== CARD FORM GIỮA MÀN HÌNH ===== */
+.form-card {
+    -fx-background-color: #1a2540;
+    -fx-border-color: rgba(201,168,76,0.3);
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-padding: 40 32 40 32;
+}
+
+/* ===== BUTTON CHÍNH (vàng gold) ===== */
+.btn-primary {
+    -fx-background-color: #c9a84c;
+    -fx-text-fill: #0a0f1e;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+.btn-primary:hover {
+    -fx-background-color: #e0bf6e;
+}
+
+/* ===== BUTTON PHỤ (viền gold) ===== */
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-border-color: #c9a84c;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #e0bf6e;
+    -fx-cursor: hand;
+}
+.btn-outline:hover {
+    -fx-background-color: rgba(201,168,76,0.1);
+}
+
+/* ===== Ô NHẬP LIỆU ===== */
+.text-field-custom {
+    -fx-background-color: #0a0f1e;
+    -fx-border-color: rgba(201,168,76,0.3);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #f0f0f0;
+    -fx-prompt-text-fill: #9aa0b4;
+    -fx-padding: 10 14 10 14;
+    -fx-font-size: 13px;
+}
+.text-field-custom:focused {
+    -fx-border-color: #c9a84c;
+}
+
+/* ===== LABEL TIÊU ĐỀ ===== */
+.label-title {
+    -fx-text-fill: #e0bf6e;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+/* ===== LABEL THƯỜNG ===== */
+.label-normal {
+    -fx-text-fill: #f0f0f0;
+    -fx-font-size: 14px;
+}
+
+/* ===== LABEL MỜ ===== */
+.label-muted {
+    -fx-text-fill: #9aa0b4;
+    -fx-font-size: 12px;
+}
+
+/* ===== LABEL LỖI ===== */
+.label-error {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-size: 12px;
+}
+
+/* ===== HYPERLINK MÀU VÀNG ===== */
+.link-gold {
+    -fx-text-fill: #e0bf6e;
+    -fx-border-color: transparent;
+    -fx-underline: true;
+}
+.link-gold:hover {
+    -fx-text-fill: #f0d89a;
+}
+
+/* ===== DIVIDER ===== */
+.separator *.line {
+    -fx-border-color: rgba(201,168,76,0.2);
+    -fx-border-width: 1 0 0 0;
+}
+
+/* ===== CARD CHUNG (dùng cho AuctionList,...) ===== */
+.card {
+    -fx-background-color: #1a2540;
+    -fx-border-color: rgba(201,168,76,0.2);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 16;
+}
+
+/* ===== SIDEBAR (dùng cho Dashboard) ===== */
+.sidebar {
+    -fx-background-color: #0a0f1e;
+    -fx-border-color: rgba(201,168,76,0.2);
+    -fx-border-width: 0 1 0 0;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    -fx-background-color: #0a0f1e;
+    -fx-border-color: rgba(201,168,76,0.2);
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 16 0 16;
+}
+
+/* ===== GIÁ ĐẤU (màu vàng nổi bật) ===== */
+.label-price {
+    -fx-text-fill: #e0bf6e;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* ===== BADGE ĐANG DIỄN RA ===== */
+.badge-live {
+    -fx-background-color: rgba(201,168,76,0.15);
+    -fx-text-fill: #e0bf6e;
+    -fx-border-color: rgba(201,168,76,0.4);
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 2 10 2 10;
+    -fx-font-size: 11px;
+}
+
+/* ===== BADGE ĐÃ KẾT THÚC ===== */
+.badge-ended {
+    -fx-background-color: rgba(255,80,80,0.12);
+    -fx-text-fill: #ff6b6b;
+    -fx-border-color: rgba(255,80,80,0.3);
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 2 10 2 10;
+    -fx-font-size: 11px;
+}
