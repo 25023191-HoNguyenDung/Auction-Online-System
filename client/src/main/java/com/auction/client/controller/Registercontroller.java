@@ -1,5 +1,5 @@
 package com.auction.client.controller;
 
-public class registercontroller {
+public class RegisterController {
     
 }

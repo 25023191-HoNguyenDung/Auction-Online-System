@@ -1,5 +1,5 @@
 package com.auction.client.controller;
 
-public class autobidcontroller {
+public class AutoBidController {
     
 }

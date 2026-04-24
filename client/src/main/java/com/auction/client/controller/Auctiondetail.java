@@ -1,5 +1,5 @@
 package com.auction.client.controller;
 
-public class auctiondetail {
+public class AuctionDetail {
     
 }
