@@ -1,7 +1,7 @@
 package com.auction.common.protocol;
-// server gửi thông báo khi có giá mới
+//
 import java.math.BigDecimal;
-import java.time.Instant;//thời gian hiện tại
+import java.time.Instant;
 import java.util.UUID;
 
 public record BidUpdatedEventPayload(
