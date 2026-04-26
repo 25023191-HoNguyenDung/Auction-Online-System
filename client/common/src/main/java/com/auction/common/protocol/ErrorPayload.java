@@ -1,4 +1,4 @@
-package contract_server;
+package com.auction.common.protocol;
 // dữ liệu trả về khi có lỗi
 import java.util.Map;
 

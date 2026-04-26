@@ -1,4 +1,4 @@
-package contract_server;
+package com.auction.common.protocol;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

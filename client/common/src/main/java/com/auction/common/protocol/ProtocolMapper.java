@@ -1,4 +1,4 @@
-package contract_server;
+package com.auction.common.protocol;
 // chuyển qua lại từ JSON sang object server
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

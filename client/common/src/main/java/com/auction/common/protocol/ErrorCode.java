@@ -1,4 +1,4 @@
-package contract_server;
+package com.auction.common.protocol;
 // ds lỗi trả về
 public enum ErrorCode {
     AUTH_INVALID_CREDENTIALS, // sai tk/mk
