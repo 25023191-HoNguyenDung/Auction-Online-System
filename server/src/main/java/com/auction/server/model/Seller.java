@@ -1,4 +1,4 @@
-package com.auction.client.model;
+package com.auction.server.model;
 import java.util.ArrayList;
 
 public class Seller extends User {

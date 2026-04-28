@@ -1,4 +1,4 @@
-package com.auction.client.model;
+package com.auction.server.model;
 import java.time.LocalDateTime;
 
 public abstract class Product {

@@ -1,4 +1,4 @@
-package com.auction.client.model;
+package com.auction.server.model;
 
 public abstract class User {
     
