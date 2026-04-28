@@ -60,4 +60,7 @@ public class Auction {
         this.highestBidder = highestBidder; 
     }
     
+    public void setStatus(AuctionStatus status) {
+        this.status = status;
+    }
 }    
