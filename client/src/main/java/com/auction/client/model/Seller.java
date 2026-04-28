@@ -13,10 +13,11 @@ public class Seller extends User {
         super(name, ID, email, password, role);
         this.account_balance = account_balance;
         this.sold_list_items = sold_list_items;
+
     }
     
     @Override
-    public String get_role() {
+    public String set_role() {
         this.role = "Seller";
         return this.role;
     }
