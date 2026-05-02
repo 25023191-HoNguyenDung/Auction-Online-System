@@ -1,7 +1,7 @@
 # API Contract v1.0
-
+// bản quy ước chung để client và server tương tác với nhau
 ## Envelope
-
+// tất cả message gửi đi có dạng này
 All request/response/event messages use a shared envelope:
 
 ```json
@@ -86,6 +86,6 @@ All request/response/event messages use a shared envelope:
 
 ## Core Validation
 
-- `amount` must be strictly higher than current highest bid.
-- Bids on closed auctions are rejected.
-- Unsupported `protocolVersion` major must return `ERROR_RES`.
+- `amount` phải lớn hơn `currentHighestBid`.
+- Không được đặt giá nếu `auction` đã closed.
+- Nếu `protocolVersion` không hợp lệ thì trả về `ERROR_RES`.
