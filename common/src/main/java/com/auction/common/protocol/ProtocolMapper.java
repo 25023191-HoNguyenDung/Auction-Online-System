@@ -102,7 +102,7 @@ public class ProtocolMapper {
         return buildResponse(MessageType.ERROR_RES, correlationId, payload);
     }
 
-    public MessageEnvelope buildErrorResponse( //tạo message báo lỗi
+    public MessageEnvelope buildErrorResponse( //tạo message báo lỗi đơn giản hơn không cần chi tiết
             String correlationId,
             ErrorCode code,
             String message
