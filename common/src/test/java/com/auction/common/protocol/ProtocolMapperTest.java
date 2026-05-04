@@ -14,7 +14,7 @@ class ProtocolMapperTest {
     private final ProtocolMapper mapper = new ProtocolMapper();
 
     @Test
-    void testPlaceBidRequestRoundTrip() {
+    void testPlaceBidRequestRoundTrip() { //Object → JSON → Object xem dữ liệu có dữ nguyên không
         PlaceBidReqPayload payload = new PlaceBidReqPayload(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
@@ -34,7 +34,7 @@ class ProtocolMapperTest {
     }
 
     @Test
-    void testBuildResponseHasCorrelationId() {
+    void testBuildResponseHasCorrelationId() { //Test xem dữ liệu server trả về có đầy đủ thông tin cần thiết để client hiểu và ghép với request ban đầu không
         String correlationId = UUID.randomUUID().toString();
 
         PlaceBidResPayload payload = new PlaceBidResPayload(
@@ -53,7 +53,7 @@ class ProtocolMapperTest {
     }
 
     @Test
-    void testBidUpdatedEventRoundTrip() {
+    void testBidUpdatedEventRoundTrip() { //Test xem event gửi đi → chuyển thành JSON → parse lại có giữ nguyên dữ liệu không
         BidUpdatedEventPayload payload = new BidUpdatedEventPayload(
                 UUID.randomUUID(),
                 new BigDecimal("1700000"),
@@ -73,7 +73,7 @@ class ProtocolMapperTest {
     }
 
     @Test
-    void testInvalidJsonThrowsException() {
+    void testInvalidJsonThrowsException() { //Đưa JSON sai → phải ném ra exception
         assertThrows(ProtocolMappingException.class, () -> mapper.parseEnvelope("{invalid-json"));
     }
 }

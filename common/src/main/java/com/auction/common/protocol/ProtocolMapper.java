@@ -14,12 +14,12 @@ public class ProtocolMapper {
     private final ObjectMapper objectMapper; // chuyển đổi giữa obj và JSON
 
     public ProtocolMapper() {
-        this.objectMapper = new ObjectMapper().findAndRegisterModules(); // tạo obj và dùng các hỗ trợ nâng cao
+        this.objectMapper = new ObjectMapper().findAndRegisterModules(); // tạo obj và tự động tìm và đăng ký các module hỗ trợ thêm
     }
 
     public ProtocolMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-    }
+    } //nhận ObjectMapper để dùng lại
 
     public MessageEnvelope parseEnvelope(String rawJson) { // nhận JSON -> MessageEnvelope
         try {
@@ -48,13 +48,13 @@ public class ProtocolMapper {
         }
     }
 
-    public MessageEnvelope buildRequest(MessageType type, Object payload) { // biến yêu cầu -> message
+    public MessageEnvelope buildRequest(MessageType type, Object payload) { // lấy dữ liệu bạn muốn gửi → đóng gói thành message chuẩn để gửi đi
         return new MessageEnvelope(
                 PROTOCOL_VERSION,
                 UUID.randomUUID().toString(),
                 type,
                 Instant.now().toString(),
-                null,
+                null, //biết response này là trả lời cho request nào
                 objectMapper.valueToTree(payload)
         );
     }
@@ -83,14 +83,14 @@ public class ProtocolMapper {
 
     public MessageEnvelope buildErrorResponse( //tạo message báo lỗi để trả về cho request
             String correlationId,
-            ErrorCode code,
-            String message,
-            JsonNode details
+            ErrorCode code, // mã lỗi
+            String message, // nội dung lỗi
+            JsonNode details // thông tin chi tiết
     ) {
         Map<String, Object> detailMap;
 
         if (details == null) {
-            detailMap = Collections.emptyMap();
+            detailMap = Collections.emptyMap(); // dùng {} (map rỗng)
         } else {
             detailMap = objectMapper.convertValue(
                     details,
@@ -102,7 +102,7 @@ public class ProtocolMapper {
         return buildResponse(MessageType.ERROR_RES, correlationId, payload);
     }
 
-    public MessageEnvelope buildErrorResponse( //tạo message báo lỗi
+    public MessageEnvelope buildErrorResponse( //tạo message báo lỗi đơn giản hơn không cần chi tiết
             String correlationId,
             ErrorCode code,
             String message
