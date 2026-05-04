@@ -1,0 +1,8 @@
+- Git nhiều commit nhưng lung tung
+- Mới có giao diện login
+- Kiểm tra lại tính đa hình
+- Chưa có design pattern
+- Chức năng chính: FE chưa có, BE mới có 1 số model cơ bản, chưa implement các xử lý ngoại lệ
+- Chưa có kỹ thuật quan trọng + nâng cao
+- Chưa tìm hiểu client-server, mvc, v.v.
+- 6.5 - 8
