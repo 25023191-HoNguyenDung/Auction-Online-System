@@ -18,8 +18,7 @@ public class MainApp extends Application {
         
         FXMLLoader loader = new FXMLLoader(fxmlUrl);
         
-        Scene scene = new Scene(loader.load(), 1024, 768);
-        
+        Scene scene = new Scene(loader.load(), 980, 802);
         URL cssUrl = getClass().getResource(
             "/com/auction/client/css/style.css"
         );

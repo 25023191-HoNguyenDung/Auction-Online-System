@@ -1,59 +1,73 @@
 package com.auction.client.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 
 public class LoginController {
-    @FXML private TextField txtUsername;
-    @FXML private PasswordField txtPassword;
-    @FXML private Button btnLogin;
-    @FXML private Label lblError;
+
+    @FXML private TextField emailField;
+    @FXML private PasswordField passwordField;
+    @FXML private Label errorLabel;
+    @FXML private Label forgotPasswordLabel;
+    @FXML private Label signUpLabel;
+    @FXML private Button loginButton;
+
     @FXML
     public void initialize() {
-        lblError.setText("");
-        txtPassword.setOnAction(e -> handleLogin());
-    }
-    @FXML
-    private void handleLogin(){
-        String username = txtUsername.getText().trim();
-        String password = txtPassword.getText().trim();
+        // Hover effect cho LOGIN button
+        loginButton.setOnMouseEntered(e ->
+            loginButton.setStyle(loginButton.getStyle()
+                .replace("#f0b429", "#d4981f")));
+        loginButton.setOnMouseExited(e ->
+            loginButton.setStyle(loginButton.getStyle()
+                .replace("#d4981f", "#f0b429")));
 
-        if (username.isEmpty() || password.isEmpty()) {
-            lblError.setText("Please enter the required infomation!");
+        // Click Forgot Password
+        forgotPasswordLabel.setOnMouseClicked(e -> handleForgotPassword());
+
+        // Click Sign Up
+        signUpLabel.setOnMouseClicked(e -> handleSignUp());
+    }
+
+    @FXML
+    private void handleLogin() {
+        String email    = emailField.getText().trim();
+        String password = passwordField.getText();
+
+        // --- Validation ---
+        if (email.isEmpty() || password.isEmpty()) {
+            showError("Please fill in all fields.");
             return;
         }
 
-        if (username.equals("admin") && password.equals("123")) {
-            switchScene("/com/auction/client/view/AuctionList.fxml");
+        // TODO: Thay bằng logic xác thực thật (DB, API,...)
+        if (email.equals("collector@aureate.com") && password.equals("password")) {
+            errorLabel.setVisible(false);
+            System.out.println("Login successful!");
+            // TODO: chuyển sang màn hình chính
+            // FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+            // Stage stage = (Stage) loginButton.getScene().getWindow();
+            // stage.setScene(new Scene(loader.load()));
         } else {
-            lblError.setText("Incorrect username or password!");
-            txtPassword.clear();
+            showError("Invalid email or password.");
         }
     }
     @FXML
-    private void goToRegister(){
-        switchScene("/com/auction/client/view/Register.fxml");
+    private void handleForgotPassword() {
+        System.out.println("Forgot password clicked");
+        // TODO: Mở màn hình forgot password
     }
-    private void switchScene(String fxmlPath) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource(fxmlPath)
-            );
-            Stage stage = (Stage) btnLogin.getScene().getWindow();
-            Scene scene = new Scene(loader.load(), 1024, 768);
-            scene.getStylesheets().add(
-                getClass().getResource("/com/auction/client/css/style.css")
-                          .toExternalForm()
-            );
-            stage.setScene(scene);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    @FXML
+    private void handleSignUp() {
+        System.out.println("Sign up clicked");
+        // TODO: Mở màn hình đăng ký
+    }
+    @FXML
+    private void showError(String message) {
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
     }
 }
