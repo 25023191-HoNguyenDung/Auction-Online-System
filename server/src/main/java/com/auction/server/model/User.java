@@ -19,7 +19,7 @@ public abstract class User {
     }
 
     //abstract method:
-    public abstract String set_role();
+    public abstract void set_role();
 
     //Checking password:
     public boolean check_password(String input_password) {
