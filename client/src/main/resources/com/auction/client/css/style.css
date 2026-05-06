@@ -1,149 +1,243 @@
-/* ===== NỀN TOÀN MÀN HÌNH ===== */
-.root-bg {
-    -fx-background-color: #111827;
+/* ===================== ROOT & LAYOUT ===================== */
+.root-pane {
+    -fx-background-color: #0d0c08;
 }
 
-/* ===== CARD FORM GIỮA MÀN HÌNH ===== */
-.form-card {
-    -fx-background-color: #1a2540;
-    -fx-border-color: rgba(201,168,76,0.3);
-    -fx-border-radius: 16;
-    -fx-background-radius: 16;
-    -fx-padding: 40 32 40 32;
+.center-pane {
+    -fx-background-color: #0d0c08;
 }
 
-/* ===== BUTTON CHÍNH (vàng gold) ===== */
-.btn-primary {
-    -fx-background-color: #c9a84c;
-    -fx-text-fill: #0a0f1e;
-    -fx-font-weight: bold;
-    -fx-background-radius: 8;
-    -fx-cursor: hand;
-    -fx-font-size: 14px;
-}
-.btn-primary:hover {
-    -fx-background-color: #e0bf6e;
-}
-
-/* ===== BUTTON PHỤ (viền gold) ===== */
-.btn-outline {
-    -fx-background-color: transparent;
-    -fx-border-color: #c9a84c;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-text-fill: #e0bf6e;
-    -fx-cursor: hand;
-}
-.btn-outline:hover {
-    -fx-background-color: rgba(201,168,76,0.1);
-}
-
-/* ===== Ô NHẬP LIỆU ===== */
-.text-field-custom {
-    -fx-background-color: #0a0f1e;
-    -fx-border-color: rgba(201,168,76,0.3);
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-text-fill: #f0f0f0;
-    -fx-prompt-text-fill: #9aa0b4;
-    -fx-padding: 10 14 10 14;
-    -fx-font-size: 13px;
-}
-.text-field-custom:focused {
-    -fx-border-color: #c9a84c;
-}
-
-/* ===== LABEL TIÊU ĐỀ ===== */
-.label-title {
-    -fx-text-fill: #e0bf6e;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
-}
-
-/* ===== LABEL THƯỜNG ===== */
-.label-normal {
-    -fx-text-fill: #f0f0f0;
-    -fx-font-size: 14px;
-}
-
-/* ===== LABEL MỜ ===== */
-.label-muted {
-    -fx-text-fill: #9aa0b4;
-    -fx-font-size: 12px;
-}
-
-/* ===== LABEL LỖI ===== */
-.label-error {
-    -fx-text-fill: #ff6b6b;
-    -fx-font-size: 12px;
-}
-
-/* ===== HYPERLINK MÀU VÀNG ===== */
-.link-gold {
-    -fx-text-fill: #e0bf6e;
-    -fx-border-color: transparent;
-    -fx-underline: true;
-}
-.link-gold:hover {
-    -fx-text-fill: #f0d89a;
-}
-
-/* ===== DIVIDER ===== */
-.separator *.line {
-    -fx-border-color: rgba(201,168,76,0.2);
-    -fx-border-width: 1 0 0 0;
-}
-
-/* ===== CARD CHUNG (dùng cho AuctionList,...) ===== */
-.card {
-    -fx-background-color: #1a2540;
-    -fx-border-color: rgba(201,168,76,0.2);
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 16;
-}
-
-/* ===== SIDEBAR (dùng cho Dashboard) ===== */
-.sidebar {
-    -fx-background-color: #0a0f1e;
-    -fx-border-color: rgba(201,168,76,0.2);
-    -fx-border-width: 0 1 0 0;
-}
-
-/* ===== NAVBAR ===== */
+/* ===================== TOP NAVBAR ===================== */
 .navbar {
-    -fx-background-color: #0a0f1e;
-    -fx-border-color: rgba(201,168,76,0.2);
+    -fx-background-color: #0d0c08;
+    -fx-border-color: #2a2510;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 0 16 0 16;
+    -fx-padding: 0 40;
 }
 
-/* ===== GIÁ ĐẤU (màu vàng nổi bật) ===== */
-.label-price {
-    -fx-text-fill: #e0bf6e;
-    -fx-font-size: 18px;
+.nav-logo-text {
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Georgia';
+}
+
+.nav-link {
+    -fx-text-fill: #d4cdb8;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+}
+
+.btn-nav-login {
+    -fx-background-color: #f0b429;
+    -fx-text-fill: #0d0c08;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Arial';
+    -fx-padding: 8 22;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+/* ===================== LOGIN CARD ===================== */
+.login-card {
+    -fx-background-color: #161410;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-padding: 48 48 40 48;
+}
+
+.title-text {
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 28px;
+    -fx-font-family: 'Georgia';
     -fx-font-weight: bold;
 }
 
-/* ===== BADGE ĐANG DIỄN RA ===== */
-.badge-live {
-    -fx-background-color: rgba(201,168,76,0.15);
-    -fx-text-fill: #e0bf6e;
-    -fx-border-color: rgba(201,168,76,0.4);
-    -fx-border-radius: 20;
-    -fx-background-radius: 20;
-    -fx-padding: 2 10 2 10;
-    -fx-font-size: 11px;
+.subtitle-text {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 13px;
+    -fx-font-family: 'Arial';
 }
 
-/* ===== BADGE ĐÃ KẾT THÚC ===== */
-.badge-ended {
-    -fx-background-color: rgba(255,80,80,0.12);
-    -fx-text-fill: #ff6b6b;
-    -fx-border-color: rgba(255,80,80,0.3);
-    -fx-border-radius: 20;
-    -fx-background-radius: 20;
-    -fx-padding: 2 10 2 10;
-    -fx-font-size: 11px;
+/* ===================== FORM FIELDS ===================== */
+.form-label {
+    -fx-text-fill: #a09880;
+    -fx-font-size: 10px;
+    -fx-font-family: 'Arial';
+    -fx-font-weight: bold;
+    /* -fx-letter-spacing is not natively supported in standard JavaFX CSS without custom skins, 
+       but keeping it here if you are using a specific library/workaround */
+    -fx-letter-spacing: 1.5; 
 }
 
+.custom-text-field {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #f5f0e6;
+    -fx-prompt-text-fill: #5a5444;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 12 14;
+    -fx-font-size: 13px;
+    -fx-font-family: 'Arial';
+}
+
+.error-text {
+    -fx-text-fill: #e05252;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+}
+
+/* ===================== BUTTONS & LINKS ===================== */
+.btn-primary {
+    -fx-background-color: #f0b429;
+    -fx-text-fill: #0d0c08;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Arial';
+    -fx-letter-spacing: 1.5;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.link-text-small {
+    -fx-fill: #f0b429;        /* ← đổi từ -fx-text-fill sang -fx-fill */
+    -fx-font-size: 11px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+}
+
+.link-text {
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 13px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+}
+
+/* ===================== FOOTER ===================== */
+.footer {
+    -fx-background-color: #080706;
+    -fx-border-color: #1e1c12;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 24 40;
+}
+
+.footer-logo-text {
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 13px;
+    -fx-font-family: 'Georgia';
+    -fx-font-weight: bold;
+}
+
+.footer-copyright {
+    -fx-text-fill: #4a4434;
+    -fx-font-size: 10px;
+    -fx-font-family: 'Arial';
+}
+
+.footer-link {
+    -fx-text-fill: #5a5444;
+    -fx-font-size: 10px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+}
+/* ===================== REGISTER PAGE FIX ===================== */
+
+.register-card {
+    -fx-background-color: #161410;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 20, 0, 0, 10);
+}
+
+.register-left-panel {
+    -fx-background-color: #100f0c;
+    -fx-background-radius: 8 0 0 8;
+    -fx-padding: 50 40 40 40;
+}
+
+.register-form-panel {
+    -fx-background-color: #161410;
+    -fx-background-radius: 0 8 8 0;
+    -fx-padding: 50 60 40 50;
+}
+
+.register-deco-icon {
+    -fx-font-size: 160px;
+    -fx-text-fill: #1e1c15;
+    -fx-opacity: 0.7;
+}
+
+.register-headline {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Georgia';
+    -fx-text-fill: #f5f0e6;
+    -fx-line-height: 1.05;
+}
+
+.register-eyebrow {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0b429;
+    -fx-letter-spacing: 3px;
+}
+
+/* Input fields */
+.custom-text-field {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #f5f0e6;
+    -fx-prompt-text-fill: #6b6655;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 12 16;
+}
+
+/* Button */
+.btn-primary {
+    -fx-background-color: #f0b429;
+    -fx-text-fill: #0d0c08;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #d4981f;
+}
+
+/* Checkbox */
+.register-checkbox .box {
+    -fx-background-color: #1e1c15;
+    -fx-border-color: #3a3628;
+}
+
+.register-checkbox:selected .mark {
+    -fx-background-color: #f0b429;
+}
+.register-terms-link {
+    -fx-fill: #f0b429;
+    -fx-font-size: 11px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+}
+.nav-link-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d4cdb8;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-padding: 8 4;
+}
