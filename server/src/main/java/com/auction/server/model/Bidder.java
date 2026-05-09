@@ -17,9 +17,8 @@ public class Bidder extends User {
 
     
     @Override
-    public String set_role() {
+    public void set_role() {
         this.role = "Bidder";
-        return this.role;
     }
 
 }
