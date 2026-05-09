@@ -5,13 +5,20 @@ public class Electronics extends Product {
     //Fields:
     private String brand;
     private int warrantyMonths;
+    private int year_of_manufacture;
 
     //Constructor:
-    public Electronics(String name, String description, double reservePrice,
-                       String imageUrl, String brand, int warrantyMonths) {
-        super(name, description, reservePrice, imageUrl);
+    public Electronics( String product_name, 
+                        String description, 
+                        double reservePrice,
+                        String image_url, 
+                        String brand, 
+                        int warrantyMonths,
+                        int year_of_manufacture) {       
+        super(product_name, description, reservePrice, image_url);
         this.brand = brand;
         this.warrantyMonths = warrantyMonths;
+        this.year_of_manufacture = year_of_manufacture;
     }
     
     //getters and setters:
@@ -20,6 +27,9 @@ public class Electronics extends Product {
     }
     public int getWarrantyMonths() { 
         return warrantyMonths; 
+    }
+    public int getYearOfManufacture() { 
+        return year_of_manufacture; 
     }
     public void setBrand(String brand) { 
         this.brand = brand; 
