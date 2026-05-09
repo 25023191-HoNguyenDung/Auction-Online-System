@@ -9,13 +9,14 @@ public class Art extends Product {
     
     //Constructor:
     public Art( String name,
+                String product_id,
                 String description,
                 double reserve_price,
                 String image_url,
                 String artist,
                 String style) {
 
-        super(name, description, reserve_price, image_url);
+        super(name, product_id, description, reserve_price, image_url);
         this.artist = artist;
         this.style = style;
         

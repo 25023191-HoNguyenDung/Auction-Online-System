@@ -7,7 +7,8 @@ import com.auction.server.model.Vehicle;
 public class ProductFactory {
     
     public static Product createProduct(String type, 
-                                        String product_name, 
+                                        String product_name,
+                                        String product_id,
                                         String description, 
                                         double reversePrice,
                                         String image_url,
@@ -20,6 +21,7 @@ public class ProductFactory {
                 int warrantyMonths = Integer.parseInt((String) additionalParams[1]);
                 int year_of_manufacture = Integer.parseInt((String) additionalParams[2]);
                 return new Electronics( product_name,
+                                        product_id,
                                         description,
                                         reversePrice,
                                         image_url,
@@ -31,6 +33,7 @@ public class ProductFactory {
                 String artist = (String) additionalParams[0];
                 String style = (String) additionalParams[1];
                 return new Art( product_name,
+                                product_id,
                                 description,
                                 reversePrice,
                                 image_url,
@@ -43,6 +46,7 @@ public class ProductFactory {
                 String color = (String) additionalParams[2];
                 int year = Integer.parseInt((String) additionalParams[3]);
                 return new Vehicle( product_name,
+                                    product_id,
                                     description,
                                     reversePrice,
                                     image_url,

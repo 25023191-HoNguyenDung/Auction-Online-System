@@ -9,13 +9,14 @@ public class Electronics extends Product {
 
     //Constructor:
     public Electronics( String product_name, 
+                        String product_id,
                         String description, 
                         double reservePrice,
                         String image_url, 
                         String brand, 
                         int warrantyMonths,
                         int year_of_manufacture) {       
-        super(product_name, description, reservePrice, image_url);
+        super(product_name, product_id, description, reservePrice, image_url);
         this.brand = brand;
         this.warrantyMonths = warrantyMonths;
         this.year_of_manufacture = year_of_manufacture;
