@@ -3,7 +3,7 @@ package com.auction.server.model;
 import java.time.LocalDateTime;
 
 public class BidTransaction {
-    private final String auctionId;
+    private String auctionId;
     private Bidder bidder;
     private double bidAmount;
     private LocalDateTime timeBidding;
