@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane
+    prefWidth="1200" prefHeight="820"
+    styleClass="al-root"
+    stylesheets="@../css/style.css"
+    xmlns="http://javafx.com/javafx/17"
+    xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.auction.client.controller.AuctionListController">
+
+    <!-- ═══════════════ NAVBAR ═══════════════ -->
+    <top>
+        <HBox prefHeight="54" alignment="CENTER_LEFT" spacing="0" styleClass="al-navbar">
+
+            <Label text="AUCTION PRO" styleClass="nav-logo-text">
+                <HBox.margin><Insets right="32"/></HBox.margin>
+            </Label>
+
+            <HBox spacing="24" alignment="CENTER">
+                <Button fx:id="navHome"    text="Home"    styleClass="al-nav-link-active"/>
+                <Button fx:id="navSelling" text="Selling" styleClass="al-nav-link"/>
+                <Button fx:id="navHistory" text="History" styleClass="al-nav-link"/>
+            </HBox>
+
+            <HBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                <StackPane maxWidth="420" HBox.hgrow="ALWAYS">
+                    <Label text="🔍"
+                           style="-fx-font-size:13px; -fx-text-fill:#555e7a; -fx-padding:0 0 0 14;"
+                           StackPane.alignment="CENTER_LEFT"/>
+                    <TextField fx:id="searchField"
+                               promptText="Search premium assets..."
+                               styleClass="al-search-field"
+                               maxWidth="420" prefHeight="36"/>
+                </StackPane>
+            </HBox>
+
+            <HBox spacing="14" alignment="CENTER">
+                <Button text="🔔"
+                        style="-fx-background-color:#141929; -fx-text-fill:#9aa0b4;
+                               -fx-font-size:15px; -fx-background-radius:20;
+                               -fx-border-color:rgba(201,168,76,0.2); -fx-border-radius:20;
+                               -fx-border-width:1; -fx-padding:6 10; -fx-cursor:hand;"/>
+                <StackPane>
+                    <Circle radius="18"
+                            style="-fx-fill:#1e2a45; -fx-stroke:#c9a84c; -fx-stroke-width:2;"/>
+                    <Label text="A"
+                           style="-fx-text-fill:#c9a84c; -fx-font-size:14px;
+                                  -fx-font-weight:bold; -fx-font-family:'Georgia';"/>
+                </StackPane>
+            </HBox>
+        </HBox>
+    </top>
+
+    <!-- ═══════════════ CENTER ═══════════════ -->
+    <center>
+        <HBox>
+
+            <!-- ══ SIDEBAR ══ -->
+            <VBox prefWidth="220" styleClass="al-sidebar" spacing="0">
+
+                <!-- User -->
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <StackPane>
+                        <Circle radius="22"
+                                style="-fx-fill:#1e2a45; -fx-stroke:#c9a84c; -fx-stroke-width:2;"/>
+                        <Label text="A"
+                               style="-fx-text-fill:#c9a84c; -fx-font-size:16px;
+                                      -fx-font-weight:bold; -fx-font-family:'Georgia';"/>
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Label text="Alexander Pierce" styleClass="al-user-name"/>
+                        <Label text="PREMIUM COLLECTOR" styleClass="al-user-badge"/>
+                    </VBox>
+                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                </HBox>
+
+                <!-- Nav items -->
+                <Button fx:id="sideHome"       text="🏠  Home"        styleClass="al-nav-item-active" maxWidth="Infinity">
+                    <VBox.margin><Insets bottom="4"/></VBox.margin>
+                </Button>
+                <Button fx:id="sideActiveBids" text="🔄  Active Bids"  styleClass="al-nav-item" maxWidth="Infinity">
+                    <VBox.margin><Insets bottom="4"/></VBox.margin>
+                </Button>
+                <Button fx:id="sideInventory"  text="📦  My Inventory" styleClass="al-nav-item" maxWidth="Infinity">
+                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                </Button>
+
+                <Separator style="-fx-background-color:rgba(201,168,76,0.1);">
+                    <VBox.margin><Insets bottom="20"/></VBox.margin>
+                </Separator>
+
+                <!-- Categories -->
+                <Label text="CATEGORIES" styleClass="al-section-label">
+                    <VBox.margin><Insets bottom="12"/></VBox.margin>
+                </Label>
+                <CheckBox fx:id="catArt"         text="Art"         styleClass="al-checkbox" selected="true">
+                    <VBox.margin><Insets bottom="10"/></VBox.margin>
+                </CheckBox>
+                <CheckBox fx:id="catElectronics" text="Electronics" styleClass="al-checkbox">
+                    <VBox.margin><Insets bottom="10"/></VBox.margin>
+                </CheckBox>
+                <CheckBox fx:id="catVehicles"    text="Vehicles"    styleClass="al-checkbox" selected="true">
+                    <VBox.margin><Insets bottom="10"/></VBox.margin>
+                </CheckBox>
+                <CheckBox fx:id="catWatches"     text="Watches"     styleClass="al-checkbox">
+                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                </CheckBox>
+
+                <!-- Status -->
+                <Label text="STATUS" styleClass="al-section-label">
+                    <VBox.margin><Insets bottom="12"/></VBox.margin>
+                </Label>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Button fx:id="statusAll"    text="All"         styleClass="al-status-btn-active"/>
+                    <Button fx:id="statusLive"   text="Live"        styleClass="al-status-btn"/>
+                    <Button fx:id="statusEnding" text="Ending Soon" styleClass="al-status-btn"/>
+                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                </HBox>
+
+                <!-- Price Range -->
+                <Label text="PRICE RANGE" styleClass="al-section-label">
+                    <VBox.margin><Insets bottom="12"/></VBox.margin>
+                </Label>
+                <HBox spacing="8" alignment="CENTER">
+                    <TextField fx:id="priceMin" promptText="Min"
+                               styleClass="al-price-field"
+                               prefWidth="82" prefHeight="34"/>
+                    <Label text="—" style="-fx-text-fill:#555e7a; -fx-font-size:14px;"/>
+                    <TextField fx:id="priceMax" promptText="Max"
+                               styleClass="al-price-field"
+                               prefWidth="82" prefHeight="34"/>
+                </HBox>
+
+                <VBox VBox.vgrow="ALWAYS"/>
+
+                <Button fx:id="applyFilterBtn"
+                        text="APPLY FILTERS"
+                        styleClass="al-apply-btn"
+                        maxWidth="Infinity" prefHeight="38"
+                        onAction="#handleApplyFilter">
+                    <VBox.margin><Insets top="24"/></VBox.margin>
+                </Button>
+
+            </VBox>
+
+            <!-- ══ MAIN CONTENT ══ -->
+            <VBox HBox.hgrow="ALWAYS" styleClass="al-content" spacing="0">
+
+                <!-- Header -->
+                <HBox alignment="CENTER_LEFT" spacing="16">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Live Auctions" styleClass="al-page-title"/>
+                        <Label text="Discover curated assets from private collections and exclusive estates worldwide."
+                               styleClass="al-page-subtitle" wrapText="true"/>
+                    </VBox>
+                    <VBox spacing="6" alignment="CENTER_RIGHT">
+                        <Label fx:id="countLabel" text="Showing 6 of 6 items" styleClass="al-count-label"/>
+                        <ComboBox fx:id="sortCombo" styleClass="al-sort-combo"
+                                  prefWidth="170" prefHeight="34"/>
+                    </VBox>
+                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                </HBox>
+
+                <!-- Cards -->
+                <ScrollPane fx:id="scrollPane" styleClass="al-scroll"
+                            fitToWidth="true" VBox.vgrow="ALWAYS">
+                    <GridPane fx:id="cardsGrid" hgap="18" vgap="18"
+                              style="-fx-padding:4 4 24 4; -fx-background-color:#0a0e1a;">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="33.33"/>
+                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="33.33"/>
+                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="33.33"/>
+                        </columnConstraints>
+                    </GridPane>
+                </ScrollPane>
+
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

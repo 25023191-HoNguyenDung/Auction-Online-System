@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
@@ -12,12 +12,13 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
 <BorderPane prefHeight="802.0" prefWidth="980.0" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RegisterController">
 
-    <!-- ═══ NAVBAR (y hệt login.fxml) ═══ -->
+    <!-- NAVBAR -->
     <top>
         <HBox alignment="CENTER_LEFT" prefHeight="53.0" styleClass="navbar">
             <Label styleClass="nav-logo-text" text="AUCTION PRO" />
@@ -30,116 +31,85 @@
             </HBox>
             <HBox HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER" spacing="16">
-                <!-- LOGIN -->
                 <Label fx:id="goLoginNav" styleClass="nav-link" text="LOGIN" />
-                <!-- REGISTER -->
                 <Button fx:id="goRegisterNav" styleClass="btn-nav-login" text="REGISTER" />
             </HBox>
         </HBox>
     </top>
 
-    <!-- ═══ CENTER ═══ -->
+    <!-- CENTER -->
     <center>
         <HBox>
             <StackPane styleClass="center-pane" HBox.hgrow="ALWAYS">
-
-                <!-- Background image (cùng bg.png với login) -->
                 <ImageView fitHeight="658.0" fitWidth="1021.0" pickOnBounds="true" preserveRatio="false">
                     <image>
                         <Image url="@../../../../../../../../../bg.png" />
                     </image>
                 </ImageView>
 
-                <!-- ── Outer card: trái (branding) + phải (form) ── -->
                 <HBox alignment="CENTER" maxHeight="640" maxWidth="900" spacing="0" styleClass="register-card">
 
-                    <!-- LEFT: branding panel -->
+                    <!-- LEFT PANEL -->
                     <VBox alignment="BOTTOM_LEFT" prefHeight="640" prefWidth="370" styleClass="register-left-panel">
-                  <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../image/logo.png" />
-                     </image>
-                  </ImageView>
-
-                        <Label styleClass="register-eyebrow" text="WELCOME TO THE INNER CIRCLE">
-                            <VBox.margin><Insets bottom="12" /></VBox.margin>
-                        </Label>
-
-                        <Label styleClass="register-headline" text="Acquire the&#10;Extraordinary." wrapText="true">
-                            <VBox.margin><Insets bottom="16" /></VBox.margin>
-                        </Label>
-
-                        <Label maxWidth="300" styleClass="subtitle-text" text="Join a private network of world-class collectors. Access vetted assets, from historical artifacts to modern masterpieces." wrapText="true" />
+                        <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@../image/logo.png" />
+                            </image>
+                        </ImageView>
+                        <Label styleClass="register-eyebrow" text="WELCOME TO THE INNER CIRCLE" />
+                        <Label styleClass="register-headline" text="Acquire the&#10;Extraordinary." wrapText="true" />
+                        <Label styleClass="subtitle-text" text="Join a private network of world-class collectors." wrapText="true" />
                     </VBox>
 
-                    <!-- RIGHT: form panel -->
-                    <VBox alignment="TOP_LEFT" prefHeight="640" prefWidth="530" spacing="0" styleClass="register-form-panel">
+                    <!-- RIGHT PANEL -->
+                    <VBox alignment="TOP_LEFT" prefHeight="640" prefWidth="530" spacing="8.0" styleClass="register-form-panel">
 
                         <Label styleClass="title-text" text="Create Account">
-                            <VBox.margin><Insets bottom="6" /></VBox.margin>
-                        </Label>
+                     <font>
+                        <Font size="18.0" />
+                     </font></Label>
+                        <Label styleClass="subtitle-text" text="Enter your credentials to begin your journey." />
 
-                        <Label styleClass="subtitle-text" text="Enter your credentials to begin your journey.">
-                            <VBox.margin><Insets bottom="26" /></VBox.margin>
-                        </Label>
+                        <!-- ROLE -->
+                        <Label styleClass="form-label" text="REGISTER AS" />
+                        <ComboBox fx:id="roleComboBox" prefHeight="44" promptText="Select Role" styleClass="custom-text-field" />
 
                         <!-- FULL NAME -->
-                        <Label styleClass="form-label" text="FULL NAME">
-                            <VBox.margin><Insets bottom="6" /></VBox.margin>
-                        </Label>
-                        <TextField fx:id="fullNameField" prefHeight="44" promptText="Ngo Duc Anh" styleClass="custom-text-field">
-                            <VBox.margin><Insets bottom="14" /></VBox.margin>
-                        </TextField>
+                        <Label styleClass="form-label" text="FULL NAME" />
+                        <TextField fx:id="fullNameField" prefHeight="44" promptText="Ngo Duc Anh" styleClass="custom-text-field" />
 
                         <!-- EMAIL -->
-                        <Label styleClass="form-label" text="EMAIL ADDRESS">
-                            <VBox.margin><Insets bottom="6" /></VBox.margin>
-                        </Label>
-                        <TextField fx:id="emailField" prefHeight="44" promptText="ngoducanh@gmail.com" styleClass="custom-text-field">
-                            <VBox.margin><Insets bottom="14" /></VBox.margin>
-                        </TextField>
+                        <Label styleClass="form-label" text="EMAIL ADDRESS" />
+                        <TextField fx:id="emailField" prefHeight="44" promptText="ngoducanh@gmail.com" styleClass="custom-text-field" />
 
-                        <!-- PASSWORD + CONFIRM (2 cột) -->
+                        <!-- PASSWORD + CONFIRM -->
                         <HBox spacing="12">
-                            <VBox spacing="0" HBox.hgrow="ALWAYS">
-                                <Label styleClass="form-label" text="PASSWORD">
-                                    <VBox.margin><Insets bottom="6" /></VBox.margin>
-                                </Label>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label styleClass="form-label" text="PASSWORD" />
                                 <PasswordField fx:id="passwordField" prefHeight="44" styleClass="custom-text-field" />
                             </VBox>
-                            <VBox spacing="0" HBox.hgrow="ALWAYS">
-                                <Label styleClass="form-label" text="CONFIRM PASSWORD">
-                                    <VBox.margin><Insets bottom="6" /></VBox.margin>
-                                </Label>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label styleClass="form-label" text="CONFIRM PASSWORD" />
                                 <PasswordField fx:id="confirmPasswordField" prefHeight="44" styleClass="custom-text-field" />
                             </VBox>
-                            <VBox.margin><Insets bottom="14" /></VBox.margin>
                         </HBox>
 
                         <!-- TERMS -->
                         <HBox alignment="TOP_LEFT" spacing="10">
                             <CheckBox fx:id="termsCheckBox" styleClass="register-checkbox" />
-                            <TextFlow prefWidth="400">
-                                <Text style="-fx-fill: #8a8272; -fx-font-size: 11px; -fx-font-family: 'Arial';" text="I agree to the " />
-                                <Text fx:id="termsLink" styleClass="link-text-small" text="Terms of Service" />
-                                <Text style="-fx-fill: #8a8272; -fx-font-size: 11px; -fx-font-family: 'Arial';" text=" and " />
-                                <Text fx:id="rulesLink" styleClass="link-text-small" text="Auction Rules" />
-                                <Text style="-fx-fill: #8a8272; -fx-font-size: 11px; -fx-font-family: 'Arial';" text=", acknowledging my participation in exclusive luxury bidding." />
+                            <TextFlow>
+                                <Text style="-fx-fill: #8a8272; -fx-font-size: 11px;" text="I agree to the " />
+                                <Text styleClass="link-text-small" text="Terms of Service" />
+                                <Text style="-fx-fill: #8a8272; -fx-font-size: 11px;" text=" and " />
+                                <Text styleClass="link-text-small" text="Auction Rules" />
+                        <Text style="-fx-fill: #8a8272; -fx-font-size: 11px;" text=", acknowledging my participation in exclusive luxury bidding." />
                             </TextFlow>
-                            <VBox.margin><Insets bottom="8" /></VBox.margin>
                         </HBox>
 
-                        <!-- ERROR -->
-                        <Label fx:id="errorLabel" styleClass="error-text" text="" visible="false" wrapText="true">
-                            <VBox.margin><Insets bottom="4" /></VBox.margin>
-                        </Label>
+                        <Label fx:id="errorLabel" styleClass="error-text" visible="false" wrapText="true" />
 
-                        <!-- JOIN BUTTON -->
-                        <Button fx:id="registerButton" maxWidth="Infinity" onAction="#handleRegister" prefHeight="48" styleClass="btn-primary" text="Join the Elite">
-                            <VBox.margin><Insets bottom="20" top="6" /></VBox.margin>
-                        </Button>
+                        <Button fx:id="registerButton" onAction="#handleRegister" prefHeight="48" prefWidth="539.0" styleClass="btn-primary" text="Join the Elite" />
 
-                        <!-- Already have account -->
                         <HBox alignment="CENTER" spacing="4">
                             <Label styleClass="subtitle-text" text="Already have an account?" />
                             <Label fx:id="loginLabel" styleClass="link-text" text="Login here" />
@@ -151,7 +121,7 @@
         </HBox>
     </center>
 
-    <!-- ═══ FOOTER (y hệt login.fxml) ═══ -->
+    <!-- FOOTER -->
     <bottom>
         <VBox prefHeight="72.0" styleClass="footer">
             <HBox alignment="CENTER_LEFT">

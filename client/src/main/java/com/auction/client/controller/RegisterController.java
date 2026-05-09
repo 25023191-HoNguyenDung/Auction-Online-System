@@ -2,12 +2,14 @@ package com.auction.client.controller;
 
 import java.io.IOException;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -15,51 +17,84 @@ import javafx.stage.Stage;
 
 public class RegisterController {
 
+    @FXML private ComboBox<String> roleComboBox;
     @FXML private TextField fullNameField;
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private PasswordField confirmPasswordField;
     @FXML private CheckBox termsCheckBox;
     @FXML private Label errorLabel;
-    @FXML private Label loginLabel;          // "Login here"
-    @FXML private Label goLoginNav;          // Navbar LOGIN
-    @FXML private Button goRegisterNav;      // Navbar REGISTER
-    @FXML private Button registerButton;     // Nút chính Join the Elite
+    @FXML private Label loginLabel;
+    @FXML private Label goLoginNav;
+    @FXML private Button goRegisterNav;
+    @FXML private Button registerButton;
 
     @FXML
     public void initialize() {
         setupNavigation();
+        setupRoleComboBox();
     }
 
     private void setupNavigation() {
-        // Click LOGIN ở navbar
-        if (goLoginNav != null) {
-            goLoginNav.setOnMouseClicked(e -> goToLogin());
-        }
-
-        // Click REGISTER ở navbar
+        if (goLoginNav != null) goLoginNav.setOnMouseClicked(e -> goToLogin());
+        if (loginLabel != null) loginLabel.setOnMouseClicked(e -> goToLogin());
         if (goRegisterNav != null) {
-            goRegisterNav.setOnMouseClicked(e -> goToRegister());  // hiện tại đang ở đây
-        }
-
-        // Click "Login here" dưới form
-        if (loginLabel != null) {
-            loginLabel.setOnMouseClicked(e -> goToLogin());
-        }
-
-        // Highlight nút REGISTER vì đang ở trang này
-        if (goRegisterNav != null) {
-            goRegisterNav.setStyle("-fx-background-color: #d4981f; -fx-text-fill: #0d0c08;");
+            goRegisterNav.setStyle("-fx-background-color: #d4981f;");
         }
     }
 
+    private void setupRoleComboBox() {
+        if (roleComboBox != null) {
+            roleComboBox.getItems().addAll("Bidder", "Seller");
+            roleComboBox.getSelectionModel().select("Bidder"); // Mặc định Bidder
+        }
+    }
+
+    @FXML
+    private void handleRegister() {
+        String role = roleComboBox.getValue();
+        String fullName = fullNameField.getText().trim();
+        String email = emailField.getText().trim();
+        String pass = passwordField.getText();
+        String confirm = confirmPasswordField.getText();
+
+        errorLabel.setVisible(false);
+
+        if (role == null || fullName.isEmpty() || email.isEmpty() || pass.isEmpty() || confirm.isEmpty()) {
+            showMessage("Please fill in all fields.", false);
+            return;
+        }
+        if (!pass.equals(confirm)) {
+            showMessage("Passwords do not match.", false);
+            return;
+        }
+        if (!termsCheckBox.isSelected()) {
+            showMessage("You must agree to the Terms of Service.", false);
+            return;
+        }
+
+        // TODO: Sau này kết nối với Database / Service
+        System.out.println("✅ Đăng ký thành công | Role: " + role + " | Email: " + email);
+
+        showMessage("Account created successfully as " + role + "!", true);
+
+        // Chuyển sang Login sau 1.5 giây
+        new Thread(() -> {
+            try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+            Platform.runLater(this::goToLogin);
+        }).start();
+    }
+
+    private void showMessage(String message, boolean isSuccess) {
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
+        errorLabel.setStyle(isSuccess ? 
+                "-fx-text-fill: #4ade80; -fx-font-size: 13px;" : 
+                "-fx-text-fill: #e05252; -fx-font-size: 13px;");
+    }
+ 
     private void goToLogin() {
         navigateTo("/com/auction/client/view/Login.fxml", "Login - Auction Pro");
-    }
-
-    private void goToRegister() {
-        // Đang ở Register rồi thì không cần chuyển
-        System.out.println("Register page now");
     }
 
     private void navigateTo(String fxmlPath, String title) {
@@ -72,28 +107,12 @@ public class RegisterController {
                 getClass().getResource("/com/auction/client/css/style.css").toExternalForm()
             );
 
-            Stage stage = (Stage) goRegisterNav.getScene().getWindow();
-
+            Stage stage = (Stage) registerButton.getScene().getWindow();
             stage.setTitle(title);
             stage.setScene(scene);
             stage.show();
-
         } catch (IOException e) {
             e.printStackTrace();
-            showError("Không thể chuyển trang");
-        }
-    }
-
-    @FXML
-    private void handleRegister() {
-        // code validation...
-        showError("Account created successfully!");
-    }
-
-    private void showError(String message) {
-        if (errorLabel != null) {
-            errorLabel.setText(message);
-            errorLabel.setVisible(true);
         }
     }
 }

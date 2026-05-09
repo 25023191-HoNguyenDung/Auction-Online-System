@@ -68,15 +68,29 @@ public class LoginController {
             return;
         }
 
-        if (email.equals("collector@aureate.com") && password.equals("password")) {
-            errorLabel.setVisible(false);
-            System.out.println("Login successful!");
-            navigateTo("/com/auction/client/view/Main.fxml", "Auction Dashboard");
-        } else {
-            showError("Invalid email or password.");
+    // ADMIN
+        if (email.equalsIgnoreCase("admin@auctionpro.com") && password.equals("admin123")) {
+            navigateTo("/com/auction/client/view/AdminDashboard.fxml", "Admin Dashboard");
+            return;
         }
-    }
 
+    // SELLER
+        if (email.equals("seller@aureate.com") && password.equals("seller123")) {
+            navigateTo("/com/auction/client/view/SellerDashboard.fxml", "Seller Dashboard");
+            return;
+        }
+
+    // BIDDER → Chuyển đến AuctionList
+    // Sau này sẽ kiểm tra từ Database
+        if (email.equals("collector@aureate.com") && password.equals("password") || 
+            email.endsWith("@aureate.com")) {   // tạm thời cho test
+        
+            navigateTo("/com/auction/client/view/AuctionList.fxml", "Bidder Dashboard");
+            return;
+        }
+
+        showError("Invalid email or password.");
+    }
     @FXML
     private void handleForgotPassword() {
         navigateTo("/com/auction/client/view/ForgotPassword.fxml", "Forgot Password");
