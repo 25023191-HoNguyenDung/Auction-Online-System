@@ -3,16 +3,23 @@ package com.auction.server.model;
 import java.time.LocalDateTime;
 
 public class BidTransaction {
+    private static int bidId;
     private String auctionId;
-    private String bidderName;
+    private Bidder bidder;
     private double bidAmount;
     private LocalDateTime timeBidding;
 
-    public BidTransaction(String auctionId, String bidderName, double bidAmount) {
+    public BidTransaction(int bidId, String auctionId, Bidder bidder, double bidAmount) {
+        this.bidId = bidId;
         this.auctionId = auctionId;
-        this.bidderName = bidderName;
+        this.bidder = bidder;
         this.bidAmount = bidAmount;
         this.timeBidding = LocalDateTime.now();
+        bidId++;
+    }
+
+    public int getBidId() {
+        return bidId;
     }
 
     public String getAuctionId() {
@@ -20,7 +27,7 @@ public class BidTransaction {
     }
 
     public String getBidderName() {
-        return bidderName;
+        return bidder.get_user_name();
     }
 
     public double getBidAmount() {
