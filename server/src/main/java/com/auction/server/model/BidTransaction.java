@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 
 public class BidTransaction {
     private final String auctionId;
-    private final String bidderName;
-    private final double bidAmount;
-    private final LocalDateTime timeBidding;
+    private Bidder bidder;
+    private double bidAmount;
+    private LocalDateTime timeBidding;
 
-    public BidTransaction(String auctionId, String bidderName, double bidAmount) {
+    public BidTransaction(String auctionId, Bidder bidder, double bidAmount) {
         this.auctionId = auctionId;
-        this.bidderName = bidderName;
+        this.bidder = bidder;
         this.bidAmount = bidAmount;
         this.timeBidding = LocalDateTime.now();
     }
@@ -20,7 +20,7 @@ public class BidTransaction {
     }
 
     public String getBidderName() {
-        return bidderName;
+        return bidder.get_user_name();
     }
 
     public double getBidAmount() {
