@@ -3,10 +3,10 @@ package com.auction.server.model;
 import java.time.LocalDateTime;
 
 public class BidTransaction {
-    private String auctionId;
-    private String bidderName;
-    private double bidAmount;
-    private LocalDateTime timeBidding;
+    private final String auctionId;
+    private final String bidderName;
+    private final double bidAmount;
+    private final LocalDateTime timeBidding;
 
     public BidTransaction(String auctionId, String bidderName, double bidAmount) {
         this.auctionId = auctionId;
