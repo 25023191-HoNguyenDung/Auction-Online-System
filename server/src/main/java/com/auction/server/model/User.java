@@ -19,7 +19,7 @@ public abstract class User {
     }
 
     //abstract method:
-    public abstract String set_role();
+    public abstract void set_role();
 
     //Checking password:
     public boolean check_password(String input_password) {
@@ -43,6 +43,7 @@ public abstract class User {
         return password;
     }
 
+    
     public void set_user_name( String new_user_name ) {
         this.user_name = new_user_name;
     }
@@ -54,4 +55,8 @@ public abstract class User {
     public void set_email( String new_email ) {
         this.email = new_email;
     }    
+    public void set_password( String new_password ) {
+        this.password = new_password;
+    }
+
 }

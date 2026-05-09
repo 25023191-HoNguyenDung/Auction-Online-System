@@ -17,9 +17,8 @@ public class Seller extends User {
     }
     
     @Override
-    public String set_role() {
+    public void set_role() {
         this.role = "Seller";
-        return this.role;
     }
 
 }
