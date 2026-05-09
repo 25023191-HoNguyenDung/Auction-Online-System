@@ -12,7 +12,12 @@ public class Auction {
     private String highestBidder;
     
     //Constructor
-    public Auction(String id, String productName, LocalDateTime startTime, LocalDateTime endTime, double currentPrice, String highestBidder) {
+    public Auction( String id,
+                    String productName,
+                    LocalDateTime startTime,
+                    LocalDateTime endTime,
+                    double currentPrice,
+                    String highestBidder ) {
         this.id = id;
         this.productName = productName;
         this.startTime = startTime;
