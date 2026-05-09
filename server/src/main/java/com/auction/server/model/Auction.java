@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 public class Auction {
 
     private String id;
-    private String productName;
+    private Product product;
     private AuctionStatus status;
     private LocalDateTime startTime;    //tgian bat dau dau gia
     private LocalDateTime endTime;      //tgian ket thuc dau gia
@@ -13,13 +13,13 @@ public class Auction {
     
     //Constructor
     public Auction( String id,
-                    String productName,
+                    Product product,
                     LocalDateTime startTime,
                     LocalDateTime endTime,
                     double currentPrice,
                     String highestBidder ) {
         this.id = id;
-        this.productName = productName;
+        this.product = product;
         this.startTime = startTime;
         this.endTime = endTime;
         this.currentPrice = currentPrice;
@@ -32,8 +32,8 @@ public class Auction {
         return id; 
     }   
 
-    public String getProductName() { 
-        return productName; 
+    public String getProductID() { 
+        return product.get_product_id(); 
     }
     
     public AuctionStatus getStatus() { 
