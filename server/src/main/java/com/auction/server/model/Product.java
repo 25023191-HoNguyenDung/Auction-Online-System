@@ -11,9 +11,6 @@ public abstract class Product {
     private double current_price; //Update price in auction
 
     private String image_url; //URL for product image
-
-    private LocalDateTime start_time;
-    private LocalDateTime end_time;
     
     
     //Constructor:
@@ -44,12 +41,7 @@ public abstract class Product {
     public String get_image_url() {
         return image_url;
     }
-    public LocalDateTime get_start_time() {
-        return start_time;
-    }
-    public LocalDateTime get_end_time() {
-        return end_time;
-    }
+
 
     public void set_product_name( String new_product_name ) {
         this.product_name = new_product_name;
@@ -69,12 +61,7 @@ public abstract class Product {
     public void set_image_url( String new_image_url ) {
         this.image_url = new_image_url;
     }
-    public void set_start_time( LocalDateTime new_start_time ) {
-        this.start_time = new_start_time;
-    }
-    public void set_end_time( LocalDateTime new_end_time ) {
-        this.end_time = new_end_time;
-    }
+
 
 
 }
