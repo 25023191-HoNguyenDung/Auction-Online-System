@@ -9,7 +9,7 @@ public class Seller extends User {
 
     //Constructor:
     public Seller(  String name,
-                    String ID, 
+                    long ID,
                     String email, 
                     String password, 
                     String role, 

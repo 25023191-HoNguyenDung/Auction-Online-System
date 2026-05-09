@@ -8,11 +8,11 @@ DELETE FROM items;
 DELETE FROM users;
 
 -- 1. Users
-INSERT INTO users (id, username, password, full_name, email, phone, role) VALUES
-(1, 'admin', 'admin2308', 'admin system', 'admin@gmail.com', '0123456789', 'ADMIN'),
-(2, 'seller1', 'seller12308', 'Ngo Duc Anh', 'ducanh@gmail.com', '2912345678', 'SELLER'),
-(3, 'bidder1', 'bidder12308', 'Ho Nguyen Dung', 'dung@gmail.com', '3812345678', 'BIDDER'),
-(4, 'bidder2', 'bidder22308', 'Ngoc Khanh', 'khanh@gmail.com', '1912345678', 'BIDDER');
+INSERT INTO users (id, user_name, password, email, role) VALUES
+(1, 'admin', 'admin2308', 'admin@gmail.com', 'ADMIN'),
+(2, 'seller1', 'seller12308', 'ducanh@gmail.com', 'SELLER'),
+(3, 'bidder1', 'bidder12308', 'dung@gmail.com',  'BIDDER'),
+(4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER');
 
 -- 2. Items
 INSERT INTO items (id, seller_id, name, description, category, starting_price) VALUES
@@ -32,7 +32,7 @@ INSERT INTO auto_bid_profiles (id, user_id, auction_id, max_bid, increment) VALU
 (2, 4, 1, 32000000.00, 1000000.00);
 
 -- 5. Bids
-INSERT INTO bids (id, auction_id, bidder_id, amount, bid_time) VALUES
+INSERT INTO bids (bidId, auctionId, bidder, amount, bid_time) VALUES
 (1, 1, 3, 26000000.00, NOW()),
 (2, 1, 4, 27000000.00, NOW()),
 (3, 1, 3, 28000000.00, NOW()),

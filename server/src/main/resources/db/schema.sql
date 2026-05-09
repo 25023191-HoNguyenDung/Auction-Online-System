@@ -5,16 +5,12 @@ USE auction_db;
 
 CREATE TABLE `users` (
 `id` bigint NOT NULL AUTO_INCREMENT,
-`username` varchar(50) NOT NULL,
+`user_name` varchar(50) NOT NULL,
 `password` varchar(300) NOT NULL,
-`full_name` varchar(100) DEFAULT NULL,
 `email` varchar(100) NOT NULL,
-`phone` varchar(20) DEFAULT NULL,
-`role` enum('BIDDER','SELLER','ADMIN') NOT NULL,
-`created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-`updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+`role` varchar(20) NOT NULL,
 PRIMARY KEY (`id`),
- UNIQUE KEY `username` (`username`),
+ UNIQUE KEY `username` (`user_name`),
  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -43,8 +39,6 @@ CREATE TABLE `auctions` (
 `start_time` datetime NOT NULL,
 `end_time` datetime NOT NULL,
 `winner_bidder_id` bigint DEFAULT NULL,
-`created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-`updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 PRIMARY KEY (`id`),
 KEY `item_id` (`item_id`),
 KEY `seller_id` (`seller_id`),
@@ -56,16 +50,16 @@ CONSTRAINT `auctions_ibfk_3` FOREIGN KEY (`winner_bidder_id`) REFERENCES `users`
 
 
 CREATE TABLE `bids` (
-`id` bigint NOT NULL AUTO_INCREMENT,
-`auction_id` bigint NOT NULL,
-`bidder_id` bigint NOT NULL,
+`bidId` bigint NOT NULL AUTO_INCREMENT,
+`auctionId` bigint NOT NULL,
+`bidder` bigint NOT NULL,
 `amount` decimal(15,2) NOT NULL,
 `bid_time` timestamp DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY (`id`),
-KEY `auction_id` (`auction_id`),
-KEY `bidder_id` (`bidder_id`),
-CONSTRAINT `bids_ibfk_1` FOREIGN KEY (`auction_id`) REFERENCES `auctions` (`id`) ON DELETE CASCADE,
-CONSTRAINT `bids_ibfk_2` FOREIGN KEY (`bidder_id`) REFERENCES `users` (`id`)
+PRIMARY KEY (`bidId`),
+KEY `auction_id` (`auctionId`),
+KEY `bidder_id` (`bidder`),
+CONSTRAINT `bids_ibfk_1` FOREIGN KEY (`auctionId`) REFERENCES `auctions` (`id`) ON DELETE CASCADE,
+CONSTRAINT `bids_ibfk_2` FOREIGN KEY (`bidder`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
