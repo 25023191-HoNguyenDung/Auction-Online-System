@@ -9,10 +9,17 @@ public class Vehicle extends Product {
     private int year;
 
     //Constructor:
-    public Vehicle(String product_name, String description, double reserve_price, 
-        String image_url, String fuel_type,String type_of_vehicle, String color, int year) {
+    public Vehicle( String product_name,
+                    String product_id,
+                    String description,
+                    double reserve_price, 
+                    String image_url,
+                    String fuel_type,
+                    String type_of_vehicle,
+                    String color,
+                    int year                   ) {
 
-        super(product_name, description, reserve_price, image_url);
+        super(product_name, product_id, description, reserve_price, image_url);
         this.fuel_type = fuel_type;
         this.type_of_vehicle = type_of_vehicle;
         this.color = color;

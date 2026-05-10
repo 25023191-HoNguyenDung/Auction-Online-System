@@ -1,10 +1,10 @@
 package com.auction.server.model;
-import java.time.LocalDateTime;
 
 public abstract class Product {
 
     //Call Fields:
     private String product_name;
+    private long product_id;
     private String decripsion;
     private double reserve_price;
     
@@ -14,8 +14,9 @@ public abstract class Product {
     
     
     //Constructor:
-    public Product(String product_name, String decripsion, double reserve_price, String image_url) {
+    public Product(String product_name, long product_id, String decripsion, double reserve_price, String image_url) {
         this.product_name = product_name;
+        this.product_id = product_id;
         this.decripsion = decripsion;
         this.reserve_price = reserve_price;
         this.current_price = reserve_price; //Initial current price is the same as reserve price
@@ -25,6 +26,10 @@ public abstract class Product {
     //Getters and Setters:
     public String get_product_name() {
         return product_name;
+    }
+
+    public long get_product_id() {
+        return product_id;
     }
 
     public String get_description() {
