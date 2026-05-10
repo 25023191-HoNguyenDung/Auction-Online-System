@@ -16,13 +16,14 @@ PRIMARY KEY (`id`),
 
 
 CREATE TABLE `items` (
-`id` bigint NOT NULL AUTO_INCREMENT,
+`id`  bigint NOT NULL AUTO_INCREMENT,
 `seller_id` bigint NOT NULL,
 `name` varchar(200) NOT NULL,
 `description` text,
  `category` varchar(50) DEFAULT NULL,
 `starting_price` decimal(15,2) NOT NULL,
-`created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+`current_price` decimal(15,2) NOT NULL,       -- thêm: giá hiện tại
+`image_url`  varchar(500)  DEFAULT NULL,   -- thêm: ảnh sản phẩm
 PRIMARY KEY (`id`),
 KEY `seller_id` (`seller_id`),
 CONSTRAINT `items_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE

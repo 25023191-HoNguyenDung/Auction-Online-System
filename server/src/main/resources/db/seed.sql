@@ -15,11 +15,10 @@ INSERT INTO users (id, user_name, password, email, role) VALUES
 (4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER');
 
 -- 2. Items
-INSERT INTO items (id, seller_id, name, description, category, starting_price) VALUES
-(1, 2, 'iphone 17 pro max', 'new 100%', 'ELECTRONICS', 25000000.00),
-(2, 2, 'tranh sơn dầu phong cảnh', 'nguyên bản thế kỷ 19', 'ART', 8000000.00),
-(3, 2, 'SH 150i', 'xe nhập khẩu', 'VEHICLE', 145000000.00);
-
+INSERT INTO items (id, seller_id, name, description, category, starting_price, current_price, image_url) VALUES
+(1, 2, 'iphone 17 pro max',         'new 100%',              'ELECTRONICS', 25000000.00,  25000000.00,  NULL),
+(2, 2, 'tranh sơn dầu phong cảnh',  'nguyên bản thế kỷ 19', 'ART',          8000000.00,   8000000.00,  NULL),
+(3, 2, 'SH 150i',                   'xe nhập khẩu',          'VEHICLE',    145000000.00, 145000000.00,  NULL);
 -- 3. Auctions
 INSERT INTO auctions (id, item_id, seller_id, starting_price, current_price, status, start_time, end_time, winner_bidder_id) VALUES
 (1, 1, 2, 25000000.00, 28500000.00, 'RUNNING', NOW(), DATE_ADD(NOW(), INTERVAL 2 DAY), NULL),

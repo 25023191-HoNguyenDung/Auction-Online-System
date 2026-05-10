@@ -12,7 +12,6 @@ public abstract class User {
     public String getRole() {
         return role;
     }
-
     //Constructor:
     public User(String user_name, long ID, String email, String password, String role) {
         this.user_name = user_name;

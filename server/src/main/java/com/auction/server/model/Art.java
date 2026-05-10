@@ -1,6 +1,8 @@
 package com.auction.server.model;
 
-public class Art extends Product {
+import java.math.BigDecimal;
+
+public class Art extends Item {
 
     //Fields: 
     private String artist;
@@ -8,18 +10,12 @@ public class Art extends Product {
 
     
     //Constructor:
-    public Art( String name,
-                String product_id,
-                String description,
-                double reserve_price,
-                String image_url,
-                String artist,
-                String style) {
 
-        super(name, product_id, description, reserve_price, image_url);
+
+    public Art(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, double reserve_price, String artist, String style) {
+        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl, reserve_price);
         this.artist = artist;
         this.style = style;
-        
     }
 
     //getters and setters:

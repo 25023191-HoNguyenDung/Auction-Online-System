@@ -16,16 +16,16 @@ public class JdbcAuctionDao implements AuctionDao {
     private Auction mapRow(ResultSet rs) throws SQLException {
         Auction auction = new Auction();
         auction.setId(rs.getLong("id"));
-        auction.setItem_id(rs.getLong("item_id"));           // setItem_id không phải setItemId
-        auction.setSeller_id(rs.getLong("seller_id"));       // setSeller_id
-        auction.setStarting_price(rs.getBigDecimal("starting_price")); // setStarting_price
-        auction.setCurrent_price(rs.getBigDecimal("current_price"));   // setCurrent_price
+        auction.setItem_id(rs.getLong("item_id"));
+        auction.setSeller_id(rs.getLong("seller_id"));
+        auction.setStarting_price(rs.getBigDecimal("starting_price"));
+        auction.setCurrent_price(rs.getBigDecimal("current_price"));
         auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
-        auction.setStart_time(rs.getTimestamp("start_time").toLocalDateTime()); // setStart_time
-        auction.setEnd_time(rs.getTimestamp("end_time").toLocalDateTime());     // setEnd_time
-        // winner_bidder_id có thể NULL
+        auction.setStart_time(rs.getTimestamp("start_time").toLocalDateTime());
+        auction.setEnd_time(rs.getTimestamp("end_time").toLocalDateTime());
+        // winner_bidder_id: DB là BIGINT, model là String → convert
         long winnerId = rs.getLong("winner_bidder_id");
-        auction.setWinner_bidder_id(rs.wasNull() ? null : winnerId);   // setWinner_bidder_id
+        auction.setWinner_bidder_id(rs.wasNull() ? null : String.valueOf(winnerId));
         return auction;
     }
 
@@ -95,13 +95,13 @@ public class JdbcAuctionDao implements AuctionDao {
         """;
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setLong(1, auction.getItem_id());             // getItem_id()
-            ps.setLong(2, auction.getSeller_id());           // getSeller_id()
-            ps.setBigDecimal(3, auction.getStarting_price()); // getStarting_price()
-            ps.setBigDecimal(4, auction.getCurrent_price());  // getCurrent_price()
+            ps.setLong(1, auction.getItem_id());
+            ps.setLong(2, auction.getSeller_id());
+            ps.setBigDecimal(3, auction.getStarting_price());
+            ps.setBigDecimal(4, auction.getCurrent_price());
             ps.setString(5, auction.getStatus().name());
-            ps.setTimestamp(6, Timestamp.valueOf(auction.getStart_time())); // getStart_time()
-            ps.setTimestamp(7, Timestamp.valueOf(auction.getEnd_time()));   // getEnd_time()
+            ps.setTimestamp(6, Timestamp.valueOf(auction.getStart_time()));
+            ps.setTimestamp(7, Timestamp.valueOf(auction.getEnd_time()));
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) auction.setId(keys.getLong(1));
@@ -120,11 +120,12 @@ public class JdbcAuctionDao implements AuctionDao {
         """;
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setBigDecimal(1, auction.getCurrent_price());  // getCurrent_price()
+            ps.setBigDecimal(1, auction.getCurrent_price());
             ps.setString(2, auction.getStatus().name());
-            ps.setTimestamp(3, Timestamp.valueOf(auction.getEnd_time())); // getEnd_time()
-            if (auction.getWinner_bidder_id() != null) {     // getWinner_bidder_id()
-                ps.setLong(4, auction.getWinner_bidder_id());
+            ps.setTimestamp(3, Timestamp.valueOf(auction.getEnd_time()));
+            // winner_bidder_id: model là String, DB là BIGINT → convert
+            if (auction.getWinner_bidder_id() != null) {
+                ps.setLong(4, Long.parseLong(auction.getWinner_bidder_id()));
             } else {
                 ps.setNull(4, Types.BIGINT);
             }
