@@ -7,11 +7,11 @@ public class AuctionManager {
     
     private static AuctionManager instance;
 
-    private List<Product> products;
+    private List<Item> items;
     private List<Auction> auctions;
 
     private AuctionManager() {
-        products = new ArrayList<>();
+        items = new ArrayList<>();
         auctions = new ArrayList<>();
     }
 
@@ -22,115 +22,115 @@ public class AuctionManager {
         return instance;
     }
     
-    // Methods to add products
-    public void addProduct(Product product) {
-        for (Product p : products) {
-            if (p.get_product_name().equals(product.get_product_name())) {
-                throw new IllegalArgumentException("Product with the same name already exists: " + product.get_product_name());
+    // Methods to add items
+    public void addItem(Item item) {
+        for (Item p : items) {
+            if (p.getItemName().equals(item.getItemName())) {
+                throw new IllegalArgumentException("item with the same name already exists: " + item.getItemName());
             }
         }
-        products.add(product);
+        items.add(item);
     }
 
-    // Method to remove products
-    public boolean removeProduct(String product_id) {
-        for (Product p : products) {
-            if (p.get_product_id().equals(product_id)) {
-                products.remove(p);
-                System.out.println("Product removed successfully: " + p.get_product_name());
+    // Method to remove items
+    public boolean removeItem(long item_id) {
+        for (Item p : items) {
+            if (p.getItemId()==(item_id)) {
+                items.remove(p);
+                System.out.println("item removed successfully: " + p.getItemName());
                 return true;
             }
         }
-        System.out.println("Product not found: " + product_id);
+        System.out.println("item not found: " + item_id);
         return false;
     }
 
-    //Change product details
-    public boolean updateProduct(String new_product_name,
-                                String product_id,
+    //Change item details
+    public boolean updateItem(String new_item_name,
+                                long item_id,
                                 String new_description,
                                 double new_reserve_price,
                                 String new_image_url) {
         try {
-            for (Product p : products) {
-                if (p.get_product_id().equals(product_id)) {
+            for (Item p : items) {
+                if (p.getItemId()==(item_id)) {
                     for (Auction a : auctions) {
-                        if (a.getProductID().equals(product_id)
+                        if (a.getItem_id()==(item_id)
                                 && a.getStatus() == AuctionStatus.OPEN) {
-                            throw new IllegalStateException("Cannot update product details while it "
-                                    + "is in an active auction: " + p.get_product_name());
+                            throw new IllegalStateException("Cannot update item details while it "
+                                    + "is in an active auction: " + p.getItemName());
                         }
                     }
 
-                    if (new_product_name != null && !new_product_name.isBlank())
-                        p.set_product_name(new_product_name);
+                    if (new_item_name != null && !new_item_name.isBlank())
+                        p.setItemName(new_item_name);
                     if (new_description != null && !new_description.isBlank())
-                        p.set_description(new_description);
+                        p.setDescription(new_description);
                     if (new_reserve_price > 0)
-                        p.set_reserve_price(new_reserve_price);
+                        p.setReserve_price(new_reserve_price);
                     if (new_image_url != null && !new_image_url.isBlank())
-                        p.set_image_url(new_image_url);
+                        p.setImageUrl(new_image_url);
 
-                    System.out.println("Product updated successfully: " + p.get_product_name());
+                    System.out.println("item updated successfully: " + p.getItemName());
                     return true;
                 }
             }                                                    
-            System.out.println("Product not found: " + product_id); 
+            System.out.println("item not found: " + item_id);
             return false;                                            
 
         } catch (IllegalStateException e) {
-            System.out.println("Error updating product: " + e.getMessage());
+            System.out.println("Error updating item: " + e.getMessage());
             return false;
         }
     }
 
-    // Method to find product by ID
-    public Product findProductById(String product_id) {
-        for (Product p : products) {
-            if (p.get_product_id().equals(product_id)) {
+    // Method to find item by ID
+    public Item findItemById(long item_id) {
+        for (Item p : items) {
+            if (p.getItemId()==(item_id)) {
                 return p;
             }
         }
         return null;
     }
 
-    // Method to list all products
-    public void listAllProducts() {
-        if (products.isEmpty()) {
-            System.out.println("No products available.");
+    // Method to list all Item
+    public void listAllItems() {
+        if (items.isEmpty()) {
+            System.out.println("No item available.");
             return;
         }
-        System.out.println("\n===== ALL PRODUCTS (" + products.size() + ") =====");
-        for (Product p : products) {
-            System.out.println("ID: " + p.get_product_id());
-            System.out.println("Name: " + p.get_product_name());
-            System.out.println("Description: " + p.get_description());
-            System.out.println("Reserve Price: " + p.get_reserve_price());
-            System.out.println("Image URL: " + p.get_image_url());
+        System.out.println("\n===== ALL ITEMS (" + items.size() + ") =====");
+        for (Item p : items) {
+            System.out.println("ID: " + p.getItemId());
+            System.out.println("Name: " + p.getItemName());
+            System.out.println("Description: " + p.getDescription());
+            System.out.println("Reserve Price: " + p.getReserve_price());
+            System.out.println("Image URL: " + p.getImageUrl());
             System.out.println("─────────────────────────────");
         }
     }   
 
-    public List<Product> getProducts() { return products; }
+    public List<Item> getItems() { return items; }
 
     // Add Auction
     public void addAuction(Auction auction) {
         try {
             for (Auction a : auctions) {
-                if (a.getId().equals(auction.getId())) {
+                if (a.getId()==(auction.getId())) {
                     throw new IllegalArgumentException("Auction ID already exists: "
                             + auction.getId());
                 }
             }
             auctions.add(auction);
-            System.out.println("Auction added for product: " + auction.getProductID());
+            System.out.println("Auction added for item: " + auction.getItem_id());
         } catch (IllegalArgumentException e) {
             System.out.println("Error adding auction: " + e.getMessage());
         }
     }
 
     // Remove Auction
-    public boolean removeAuction(String auction_id) {
+    public boolean removeAuction(long auction_id) {
         Auction toRemove = findAuctionById(auction_id);
         if (toRemove == null) {
             System.out.println(" Auction not found: " + auction_id);
@@ -142,9 +142,9 @@ public class AuctionManager {
     }
 
     // Find Auction by ID
-    public Auction findAuctionById(String auction_id) {
+    public Auction findAuctionById(long auction_id) {
         for (Auction a : auctions) {
-            if (a.getId().equals(auction_id)) {
+            if (a.getId()==(auction_id)) {
                 return a;
             }
         }
@@ -160,9 +160,9 @@ public class AuctionManager {
         System.out.println("\n===== ALL AUCTIONS (" + auctions.size() + ") =====");
         for (Auction a : auctions) {
             System.out.println("ID: " + a.getId()
-                    + " | Product: " + a.getProductID()
+                    + " | item: " + a.getItem_id()
                     + " | Status: " + a.getStatus()
-                    + " | Current Price: " + a.getCurrentPrice());
+                    + " | Current Price: " + a.getCurrent_price());
             System.out.println("─────────────────────────────");
         }
     }

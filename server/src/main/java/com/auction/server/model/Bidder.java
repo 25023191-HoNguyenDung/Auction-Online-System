@@ -10,7 +10,7 @@ public class Bidder extends User {
 
     //Constructor:
     public Bidder(  String name,
-                    String ID, 
+                    long ID,
                     String email, 
                     String password, 
                     String role, 
@@ -39,6 +39,7 @@ public class Bidder extends User {
     public ArrayList<Auction> getHistory_of_auction() {
         return history_of_auction;
     }
+
     
 
 

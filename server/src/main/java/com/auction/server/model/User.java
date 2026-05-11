@@ -4,13 +4,16 @@ public abstract class User {
     
     //Call Fields:
     private String user_name;
-    private String ID;
+    private long ID;
     private String email;
     private String password;
     protected String role;
 
+    public String getRole() {
+        return role;
+    }
     //Constructor:
-    public User(String user_name, String ID, String email, String password, String role) {
+    public User(String user_name, long ID, String email, String password, String role) {
         this.user_name = user_name;
         this.ID = ID;
         this.email = email;
@@ -31,7 +34,7 @@ public abstract class User {
         return user_name;
     }
 
-    public String get_ID() {
+    public long get_ID() {
         return ID;
     }
 
@@ -48,7 +51,7 @@ public abstract class User {
         this.user_name = new_user_name;
     }
 
-    public void set_ID( String new_ID ) {
+    public void set_ID( long new_ID ) {
         this.ID = new_ID;
     }
 
