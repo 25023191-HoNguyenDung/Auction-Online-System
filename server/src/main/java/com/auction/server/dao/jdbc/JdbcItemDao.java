@@ -42,7 +42,7 @@ public class JdbcItemDao implements ItemDao {
 
     @Override
     public List<Item> findBySellerId(long sellerId) {
-        String sql = "SELECT * FROM items WHERE seller_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM items WHERE seller_id = ? ORDER BY id DESC";
         List<Item> list = new ArrayList<>();
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -57,7 +57,7 @@ public class JdbcItemDao implements ItemDao {
 
     @Override
     public List<Item> findAll() {
-        String sql = "SELECT * FROM items ORDER BY created_at DESC";
+        String sql = "SELECT * FROM items ORDER BY id DESC";
         List<Item> list = new ArrayList<>();
         try (Connection conn = db.getConnection();
              Statement stmt = conn.createStatement();

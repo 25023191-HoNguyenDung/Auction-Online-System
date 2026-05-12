@@ -38,7 +38,6 @@ public class Auction {
         this.winner_bidder_id = winner_bidder_id;
     }
 
-    // ==================== GETTERS & SETTERS ====================
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
