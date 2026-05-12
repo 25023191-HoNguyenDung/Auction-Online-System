@@ -14,38 +14,22 @@ import java.util.List;
 import java.util.Optional;
 
 public class JdbcUserDao implements UserDao {
+
     private final DatabaseConfig db = DatabaseConfig.getInstance();
 
-    //chuyển dữ liệu từ bảng user thành obj
     private User mapRow(ResultSet rs) throws SQLException {
-        String role = rs.getString("role");
-        long id = rs.getLong("id");
-        String userName = rs.getString("user_name");
+        long id       = rs.getLong("id");
+        String username = rs.getString("user_name");
+        String email    = rs.getString("email");
         String password = rs.getString("password");
-        String fullName = rs.getString("full_name");
-        String email = rs.getString("email");
-        String phone = rs.getString("phone");
+        String role     = rs.getString("role");
 
-        User user;
-
-        switch (role) {
-            case "BIDDER":
-                user = new Bidder(userName, id, email, password, role,0.0,new ArrayList<>());
-                break;
-
-            case "SELLER":
-                user = new Seller(userName, id, email, password, role,0.0,new ArrayList<>(),new ArrayList<>() );
-                break;
-
-            case "ADMIN":
-                user = new Admin(userName, id, email, password, role);
-                break;
-
-            default:
-                throw new RuntimeException("Role không hợp lệ: " + role);
-        }
-
-        return user;
+        return switch (role.toUpperCase()) {
+            case "BIDDER" -> new Bidder(username, id, email, password, role, 0.0, new ArrayList<>());
+            case "SELLER" -> new Seller(username, id, email, password, role, 0.0, new ArrayList<>(), new ArrayList<>());
+            case "ADMIN"  -> new Admin(username, id, email, password, role);
+            default -> throw new RuntimeException("Role không hợp lệ: " + role);
+        };
     }
 
     @Override
@@ -56,7 +40,7 @@ public class JdbcUserDao implements UserDao {
             ps.setLong(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return Optional.of(mapRow(rs));
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Lỗi findById user: " + id, e);
         }
         return Optional.empty();
@@ -64,7 +48,7 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ?";
+        String sql = "SELECT * FROM users WHERE user_name = ?";  // user_name
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
@@ -92,10 +76,8 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public User save(User user) {
-        String sql = """
-                insert into users(user_name,password,email,role)
-                values(?,?,?,?)
-                """;
+        // Chỉ còn 4 cột: user_name, password, email, role
+        String sql = "INSERT INTO users (user_name, password, email, role) VALUES (?, ?, ?, ?)";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.get_user_name());
@@ -104,30 +86,21 @@ public class JdbcUserDao implements UserDao {
             ps.setString(4, user.getRole());
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) {
-                // Gán ID mới sinh về lại object (ID là String trong User)
-                user.set_ID(keys.getLong(1));
-            }
+            if (keys.next()) user.set_ID(keys.getLong(1));
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Lỗi save user: " + user.get_user_name(), e);
         }
         return user;
-
     }
-
 
     @Override
     public User update(User user) {
-        String sql = """
-            UPDATE users
-            SET email = ?, password = ?
-            WHERE id = ?
-        """;
+        String sql = "UPDATE users SET email = ?, password = ? WHERE id = ?";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.get_email());
             ps.setString(2, user.get_password());
-            ps.setLong(3, user.get_ID()); // String ID → long để truyền vào SQL
+            ps.setLong(3, user.get_ID());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi update user id: " + user.get_ID(), e);

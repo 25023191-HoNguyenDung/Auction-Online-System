@@ -14,14 +14,12 @@ public class JdbcBidDao implements BidDao {
 
     private final DatabaseConfig db = DatabaseConfig.getInstance();
 
-
     private BidTransaction mapRow(ResultSet rs) throws SQLException {
-        long id         = rs.getLong("id");
-        long auctionId  = rs.getLong("auction_id");
-        long bidderId   = rs.getLong("bidder_id");
+        long id        = rs.getLong("bidId");        // đổi id → bidId
+        long auctionId = rs.getLong("auctionId");    // đổi auction_id → auctionId
+        long bidderId  = rs.getLong("bidder");       // đổi bidder_id → bidder
         java.math.BigDecimal amount = rs.getBigDecimal("amount");
         java.time.LocalDateTime bidTime = rs.getTimestamp("bid_time").toLocalDateTime();
-
 
         Bidder bidder = new Bidder(
                 "",
@@ -30,13 +28,12 @@ public class JdbcBidDao implements BidDao {
                 0.0,
                 new ArrayList<>()
         );
-
         return new BidTransaction(id, auctionId, bidder, amount, bidTime);
     }
 
     @Override
     public Optional<BidTransaction> findById(long id) {
-        String sql = "SELECT * FROM bids WHERE id = ?";
+        String sql = "SELECT * FROM bids WHERE bidId = ?";   // bidId
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
@@ -50,8 +47,7 @@ public class JdbcBidDao implements BidDao {
 
     @Override
     public List<BidTransaction> findByAuctionId(long auctionId) {
-
-        String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY bid_time ASC";
+        String sql = "SELECT * FROM bids WHERE auctionId = ? ORDER BY bid_time ASC"; // auctionId
         List<BidTransaction> list = new ArrayList<>();
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -66,10 +62,9 @@ public class JdbcBidDao implements BidDao {
 
     @Override
     public Optional<BidTransaction> findHighestBidByAuctionId(long auctionId) {
-
         String sql = """
             SELECT * FROM bids
-            WHERE auction_id = ?
+            WHERE auctionId = ?
             ORDER BY amount DESC, bid_time ASC
             LIMIT 1
         """;
@@ -86,7 +81,7 @@ public class JdbcBidDao implements BidDao {
 
     @Override
     public BidTransaction save(BidTransaction bid) {
-        String sql = "INSERT INTO bids (auction_id, bidder_id, amount) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO bids (auctionId, bidder, amount) VALUES (?, ?, ?)";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, bid.getAuctionId());
