@@ -1,7 +1,4 @@
 package com.auction.server.model;
-import com.auction.server.model.AuctionStatus;
-
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -16,7 +13,7 @@ public class Auction {
     private AuctionStatus status;
     private LocalDateTime start_time;
     private LocalDateTime end_time;
-    private String winner_bidder_id;
+    private long winner_bidder_id;
 
     // Constructor mặc định
     public Auction() {}
@@ -25,7 +22,7 @@ public class Auction {
     public Auction(long id, long item_id, long seller_id,
                    BigDecimal starting_price, BigDecimal current_price,
                    AuctionStatus status, LocalDateTime start_time,
-                   LocalDateTime end_time, String winner_bidder_id) {
+                   LocalDateTime end_time, long winner_bidder_id) {
 
         this.id = id;
         this.item_id = item_id;
@@ -63,8 +60,8 @@ public class Auction {
     public LocalDateTime getEnd_time() { return end_time; }
     public void setEnd_time(LocalDateTime end_time) { this.end_time = end_time; }
 
-    public String getWinner_bidder_id() { return winner_bidder_id; }
-    public void setWinner_bidder_id(String winner_bidder_id) { this.winner_bidder_id = winner_bidder_id; }
+    public long getWinner_bidder_id() { return winner_bidder_id; }
+    public void setWinner_bidder_id(long winner_bidder_id) { this.winner_bidder_id = winner_bidder_id; }
 
     @Override
     public String toString() {

@@ -1,77 +1,120 @@
 package com.auction.client.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+/**
+ * Client AuctionItem — gộp server Auction + Item:
+ *
+ * Auction: id, item_id, seller_id, starting_price, current_price,
+ *          status, start_time, end_time, winner_bidder_id
+ * Item:    id(itemId), seller_id, name, description, category,
+ *          starting_price, current_price, image_url
+ */
 public class AuctionItem {
 
-    private int    id;
-    private String title;
-    private String subtitle;      // mô tả ngắn / edition
-    private String category;      // Art, Electronics, Vehicles, Watches, Jewellery
-    private String status;        // LIVE, ENDING_SOON, ENDED, PENDING
-    private double startPrice;    // giá khởi điểm
-    private double currentBid;    // giá hiện tại
-    private int    totalBids;     // số lượt đặt giá
-    private long   endsAtEpoch;   // thời gian kết thúc (Unix timestamp, giây)
-    private String imageUrl;      // URL ảnh từ server (null nếu chưa có)
-    private int    sellerId;      // id của người bán
-    private String sellerName;    // tên người bán
+    // Từ Auction
+    private long          auctionId;
+    private String        status;         // PENDING | RUNNING | CLOSED | CANCELLED
+    private double        startingPrice;
+    private double        currentPrice;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private Long          winnerBidderId;
+
+    // Từ Item
+    private long   itemId;
+    private long   sellerId;
+    private String sellerName;
+    private String itemName;
+    private String description;
+    private String category;
+    private String imageUrl;
+
+    // Tính thêm từ BidDao
+    private int totalBids;
 
     public AuctionItem() {}
 
-    public AuctionItem(int id, String title, String subtitle,
+    public AuctionItem(long auctionId, long itemId, long sellerId,
+                       String sellerName, String itemName, String description,
                        String category, String status,
-                       double startPrice, double currentBid,
-                       int totalBids, long endsAtEpoch,
-                       String imageUrl, int sellerId, String sellerName) {
-        this.id          = id;
-        this.title       = title;
-        this.subtitle    = subtitle;
-        this.category    = category;
-        this.status      = status;
-        this.startPrice  = startPrice;
-        this.currentBid  = currentBid;
-        this.totalBids   = totalBids;
-        this.endsAtEpoch = endsAtEpoch;
-        this.imageUrl    = imageUrl;
-        this.sellerId    = sellerId;
-        this.sellerName  = sellerName;
+                       double startingPrice, double currentPrice,
+                       LocalDateTime startTime, LocalDateTime endTime,
+                       String imageUrl, int totalBids) {
+        this.auctionId     = auctionId;
+        this.itemId        = itemId;
+        this.sellerId      = sellerId;
+        this.sellerName    = sellerName;
+        this.itemName      = itemName;
+        this.description   = description;
+        this.category      = category;
+        this.status        = status;
+        this.startingPrice = startingPrice;
+        this.currentPrice  = currentPrice;
+        this.startTime     = startTime;
+        this.endTime       = endTime;
+        this.imageUrl      = imageUrl;
+        this.totalBids     = totalBids;
     }
 
-    // ── Getters ──────────────────────────────────────────────
-    public int    getId()          { return id; }
-    public String getTitle()       { return title; }
-    public String getSubtitle()    { return subtitle; }
-    public String getCategory()    { return category; }
-    public String getStatus()      { return status; }
-    public double getStartPrice()  { return startPrice; }
-    public double getCurrentBid()  { return currentBid; }
-    public int    getTotalBids()   { return totalBids; }
-    public long   getEndsAtEpoch() { return endsAtEpoch; }
-    public String getImageUrl()    { return imageUrl; }
-    public int    getSellerId()    { return sellerId; }
-    public String getSellerName()  { return sellerName; }
+    // ── Getters ───────────────────────────────────────────────
+    public long          getAuctionId()      { return auctionId; }
+    public long          getItemId()         { return itemId; }
+    public long          getSellerId()       { return sellerId; }
+    public String        getSellerName()     { return sellerName; }
+    public String        getItemName()       { return itemName; }
+    public String        getDescription()    { return description; }
+    public String        getCategory()       { return category; }
+    public String        getStatus()         { return status; }
+    public double        getStartingPrice()  { return startingPrice; }
+    public double        getCurrentPrice()   { return currentPrice; }
+    public LocalDateTime getStartTime()      { return startTime; }
+    public LocalDateTime getEndTime()        { return endTime; }
+    public String        getImageUrl()       { return imageUrl; }
+    public int           getTotalBids()      { return totalBids; }
+    public Long          getWinnerBidderId() { return winnerBidderId; }
 
-    // ── Setters ──────────────────────────────────────────────
-    public void setId(int id)                   { this.id = id; }
-    public void setTitle(String title)          { this.title = title; }
-    public void setSubtitle(String subtitle)    { this.subtitle = subtitle; }
-    public void setCategory(String category)    { this.category = category; }
-    public void setStatus(String status)        { this.status = status; }
-    public void setStartPrice(double v)         { this.startPrice = v; }
-    public void setCurrentBid(double v)         { this.currentBid = v; }
-    public void setTotalBids(int v)             { this.totalBids = v; }
-    public void setEndsAtEpoch(long v)          { this.endsAtEpoch = v; }
-    public void setImageUrl(String imageUrl)    { this.imageUrl = imageUrl; }
-    public void setSellerId(int sellerId)       { this.sellerId = sellerId; }
-    public void setSellerName(String name)      { this.sellerName = name; }
+    // ── Setters ───────────────────────────────────────────────
+    public void setAuctionId(long v)          { this.auctionId = v; }
+    public void setItemId(long v)             { this.itemId = v; }
+    public void setSellerId(long v)           { this.sellerId = v; }
+    public void setSellerName(String v)       { this.sellerName = v; }
+    public void setItemName(String v)         { this.itemName = v; }
+    public void setDescription(String v)      { this.description = v; }
+    public void setCategory(String v)         { this.category = v; }
+    public void setStatus(String v)           { this.status = v; }
+    public void setStartingPrice(double v)    { this.startingPrice = v; }
+    public void setCurrentPrice(double v)     { this.currentPrice = v; }
+    public void setStartTime(LocalDateTime v) { this.startTime = v; }
+    public void setEndTime(LocalDateTime v)   { this.endTime = v; }
+    public void setImageUrl(String v)         { this.imageUrl = v; }
+    public void setTotalBids(int v)           { this.totalBids = v; }
+    public void setWinnerBidderId(Long v)     { this.winnerBidderId = v; }
 
-    // ── Helper ───────────────────────────────────────────────
-    /** Số giây còn lại tính từ bây giờ */
+    // ── Helpers ───────────────────────────────────────────────
     public int secondsLeft() {
-        long now = System.currentTimeMillis() / 1000;
-        return (int) Math.max(0, endsAtEpoch - now);
+        if (endTime == null) return 0;
+        long secs = Duration.between(LocalDateTime.now(), endTime).getSeconds();
+        return (int) Math.max(0, secs);
     }
 
-    public boolean isLive()        { return "LIVE".equals(status); }
-    public boolean isEndingSoon()  { return "ENDING_SOON".equals(status); }
-    public boolean isEnded()       { return "ENDED".equals(status); }
+    public boolean isRunning()    { return "RUNNING".equalsIgnoreCase(status); }
+    public boolean isPending()    { return "PENDING".equalsIgnoreCase(status); }
+    public boolean isClosed()     { return "CLOSED".equalsIgnoreCase(status); }
+    public boolean isEndingSoon() { return isRunning() && secondsLeft() < 900; }
+
+    /** Badge text dùng trong UI */
+    public String getDisplayStatus() {
+        if (isEndingSoon()) return "ENDING_SOON";
+        if (isRunning())    return "LIVE";
+        if (isPending())    return "PENDING";
+        return "ENDED";
+    }
+
+    // Alias cho ViewModel tương thích
+    public long   getId()         { return auctionId; }
+    public String getTitle()      { return itemName; }
+    public String getSubtitle()   { return description; }
+    public double getCurrentBid() { return currentPrice; }
 }
