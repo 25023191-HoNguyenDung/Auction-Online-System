@@ -1,6 +1,8 @@
 package com.auction.server.model;
 
-public class Electronics extends Product {
+import java.math.BigDecimal;
+
+public class Electronics extends Item {
 
     //Fields:
     private String brand;
@@ -8,19 +10,15 @@ public class Electronics extends Product {
     private int year_of_manufacture;
 
     //Constructor:
-    public Electronics( String product_name, 
-                        String description, 
-                        double reservePrice,
-                        String image_url, 
-                        String brand, 
-                        int warrantyMonths,
-                        int year_of_manufacture) {       
-        super(product_name, description, reservePrice, image_url);
+
+
+    public Electronics(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, double reserve_price, String brand, int warrantyMonths, int year_of_manufacture) {
+        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl, reserve_price);
         this.brand = brand;
         this.warrantyMonths = warrantyMonths;
         this.year_of_manufacture = year_of_manufacture;
     }
-    
+
     //getters and setters:
     public String getBrand() { 
         return brand; 

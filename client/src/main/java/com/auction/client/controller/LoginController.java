@@ -2,6 +2,10 @@ package com.auction.client.controller;
 
 import java.io.IOException;
 
+import com.auction.client.model.User;
+import com.auction.client.sessions.UserSession;
+import com.auction.client.util.NavigationUtils;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,7 +17,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 public class LoginController {
-
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
@@ -70,26 +73,26 @@ public class LoginController {
 
     // ADMIN
         if (email.equalsIgnoreCase("admin@auctionpro.com") && password.equals("admin123")) {
-            navigateTo("/com/auction/client/view/AdminDashboard.fxml", "Admin Dashboard");
+            User admin = new User(0, "Administrator", email, "ADMIN");
+            UserSession.getInstance().login(admin);
+            NavigationUtils.navigateToDashboard();
             return;
         }
 
-    // SELLER
-        if (email.equals("seller@aureate.com") && password.equals("seller123")) {
-            navigateTo("/com/auction/client/view/SellerDashboard.fxml", "Seller Dashboard");
-            return;
+    // USER (test)
+        User user = null;
+        if (email.equals("collector@aureate.com") && password.equals("password")) {
+            user = new User(1, "Ngô Đức Anh", email, "BIDDER");
+        } else if (email.equals("seller@aureate.com") && password.equals("seller123")) {
+            user = new User(2, "Seller Test", email, "SELLER");
         }
 
-    // BIDDER → Chuyển đến AuctionList
-    // Sau này sẽ kiểm tra từ Database
-        if (email.equals("collector@aureate.com") && password.equals("password") || 
-            email.endsWith("@aureate.com")) {   // tạm thời cho test
-        
-            navigateTo("/com/auction/client/view/AuctionList.fxml", "Bidder Dashboard");
-            return;
+        if (user != null) {
+            UserSession.getInstance().login(user);
+            NavigationUtils.navigateToDashboard();
+        } else {
+            showError("Invalid email or password.");
         }
-
-        showError("Invalid email or password.");
     }
     @FXML
     private void handleForgotPassword() {
