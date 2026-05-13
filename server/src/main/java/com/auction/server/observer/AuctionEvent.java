@@ -16,10 +16,10 @@ public class AuctionEvent {
     private final long auctionId;
     private final BigDecimal currentPrice;
     private final long bidderID;
-    private final String winnerBidderId; // có khi type = AUCTION_CLOSED
+    private final long winnerBidderId; // có khi type = AUCTION_CLOSED
     private final LocalDateTime timestamp;
 
-    public AuctionEvent(Type type, long auctionId, BigDecimal currentPrice, long bidderID, String winnerBidderId) {
+    public AuctionEvent(Type type, long auctionId, BigDecimal currentPrice, long bidderID, long winnerBidderId) {
         this.type = type;
         this.auctionId = auctionId;
         this.currentPrice = currentPrice;
@@ -29,19 +29,19 @@ public class AuctionEvent {
     }
     // tạo khi có người đặt giá thành công
     public static AuctionEvent bidPlaced(long auctionId, BigDecimal newPrice, long bidderID){
-        return new AuctionEvent(Type.BID_PLACED,auctionId,newPrice,bidderID,null);
+        return new AuctionEvent(Type.BID_PLACED,auctionId,newPrice,bidderID,0);
     }
     // tạo khi phiên đấu giá kết thúc
-    public static AuctionEvent auctionClosed(long auctionId, BigDecimal finalPrice, String winnerBidderId){
+    public static AuctionEvent auctionClosed(long auctionId, BigDecimal finalPrice, long winnerBidderId){
         return new AuctionEvent(Type.AUCTION_CLOSED, auctionId, finalPrice, 0, winnerBidderId);
     }
     // tạo khi phiên đấu giá bắt đầu
     public static AuctionEvent auctionStarted(long auctionId, BigDecimal startingPrice) {
-        return new AuctionEvent(Type.AUCTION_STARTED, auctionId, startingPrice, 0, null);
+        return new AuctionEvent(Type.AUCTION_STARTED, auctionId, startingPrice, 0, 0);
     }
     // tạo khi giá được cập nhật
     public static AuctionEvent priceUpdated(long auctionId, BigDecimal newPrice, long bidderId) {
-        return new AuctionEvent(Type.PRICE_UPDATED, auctionId, newPrice, bidderId, null);
+        return new AuctionEvent(Type.PRICE_UPDATED, auctionId, newPrice, bidderId, 0);
     }
 
     public Type getType() {
@@ -60,7 +60,7 @@ public class AuctionEvent {
         return bidderID;
     }
 
-    public String getWinnerBidderId() {
+    public long getWinnerBidderId() {
         return winnerBidderId;
     }
 

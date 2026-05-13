@@ -30,7 +30,7 @@ public class AuctionEventPublisher {
     }
     // hủy đki tất cả các phiên gọi khi client ngắt kết nối
     public void unsubscribeAll(AuctionObserver observer){
-        observerMap.forEach((auctionId,observers) -> observers.remove(observer));
+        observerMap.forEach((auctionId,observers) -> observers.remove(observer)); // xóa observer khỏi ds từng auction
     }
     //gửi event đến tất cả observer đang theo dõi phiên đấu giá
     public void publish(AuctionEvent event){

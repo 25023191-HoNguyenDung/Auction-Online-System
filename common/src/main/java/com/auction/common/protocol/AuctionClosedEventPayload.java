@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 import java.time.Instant;
 // thông báo khi phiên đấu giá kết thúc
 public class AuctionClosedEventPayload {
-    private final String auctionId; // phiên nào vừa kết thúc
+    private final long auctionId; // phiên nào vừa kết thúc
     private final BigDecimal finalPrice;
-    private final String winnerBidderId; // người thắng
+    private final long winnerBidderId; // người thắng
     private final String status; // trạng thái
     private final Instant closedAt; // thời gian đóng
 
-    public AuctionClosedEventPayload(String auctionId, BigDecimal finalPrice, String winnerBidderId, String status, Instant closedAt) {
+    public AuctionClosedEventPayload(long auctionId, BigDecimal finalPrice, long winnerBidderId, String status, Instant closedAt) {
         this.auctionId = auctionId;
         this.finalPrice = finalPrice;
         this.winnerBidderId = winnerBidderId;
@@ -18,7 +18,7 @@ public class AuctionClosedEventPayload {
         this.closedAt = closedAt;
     }
 
-    public String getAuctionId() {
+    public long getAuctionId() {
         return auctionId;
     }
 
@@ -26,7 +26,7 @@ public class AuctionClosedEventPayload {
         return finalPrice;
     }
 
-    public String getWinnerBidderId() {
+    public long getWinnerBidderId() {
         return winnerBidderId;
     }
 
