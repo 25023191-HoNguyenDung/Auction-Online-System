@@ -1,13 +1,19 @@
 package com.auction.server.dao.jdbc;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import com.auction.server.config.DatabaseConfig;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public class JdbcAuctionDao implements AuctionDao {
 
@@ -24,7 +30,7 @@ public class JdbcAuctionDao implements AuctionDao {
         auction.setStart_time(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEnd_time(rs.getTimestamp("end_time").toLocalDateTime());
         long winnerId = rs.getLong("winner_bidder_id");
-        auction.setWinner_bidder_id(rs.wasNull() ? null : String.valueOf(winnerId));
+        auction.setWinner_bidder_id(rs.getLong("winner_bidder_id"));
         return auction;
     }
 
@@ -122,10 +128,11 @@ public class JdbcAuctionDao implements AuctionDao {
             ps.setBigDecimal(1, auction.getCurrent_price());
             ps.setString(2, auction.getStatus().name());
             ps.setTimestamp(3, Timestamp.valueOf(auction.getEnd_time()));
-            if (auction.getWinner_bidder_id() != null) {
-                ps.setLong(4, Long.parseLong(auction.getWinner_bidder_id()));
+            if (auction.getWinner_bidder_id() != 0) {
+                ps.setLong(4, auction.getWinner_bidder_id());
             } else {
                 ps.setNull(4, Types.BIGINT);
+
             }
             ps.setLong(5, auction.getId());
             ps.executeUpdate();
