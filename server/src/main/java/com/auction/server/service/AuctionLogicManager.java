@@ -27,23 +27,23 @@ public class AuctionLogicManager {
     public void placeBid(BidTransaction bid) throws AuctionMisMatchException,AuctionTimeException, InvalidBidException {
         rwLock.writeLock().lock();
         try {
-            if (!(bid.getAuctionId() ==(auction.getId()))) {
-                throw new AuctionMisMatchException("ID phien dau gia khong khop.");
+            if (bid.getAuctionId() != auction.getId()) {
+                throw new AuctionMisMatchException("Auction ID does not match.");
             }
             if (auction.getStatus() != AuctionStatus.RUNNING) {
-                throw new AuctionTimeException("Phien dau gia chua bat dau hoac da ket thuc.");
+                throw new AuctionTimeException("Auction has not started or has ended.");
             }
             BigDecimal bidAmount = bid.getBidAmount();
             BigDecimal currentPrice = auction.getCurrent_price();
             long bidderId = bid.getBidderId();
-            boolean isFirstBidder = auction.getWinner_bidder_id() == 0; //Gia su 0 la chua co nguoi nao dat gia
-                if (bidAmount.compareTo(currentPrice) <= 0) {
-                    throw new InvalidBidException("Gia dat cua ban phai lon hon hoac bang gia hien tai.");
+            boolean isFirstBidder = (auction.getWinner_bidder_id() == 0);
+            if (isFirstBidder) {
+                if (bidAmount.compareTo(currentPrice) < 0) {
+                    throw new InvalidBidException("Bid amount must be higher than or equal to the current price.");
                 }
-            
-            else {
+            } else {
                 if (bidAmount.compareTo(currentPrice) <= 0) {
-                    throw new InvalidBidException("Gia dat cua ban phai lon hon gia hien tai.");
+                    throw new InvalidBidException("Bid amount must be higher than the current price.");
                 }
             }
             auction.setCurrent_price(bidAmount);
@@ -63,14 +63,14 @@ public class AuctionLogicManager {
             //Kiem tra trang thai: OPEN -> RUNNING
             if (auction.getStatus() == AuctionStatus.OPEN && now.isAfter(auction.getEnd_time())) {
                 auction.setStatus(AuctionStatus.RUNNING);
-                System.out.println("Bat dau phien dau gia.");
+                System.out.println("Auction started.");
                 isChanged = true;
             } 
             //RUNNING -> FINISHED
             else if (auction.getStatus() == AuctionStatus.RUNNING && now.isAfter(auction.getEnd_time())) {
                 auction.setStatus(AuctionStatus.FINISHED);
-                System.out.println("Ket thuc phien dau gia.");
-                System.out.println("ID nguoi thang cuoc: " + auction.getWinner_bidder_id());
+                System.out.println("Auction finished.");
+                System.out.println("Winner bidder ID: " + auction.getWinner_bidder_id());
                 isChanged = true;
             }
             if (isChanged) {
@@ -82,18 +82,34 @@ public class AuctionLogicManager {
         }
     }
     //Payment sau khi ket thuc dau gia
-    public void payment() {
+    public void payment() throws AuctionTimeException {
         rwLock.writeLock().lock();
         try {
-            if (auction.getStatus() == AuctionStatus.FINISHED && auction.getWinner_bidder_id() != 0) {
-                long winner = auction.getWinner_bidder_id();
-                boolean isWinner = true; //Gia su co nguoi thang cuoc
-                if (isWinner) {
-                    System.out.println("Thanh toan cho nguoi thang cuoc: " + winner);
-                } else {
-                    System.out.println("Khong co nguoi thang cuoc nao.");
-                }
+            if (auction.getStatus() != AuctionStatus.FINISHED) {
+                throw new AuctionTimeException("Auction has not finished.");
             }
+            long winnerId = auction.getWinner_bidder_id();
+            if (winnerId == 0) {
+                System.out.println("No winner found. Auction finished.");
+                return;
+            }
+            else {
+                long winner = auction.getWinner_bidder_id();
+                System.out.println("Processing payment for the winning bidder: " + winner);
+            }
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+    public void cancelled() throws AuctionTimeException {
+        rwLock.writeLock().lock();
+        try {  
+            if (auction.getStatus() != AuctionStatus.OPEN && auction.getStatus() != AuctionStatus.RUNNING) {
+                throw new AuctionTimeException("Only auctions in OPEN or RUNNING status can be cancelled.");
+            }
+            auction.setStatus(AuctionStatus.CANCELLED);
+            auctionDao.update(auction);
+            System.out.println("Auction " + auction.getId() + " has been cancelled.");
         } finally {
             rwLock.writeLock().unlock();
         }
