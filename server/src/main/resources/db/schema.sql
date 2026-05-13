@@ -24,6 +24,7 @@ CREATE TABLE `items` (
 `starting_price` decimal(15,2) NOT NULL,
 `current_price` decimal(15,2) NOT NULL,       -- thêm: giá hiện tại
 `image_url`  varchar(500)  DEFAULT NULL,   -- thêm: ảnh sản phẩm
+`reserve_price` decimal(15,2) NULL DEFAULT NULL, -- thêm: giá sàn
 PRIMARY KEY (`id`),
 KEY `seller_id` (`seller_id`),
 CONSTRAINT `items_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
