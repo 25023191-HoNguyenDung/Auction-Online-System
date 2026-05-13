@@ -41,7 +41,7 @@ public class AuctionEventPublisher {
                 observer.onAuctionEvent(event);
             }catch (Exception e){
                 // 1 observer lỗi ko ảnh hưởng đến những cái còn lại
-                System.err.println("[AuctionEventPublisher] Lỗi notify observer: " + e.getMessage());
+                System.err.println("Lỗi notify observer: " + e.getMessage());
             }
         }
     }
