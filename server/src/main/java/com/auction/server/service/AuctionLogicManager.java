@@ -27,7 +27,7 @@ public class AuctionLogicManager {
     public void placeBid(BidTransaction bid) throws AuctionMisMatchException,AuctionTimeException, InvalidBidException {
         rwLock.writeLock().lock();
         try {
-            if (!(bid.getAuctionId() ==(auction.getId()))) {
+            if (bid.getAuctionId() != auction.getId()) {
                 throw new AuctionMisMatchException("ID phien dau gia khong khop.");
             }
             if (auction.getStatus() != AuctionStatus.RUNNING) {
@@ -36,14 +36,14 @@ public class AuctionLogicManager {
             BigDecimal bidAmount = bid.getBidAmount();
             BigDecimal currentPrice = auction.getCurrent_price();
             long bidderId = bid.getBidderId();
-            boolean isFirstBidder = auction.getWinner_bidder_id() == 0; //Gia su 0 la chua co nguoi nao dat gia
-                if (bidAmount.compareTo(currentPrice) <= 0) {
+            boolean isFirstBidder = (auction.getWinner_bidder_id() == 0);
+            if (isFirstBidder) {
+                if (bidAmount.compareTo(currentPrice) < 0) {
                     throw new InvalidBidException("Gia dat cua ban phai lon hon hoac bang gia hien tai.");
                 }
-            
-            else {
+            } else {
                 if (bidAmount.compareTo(currentPrice) <= 0) {
-                    throw new InvalidBidException("Gia dat cua ban phai lon hon gia hien tai.");
+                    throw new InvalidBidException("Gia dat phai lon hon gia hien tai.");
                 }
             }
             auction.setCurrent_price(bidAmount);
@@ -82,18 +82,34 @@ public class AuctionLogicManager {
         }
     }
     //Payment sau khi ket thuc dau gia
-    public void payment() {
+    public void payment() throws AuctionTimeException {
         rwLock.writeLock().lock();
         try {
-            if (auction.getStatus() == AuctionStatus.FINISHED && auction.getWinner_bidder_id() != 0) {
-                long winner = auction.getWinner_bidder_id();
-                boolean isWinner = true; //Gia su co nguoi thang cuoc
-                if (isWinner) {
-                    System.out.println("Thanh toan cho nguoi thang cuoc: " + winner);
-                } else {
-                    System.out.println("Khong co nguoi thang cuoc nao.");
-                }
+            if (auction.getStatus() != AuctionStatus.FINISHED) {
+                throw new AuctionTimeException("Phien dau gia chua ket thuc.");
             }
+            long winnerId = auction.getWinner_bidder_id();
+            if (winnerId == 0) {
+                System.out.println("Khong co nguoi thang cuoc nao. Phien dau gia ket thuc.");
+                return;
+            }
+            else {
+                long winner = auction.getWinner_bidder_id();
+                System.out.println("Thanh toan cho nguoi thang cuoc: " + winner);
+            }
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+    public void cancelled() throws AuctionTimeException {
+        rwLock.writeLock().lock();
+        try {  
+            if (auction.getStatus() != AuctionStatus.OPEN && auction.getStatus() != AuctionStatus.RUNNING) {
+                throw new AuctionTimeException("Chi co the huy phien dau gia dang OPEN hoac RUNNING");
+            }
+            auction.setStatus(AuctionStatus.CANCELLED);
+            auctionDao.update(auction);
+            System.out.println("Phien dau gia " + auction.getId() + "da bi huy.");
         } finally {
             rwLock.writeLock().unlock();
         }
