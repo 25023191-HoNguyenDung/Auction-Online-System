@@ -1,12 +1,16 @@
 package com.auction.server.dao.jdbc;
-import com.auction.server.config.DatabaseConfig;
-import com.auction.server.dao.ItemDao;
-import com.auction.server.model.Item;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.auction.server.config.DatabaseConfig;
+import com.auction.server.dao.ItemDao;
+import com.auction.server.model.Item;
 
 public class JdbcItemDao implements ItemDao {
 
@@ -22,7 +26,7 @@ public class JdbcItemDao implements ItemDao {
         item.setStartingPrice(rs.getBigDecimal("starting_price"));
         item.setCurrentPrice(rs.getBigDecimal("current_price")); // thêm
         item.setImageUrl(rs.getString("image_url"));             // thêm
-        item.setReserve_price(0.0);                              // không có trong DB
+        item.setReserve_price(rs.getDouble("reserve_price"));                              // không có trong DB
         return item;
     }
 
@@ -84,6 +88,7 @@ public class JdbcItemDao implements ItemDao {
             ps.setBigDecimal(5, item.getStartingPrice());
             ps.setBigDecimal(6, item.getCurrentPrice()); // thêm
             ps.setString(7, item.getImageUrl());         // thêm
+            ps.setDouble(8, item.getReserve_price());    
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) item.setItemId(keys.getLong(1));
@@ -98,7 +103,7 @@ public class JdbcItemDao implements ItemDao {
         String sql = """
             UPDATE items
             SET name = ?, description = ?, category = ?,
-                starting_price = ?, current_price = ?, image_url = ?
+                starting_price = ?, current_price = ?, image_url = ?, reserve_price = ?
             WHERE id = ?
         """;
         try (Connection conn = db.getConnection();
@@ -110,6 +115,7 @@ public class JdbcItemDao implements ItemDao {
             ps.setBigDecimal(5, item.getCurrentPrice()); // thêm
             ps.setString(6, item.getImageUrl());         // thêm
             ps.setLong(7, item.getItemId());
+            ps.setDouble(8, item.getReserve_price());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi update item id: " + item.getItemId(), e);
