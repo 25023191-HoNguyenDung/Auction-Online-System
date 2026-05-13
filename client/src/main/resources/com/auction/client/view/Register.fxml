@@ -75,8 +75,9 @@
                         <ComboBox fx:id="roleComboBox" prefHeight="44" promptText="Select Role" styleClass="custom-text-field" />
 
                         <!-- FULL NAME -->
-                        <Label styleClass="form-label" text="FULL NAME" />
-                        <TextField fx:id="fullNameField" prefHeight="44" promptText="Ngo Duc Anh" styleClass="custom-text-field" />
+                        <Label styleClass="form-label" text="USERNAME" />
+                        <TextField fx:id="fullNameField" prefHeight="44" promptText="\@ducanh10" styleClass="custom-text-field" />
+                  <Text fill="#949292" strokeType="OUTSIDE" strokeWidth="0.0" text="Username must start with '@' and contain both letters and numbers!" />
 
                         <!-- EMAIL -->
                         <Label styleClass="form-label" text="EMAIL ADDRESS" />
@@ -93,6 +94,7 @@
                                 <PasswordField fx:id="confirmPasswordField" prefHeight="44" styleClass="custom-text-field" />
                             </VBox>
                         </HBox>
+                  <Text fill="#949292" strokeType="OUTSIDE" strokeWidth="0.0" text="Password must be at least 8 characters long and include letters, digits, and special characters!" />
 
                         <!-- TERMS -->
                         <HBox alignment="TOP_LEFT" spacing="10">

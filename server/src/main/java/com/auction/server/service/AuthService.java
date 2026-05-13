@@ -18,10 +18,10 @@ public void register(User newUser, String rawPassword) {
 
     // username phải hợp lệ, password phải hợp lệ
     if (!ValidRegister.isValidUsername(newUser.get_user_name()))
-        throw new ValidRegisterException("Invalid username!");
+        throw new ValidRegisterException("Username must start with '@' and contain both letters and numbers!");
 
     if (!ValidRegister.isValidPassword(rawPassword))
-        throw new ValidRegisterException("Invalid password!");
+        throw new ValidRegisterException("Password must be at least 8 characters long and include letters, digits, and special characters!");
 
     // Check trùng username
     if (UserDao.findByUsername(newUser.get_user_name()) != null)

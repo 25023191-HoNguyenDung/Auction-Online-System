@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 public class RegisterController {
 
     @FXML private ComboBox<String> roleComboBox;
-    @FXML private TextField fullNameField;
+    @FXML private TextField userNameField;
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private PasswordField confirmPasswordField;
@@ -45,22 +45,22 @@ public class RegisterController {
 
     private void setupRoleComboBox() {
         if (roleComboBox != null) {
-            roleComboBox.getItems().addAll("Bidder", "Seller");
-            roleComboBox.getSelectionModel().select("Bidder"); // Mặc định Bidder
+            roleComboBox.getItems().addAll("BIDDER", "SELLER");
+            roleComboBox.getSelectionModel().select("BIDDER"); // Mặc định Bidder
         }
     }
 
     @FXML
     private void handleRegister() {
         String role = roleComboBox.getValue();
-        String fullName = fullNameField.getText().trim();
+        String userName = userNameField.getText().trim();
         String email = emailField.getText().trim();
         String pass = passwordField.getText();
         String confirm = confirmPasswordField.getText();
 
         errorLabel.setVisible(false);
 
-        if (role == null || fullName.isEmpty() || email.isEmpty() || pass.isEmpty() || confirm.isEmpty()) {
+        if (role == null || userName.isEmpty() || email.isEmpty() || pass.isEmpty() || confirm.isEmpty()) {
             showMessage("Please fill in all fields.", false);
             return;
         }
