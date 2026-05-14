@@ -4,32 +4,32 @@ import java.math.BigDecimal;
 import java.util.UUID;
 // dữ liệu khi user gửi đi
 public class PlaceBidReqPayload {
-    private UUID auctionId; // sản phẩm
-    private UUID bidderId; // người đặt giá
+    private long auctionId; // sản phẩm
+    private long bidderId; // người đặt giá
     private BigDecimal amount; // giá
 
     public PlaceBidReqPayload() {
     }
 
-    public PlaceBidReqPayload(UUID auctionId, UUID bidderId, BigDecimal amount) {
+    public PlaceBidReqPayload(long auctionId, long bidderId, BigDecimal amount) {
         this.auctionId = auctionId;
         this.bidderId = bidderId;
         this.amount = amount;
     }
 
-    public UUID getAuctionId() {
+    public long getAuctionId() {
         return auctionId;
     }
 
-    public void setAuctionId(UUID auctionId) {
+    public void setAuctionId(long auctionId) {
         this.auctionId = auctionId;
     }
 
-    public UUID getBidderId() {
+    public long getBidderId() {
         return bidderId;
     }
 
-    public void setBidderId(UUID bidderId) {
+    public void setBidderId(long bidderId) {
         this.bidderId = bidderId;
     }
 
