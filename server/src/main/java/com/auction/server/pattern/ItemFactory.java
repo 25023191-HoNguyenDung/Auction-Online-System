@@ -59,7 +59,7 @@ public class ItemFactory {
             }
 
             default:
-                throw new IllegalArgumentException("Category không hợp lệ: " + category);
+                throw new IllegalArgumentException("Category is invalid: " + category);
         }
     }
     private static int toInt(Object value) {
