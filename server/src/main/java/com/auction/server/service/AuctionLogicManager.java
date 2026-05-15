@@ -1,5 +1,6 @@
 package com.auction.server.service;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -28,7 +29,7 @@ public class AuctionLogicManager {
         this.auctionDao = auctionDao;
     }
     //Dat gia
-    public void placeBid(BidTransaction bid) throws AuctionMisMatchException,AuctionTimeException, InvalidBidException, AuctionConnectException {
+    public void placeBid(BidTransaction bid) throws AuctionMisMatchException,AuctionTimeException, InvalidBidException, AuctionConnectException, SQLException {
         rwLock.writeLock().lock();
         try {
             if (bid.getAuctionId() != auction.getId()) {
@@ -52,13 +53,14 @@ public class AuctionLogicManager {
             }
             auction.setCurrent_price(bidAmount);
             auction.setWinner_bidder_id(bidderId);
+            saveAuction("placeBid");
         }
         finally {
             rwLock.writeLock().unlock();
         }
     }
     //cap nhat trang thai
-    public void updateAuctionStatus() throws AuctionConnectException {
+    public void updateAuctionStatus() throws AuctionConnectException, SQLException {
         rwLock.writeLock().lock();
         try {
             LocalDateTime now = LocalDateTime.now();
@@ -104,7 +106,7 @@ public class AuctionLogicManager {
             rwLock.writeLock().unlock();
         }
     }
-    public void cancelled() throws AuctionTimeException, AuctionConnectException {
+    public void cancelled() throws AuctionTimeException, AuctionConnectException, SQLException {
         rwLock.writeLock().lock();
         try {  
             if (auction.getStatus() != AuctionStatus.OPEN && auction.getStatus() != AuctionStatus.RUNNING) {
@@ -117,12 +119,21 @@ public class AuctionLogicManager {
             rwLock.writeLock().unlock();
         }
     }
-    private void saveAuction(String action) throws AuctionConnectException {
+    private void saveAuction(String action) throws AuctionConnectException, SQLException {
         try {
             auctionDao.update(auction);
             System.out.println("Auction saved successfully after " + action + ".");
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new AuctionConnectException("Failed to save auction: " + e.getMessage());
+        }
+    }
+    //Getters de ServiceImpl doc trang thai hien tai cua phien dau gia
+    public AuctionStatus getStatus() {
+        rwLock.readLock().lock();
+        try {
+            return auction.getStatus();
+        } finally {
+            rwLock.readLock().unlock();
         }
     }
 }
