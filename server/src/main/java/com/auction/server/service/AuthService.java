@@ -5,7 +5,7 @@ import com.auction.server.dao.UserDao;
 import com.auction.server.model.User;
 import com.auction.common.exception.ValidRegisterException;
 
-// server/src/main/java/com/auction/server/service/AuthService.java
+
 public class AuthService {
 
     private final UserDao UserDao;
@@ -24,7 +24,7 @@ public void register(User newUser, String rawPassword) {
         throw new ValidRegisterException("Password must be at least 8 characters long and include letters, digits, and special characters!");
 
     // Check trùng username
-    if (UserDao.findByUsername(newUser.get_user_name()) != null)
+    if (UserDao.findByUsername(newUser.get_user_name()).isPresent())
         throw new ValidRegisterException("Username already exists!");
 
     // Hash password rồi set lại
@@ -34,6 +34,16 @@ public void register(User newUser, String rawPassword) {
     UserDao.save(newUser);
 }
 
+public User login(String username, String rawPassword) {
+    User user = UserDao.findByUsername(username)
+            .orElseThrow(() -> new ValidRegisterException("Username does not exist! Please register first!"));
+
+    String hashedInput = hashPassword(rawPassword);
+        if (!hashedInput.equals(user.get_password()))
+            throw new ValidRegisterException("Incorrect password!Try again!");
+
+        return user;
+}
     private String hashPassword(String password) {
         // Dùng SHA-256
         try {
