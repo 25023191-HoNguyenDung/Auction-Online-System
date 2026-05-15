@@ -2,13 +2,14 @@ package com.auction.client.util;
 
 import java.io.IOException;
 
+import com.auction.client.controller.AuctionDetailController;
+import com.auction.client.model.AuctionItem;
 import com.auction.client.sessions.UserSession;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 
 public class NavigationUtils {
 
@@ -27,28 +28,53 @@ public class NavigationUtils {
                 stage.setTitle(title + " — Auction Pro");
                 stage.setScene(scene);
                 stage.show();
-            } else {
-                System.err.println("Không tìm thấy Stage hiện tại!");
             }
-
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("❌ Không thể mở trang: " + fxmlPath);
-        } catch (Exception e) {
+            System.err.println("❌ Navigation failed: " + fxmlPath);
+        }
+    }
+
+    /**
+     * Navigate to AuctionDetail and pass the selected item to its controller.
+     */
+    public static void navigateToAuctionDetail(AuctionItem item) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                NavigationUtils.class.getResource("/com/auction/client/view/AuctionDetail.fxml")
+            );
+            Parent root = loader.load();
+
+            // Get the controller and inject the item AFTER load
+            AuctionDetailController controller = loader.getController();
+            controller.setAuctionItem(item);
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(
+                NavigationUtils.class.getResource("/com/auction/client/css/style.css").toExternalForm()
+            );
+
+            Stage stage = getCurrentStage();
+            if (stage != null) {
+                stage.setTitle(item.getItemName() + " — Auction Pro");
+                stage.setScene(scene);
+                stage.show();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
+            System.err.println("❌ Navigation to AuctionDetail failed");
         }
     }
 
     private static Stage getCurrentStage() {
-        for (Window window : Stage.getWindows()) {
-            if (window instanceof Stage && window.isShowing()) {
-                return (Stage) window;
+        for (var window : Stage.getWindows()) {
+            if (window instanceof Stage s && s.isShowing()) {
+                return s;
             }
         }
         return null;
     }
 
-    // Các method khác giữ nguyên
     public static void navigateToDashboard() {
         UserSession session = UserSession.getInstance();
         
@@ -58,12 +84,10 @@ public class NavigationUtils {
         }
 
         String role = session.getCurrentUser().getRole().toUpperCase();
-
         switch (role) {
-            case "ADMIN" -> navigateTo("/com/auction/client/view/AdminDashboard.fxml", "Admin Dashboard");
+            case "ADMIN"  -> navigateTo("/com/auction/client/view/AdminDashboard.fxml", "Admin Dashboard");
             case "SELLER" -> navigateTo("/com/auction/client/view/SellerDashboard.fxml", "Seller Dashboard");
-            case "BIDDER", "USER" -> navigateTo("/com/auction/client/view/AuctionList.fxml", "Bidder Dashboard");
-            default -> navigateTo("/com/auction/client/view/AuctionList.fxml", "Dashboard");
+            default       -> navigateTo("/com/auction/client/view/AuctionList.fxml", "Live Auctions");
         }
     }
 

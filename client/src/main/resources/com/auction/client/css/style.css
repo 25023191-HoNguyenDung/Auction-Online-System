@@ -241,139 +241,436 @@
     -fx-border-color: transparent;
     -fx-padding: 8 4;
 }
-/* ==============================================
-   AUCTION LIST — paste vào CUỐI style.css
-   ============================================== */
+/* ===================== AUREATE-STYLE AUCTION LIST ===================== */
 
-.al-root        { -fx-background-color: #0a0e1a; }
+.filter-sidebar {
+    -fx-background-color: #0d0c08;
+    -fx-border-color: #2a2510;
+    -fx-border-width: 0 1 0 0;
+}
 
-/* NAVBAR */
-.al-navbar {
-    -fx-background-color: #0d1220;
-    -fx-border-color: rgba(201,168,76,0.15);
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 0 24;
+.filter-title, .section-title {
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 1px;
 }
-.al-nav-link {
-    -fx-background-color: transparent; -fx-border-color: transparent;
-    -fx-text-fill: #9aa0b4; -fx-font-size: 13px; -fx-font-family: 'Arial';
-    -fx-cursor: hand; -fx-padding: 6 4;
-}
-.al-nav-link-active {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #c9a84c transparent;
-    -fx-border-width: 0 0 2 0;
-    -fx-text-fill: #f0f0f0; -fx-font-size: 13px; -fx-font-family: 'Arial';
-    -fx-cursor: hand; -fx-padding: 6 4;
-}
-.al-search-field {
-    -fx-background-color: #141929;
-    -fx-border-color: rgba(201,168,76,0.25); -fx-border-radius: 20; -fx-background-radius: 20;
-    -fx-text-fill: #f0f0f0; -fx-prompt-text-fill: #555e7a;
-    -fx-padding: 8 16 8 36; -fx-font-size: 13px; -fx-font-family: 'Arial';
-}
-.al-search-field:focused { -fx-border-color: #c9a84c; }
 
-/* SIDEBAR */
-.al-sidebar {
-    -fx-background-color: #0d1220;
-    -fx-border-color: rgba(201,168,76,0.12); -fx-border-width: 0 1 0 0;
-    -fx-padding: 24 20;
+.filter-checkbox {
+    -fx-text-fill: #d4cdb8;
+    -fx-font-size: 13px;
 }
-.al-user-name  { -fx-text-fill: #f0f0f0; -fx-font-size: 14px; -fx-font-weight: bold; -fx-font-family: 'Arial'; }
-.al-user-badge { -fx-text-fill: #c9a84c; -fx-font-size: 9px;  -fx-font-weight: bold; -fx-font-family: 'Arial'; }
-.al-nav-item {
-    -fx-background-color: transparent; -fx-border-color: transparent;
-    -fx-text-fill: #9aa0b4; -fx-font-size: 13px; -fx-font-family: 'Arial';
-    -fx-cursor: hand; -fx-padding: 10 16; -fx-background-radius: 8; -fx-alignment: CENTER_LEFT;
+
+.price-field {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #f5f0e6;
+    -fx-prompt-text-fill: #5a5444;
+    -fx-border-color: #2e2a1e;
+    -fx-border-radius: 4;
 }
-.al-nav-item-active {
-    -fx-background-color: rgba(201,168,76,0.12); -fx-border-color: transparent;
-    -fx-text-fill: #c9a84c; -fx-font-size: 13px; -fx-font-family: 'Arial';
-    -fx-cursor: hand; -fx-padding: 10 16; -fx-background-radius: 8; -fx-alignment: CENTER_LEFT;
-}
-.al-section-label { -fx-text-fill: #555e7a; -fx-font-size: 10px; -fx-font-weight: bold; -fx-font-family: 'Arial'; }
-.al-checkbox { -fx-text-fill: #9aa0b4; -fx-font-size: 13px; -fx-font-family: 'Arial'; }
-.al-checkbox .box {
-    -fx-background-color: #141929;
-    -fx-border-color: rgba(201,168,76,0.3); -fx-border-radius: 3; -fx-background-radius: 3;
-}
-.al-checkbox:selected .mark { -fx-background-color: #c9a84c; }
-.al-price-field {
-    -fx-background-color: #141929;
-    -fx-border-color: rgba(201,168,76,0.25); -fx-border-radius: 6; -fx-background-radius: 6;
-    -fx-text-fill: #f0f0f0; -fx-prompt-text-fill: #555e7a;
-    -fx-padding: 7 10; -fx-font-size: 12px; -fx-font-family: 'Arial';
-}
-.al-price-field:focused { -fx-border-color: #c9a84c; }
-.al-status-btn {
-    -fx-background-color: #141929; -fx-text-fill: #9aa0b4; -fx-font-size: 11px; -fx-font-family: 'Arial';
-    -fx-border-color: rgba(201,168,76,0.2); -fx-border-radius: 20; -fx-background-radius: 20;
-    -fx-padding: 4 10; -fx-cursor: hand;
-}
-.al-status-btn-active {
-    -fx-background-color: #14532d; -fx-text-fill: #4ade80; -fx-font-size: 11px; -fx-font-family: 'Arial';
-    -fx-border-color: #4ade80; -fx-border-radius: 20; -fx-background-radius: 20;
-    -fx-padding: 4 10; -fx-cursor: hand;
-}
-.al-status-btn-ending {
-    -fx-background-color: #2a1a0a; -fx-text-fill: #f59e0b; -fx-font-size: 11px; -fx-font-family: 'Arial';
-    -fx-border-color: #f59e0b; -fx-border-radius: 20; -fx-background-radius: 20;
-    -fx-padding: 4 10; -fx-cursor: hand;
-}
-.al-apply-btn {
-    -fx-background-color: rgba(201,168,76,0.15); -fx-text-fill: #c9a84c;
-    -fx-font-size: 12px; -fx-font-weight: bold; -fx-font-family: 'Arial';
-    -fx-border-color: rgba(201,168,76,0.3); -fx-border-radius: 6; -fx-background-radius: 6;
+
+.status-btn {
+    -fx-background-color: #f0b429;
+    -fx-text-fill: #0d0c08;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #f0b429;
     -fx-cursor: hand;
 }
 
-/* MAIN CONTENT */
-.al-content    { -fx-background-color: #0a0e1a; -fx-padding: 32; }
-.al-page-title { -fx-text-fill: #f0f0f0; -fx-font-size: 30px; -fx-font-weight: bold; -fx-font-family: 'Georgia'; }
-.al-page-subtitle { -fx-text-fill: #9aa0b4; -fx-font-size: 13px; -fx-font-family: 'Arial'; }
-.al-count-label   { -fx-text-fill: #9aa0b4; -fx-font-size: 12px; -fx-font-family: 'Arial'; }
-.al-sort-combo { -fx-background-color: #141929; -fx-border-color: rgba(201,168,76,0.25); -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: #f0f0f0; -fx-font-size: 12px; }
-.al-sort-combo .list-cell { -fx-background-color: #141929; -fx-text-fill: #f0f0f0; }
-.al-sort-combo .list-cell:hover { -fx-background-color: rgba(201,168,76,0.1); }
-.al-sort-combo .arrow-button { -fx-background-color: transparent; }
-.al-sort-combo .arrow { -fx-background-color: #9aa0b4; }
+.status-btn:hover {
+    -fx-background-color: #d4981f;
+}
 
-/* CARDS */
+.status-btn.active, .status-live.active {
+    -fx-background-color: #14532d;
+    -fx-text-fill: #4ade80;
+}
+
+.status-ending.active {
+    -fx-background-color: #422006;
+    -fx-text-fill: #f59e0b;
+}
+.place-bid-btn {
+    -fx-background-color: #f0b429;
+    -fx-text-fill: #0d0c08;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.place-bid-btn:hover {
+    -fx-background-color: #d4981f;
+}
+
+.page-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f5f0e6;
+    -fx-font-family: 'Georgia';
+}
+
+.page-subtitle {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 13px;
+}
+
+.count-label {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 13px;
+}
+
+.sort-combo {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #f5f0e6;
+    -fx-border-color: #2e2a1e;
+}
+
+/* Card styling (already good, slightly enhanced) */
 .al-card {
-    -fx-background-color: #111827; -fx-background-radius: 12;
-    -fx-border-radius: 12; -fx-border-color: rgba(201,168,76,0.15); -fx-border-width: 1;
-    -fx-cursor: hand; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.4),12,0,0,4);
-}
-.al-card-body { -fx-padding: 16 18 18 18; -fx-background-color: #111827; -fx-background-radius: 0 0 12 12; }
-.al-card-title    { -fx-text-fill: #f0f0f0; -fx-font-size: 17px; -fx-font-weight: bold; -fx-font-family: 'Georgia'; }
-.al-card-subtitle { -fx-text-fill: #555e7a; -fx-font-size: 10px; -fx-font-weight: bold; -fx-font-family: 'Arial'; }
-.al-bid-label     { -fx-text-fill: #9aa0b4; -fx-font-size: 10px; -fx-font-family: 'Arial'; }
-.al-bid-amount    { -fx-text-fill: #c9a84c; -fx-font-size: 22px; -fx-font-weight: bold; -fx-font-family: 'Georgia'; }
-.al-timer-label   { -fx-text-fill: #9aa0b4; -fx-font-size: 10px; -fx-font-family: 'Arial'; }
-.al-timer-value   { -fx-text-fill: #f0f0f0; -fx-font-size: 15px; -fx-font-weight: bold; -fx-font-family: 'monospace'; }
-.al-timer-ending  { -fx-text-fill: #ef4444; -fx-font-size: 15px; -fx-font-weight: bold; -fx-font-family: 'monospace'; }
-.al-badge-live {
-    -fx-background-color: #14532d; -fx-text-fill: #4ade80; -fx-font-size: 10px; -fx-font-weight: bold; -fx-font-family: 'Arial';
-    -fx-border-color: #4ade80; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 3 10;
-}
-.al-badge-ending {
-    -fx-background-color: #422006; -fx-text-fill: #f59e0b; -fx-font-size: 10px; -fx-font-weight: bold; -fx-font-family: 'Arial';
-    -fx-border-color: #f59e0b; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 3 10;
-}
-.al-btn-bid {
-    -fx-background-color: #c9a84c; -fx-text-fill: #0a0e1a;
-    -fx-font-size: 12px; -fx-font-weight: bold; -fx-font-family: 'Arial';
-    -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 10 0;
-}
-.al-btn-heart {
-    -fx-background-color: rgba(20,25,40,0.75); -fx-text-fill: #9aa0b4; -fx-font-size: 14px;
-    -fx-background-radius: 20; -fx-border-radius: 20;
-    -fx-border-color: rgba(201,168,76,0.2); -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 4 8;
+    -fx-background-color: #161410;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #2e2a1e;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 15, 0, 0, 8);
 }
 
-/* SCROLL */
-.al-scroll { -fx-background: #0a0e1a; -fx-background-color: #0a0e1a; -fx-border-color: transparent; }
-.al-scroll .viewport { -fx-background-color: #0a0e1a; }
-.al-scroll .scroll-bar:vertical { -fx-background-color: #0d1220; }
-.al-scroll .scroll-bar:vertical .thumb { -fx-background-color: rgba(201,168,76,0.3); -fx-background-radius: 4; }
+.al-card:hover {
+    -fx-effect: dropshadow(gaussian, #f0b42933, 20, 0, 0, 12);
+}
+/* ===================== STATUS BUTTONS - AUREATE STYLE ===================== */
+.status-btn {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #d4cdb8;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 20;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #2e2a1e;
+    -fx-cursor: hand;
+}
+
+.status-btn:hover {
+    -fx-background-color: #2a2510;
+}
+
+/* Active states */
+.status-live.active,
+.status-upcoming.active,
+.status-ending.active {
+    -fx-background-color: #f0b429;
+    -fx-text-fill: #0d0c08;
+    -fx-border-color: #f0b429;
+}
+
+/* Normal colored states */
+.status-live {
+    -fx-text-fill: #4ade80;
+}
+.status-ending {
+    -fx-text-fill: #f59e0b;
+}
+.status-upcoming {
+    -fx-text-fill: #60a5fa;
+}
+
+/* ===================== CARD COLORS ===================== */
+.al-card-title {
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 15.5px;
+    -fx-font-weight: bold;
+}
+
+.al-card-subtitle {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 12px;
+}
+
+.al-bid-label {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.al-bid-amount {
+    -fx-text-fill: #f0b429;     /* Gold color like original */
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+}
+
+.al-timer-label {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 10px;
+}
+
+.al-timer-value {
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.al-timer-ending {
+    -fx-text-fill: #ef4444 !important;
+    -fx-font-weight: bold;
+}
+
+/* Badge */
+.al-badge-live {
+    -fx-background-color: #14532d;
+    -fx-text-fill: #4ade80;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 20;
+}
+
+.al-badge-ending {
+    -fx-background-color: #3b0a0a;
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 20;
+}
+
+.al-badge-upcoming {
+    -fx-background-color: #422006;
+    -fx-text-fill: #f59e0b;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 20;
+}
+
+/* ===================== AUCTION DETAIL PAGE ===================== */
+
+/* Shared text utilities used across detail page */
+.text-gold {
+    -fx-text-fill: #f0b429;
+    -fx-font-family: 'Arial';
+}
+
+.text-muted {
+    -fx-text-fill: #8a8272;
+    -fx-font-family: 'Arial';
+}
+
+.text-green {
+    -fx-text-fill: #4ade80;
+    -fx-font-family: 'Arial';
+}
+
+/* Content area wrapper */
+.ad-content-area {
+    -fx-background-color: #0d0c08;
+}
+
+/* Back button */
+.ad-btn-back {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+    -fx-border-color: #2e2a1e;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 6 14;
+    -fx-cursor: hand;
+}
+
+.ad-btn-back:hover {
+    -fx-text-fill: #f0b429;
+    -fx-border-color: rgba(240,180,41,0.4);
+}
+
+/* Left image panel */
+.ad-image-pane {
+    -fx-background-color: #0b1114;
+    -fx-background-radius: 10;
+}
+
+.ad-image-placeholder {
+    -fx-background-color: #2d3748;
+    -fx-background-radius: 10;
+}
+
+/* LIVE badge on image */
+.ad-live-badge {
+    -fx-background-color: rgba(0,0,0,0.6);
+    -fx-background-radius: 15;
+    -fx-border-color: #f0b429;
+    -fx-border-radius: 15;
+    -fx-border-width: 1;
+}
+
+/* Right detail panel */
+.ad-right-panel {
+    -fx-background-color: #111008;
+    -fx-background-radius: 10;
+    -fx-border-color: #2e2a1e;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+/* Item title & subtitle */
+.ad-item-title {
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Georgia';
+}
+
+.ad-item-subtitle {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Arial';
+}
+
+/* Field labels (CURRENT BID, TIME REMAINING, etc.) */
+.ad-field-label {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Arial';
+}
+
+/* Bid value (gold, large) */
+.ad-bid-value {
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Arial';
+}
+
+/* Timer value */
+.ad-timer-value {
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'monospace';
+}
+
+.ad-timer-ending {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'monospace';
+}
+
+/* Meta info box (reserve, bidders) */
+.ad-meta-box {
+    -fx-background-color: #1a1813;
+    -fx-background-radius: 6;
+    -fx-border-color: #2e2a1e;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 12 14;
+}
+
+.ad-meta-label {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+}
+
+.ad-meta-value {
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+}
+
+/* Bid input box */
+.ad-bid-input {
+    -fx-background-color: #1e1c15;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.ad-bid-input:focused {
+    -fx-border-color: rgba(240,180,41,0.6);
+}
+
+.ad-currency-symbol {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 16px;
+    -fx-font-family: 'Arial';
+}
+
+.ad-bid-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f5f0e6;
+    -fx-prompt-text-fill: #5a5444;
+    -fx-font-size: 15px;
+    -fx-font-family: 'Arial';
+    -fx-border-color: transparent;
+}
+
+/* LIVE pill next to chart label */
+.ad-live-pill {
+    -fx-background-color: #33302a;
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 8;
+    -fx-background-radius: 10;
+}
+
+/* "View All" link */
+.ad-view-all {
+    -fx-text-fill: #f0b429;
+    -fx-font-size: 11px;
+    -fx-font-family: 'Arial';
+    -fx-cursor: hand;
+}
+
+.ad-view-all:hover {
+    -fx-underline: true;
+}
+
+/* Chart sub-labels */
+.ad-chart-sublabel {
+    -fx-text-fill: #8a8272;
+    -fx-font-size: 10px;
+    -fx-font-family: 'Arial';
+}
+
+/* LineChart dark theme */
+.ad-price-chart {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.ad-price-chart .chart-plot-background {
+    -fx-background-color: #1a1813;
+}
+
+.ad-price-chart .chart-series-line {
+    -fx-stroke: #f0b429;
+    -fx-stroke-width: 2;
+}
+
+.ad-price-chart .axis {
+    -fx-tick-label-fill: #5a5444;
+    -fx-font-size: 9px;
+}
+
+.ad-price-chart .chart-vertical-grid-lines,
+.ad-price-chart .chart-horizontal-grid-lines {
+    -fx-stroke: rgba(255,255,255,0.04);
+}
+
+.ad-price-chart .default-color0.chart-series-line {
+    -fx-stroke: #f0b429;
+}
+
+.ad-price-chart .default-color0.chart-line-symbol {
+    -fx-background-color: #f0b429, #1a1813;
+}

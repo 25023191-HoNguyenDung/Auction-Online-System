@@ -1,7 +1,6 @@
 package com.auction.server.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class Item {
 

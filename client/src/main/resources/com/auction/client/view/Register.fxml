@@ -43,7 +43,7 @@
             <StackPane styleClass="center-pane" HBox.hgrow="ALWAYS">
                 <ImageView fitHeight="658.0" fitWidth="1021.0" pickOnBounds="true" preserveRatio="false">
                     <image>
-                        <Image url="@../../../../../../../../../bg.png" />
+                        <Image url="@../image/bg.png" />
                     </image>
                 </ImageView>
 
@@ -76,7 +76,7 @@
 
                         <!-- FULL NAME -->
                         <Label styleClass="form-label" text="USERNAME" />
-                        <TextField fx:id="fullNameField" prefHeight="44" promptText="\@ducanh10" styleClass="custom-text-field" />
+                        <TextField fx:id="userNameField" prefHeight="44" promptText="\@ducanh10" styleClass="custom-text-field" />
                   <Text fill="#949292" strokeType="OUTSIDE" strokeWidth="0.0" text="Username must start with '@' and contain both letters and numbers!" />
 
                         <!-- EMAIL -->
