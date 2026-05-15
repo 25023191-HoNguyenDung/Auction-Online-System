@@ -9,5 +9,5 @@ public enum MessageType {
     LOGIN_REQ, // client gửi yc đăng nhập
     LOGIN_RES, //server trả kq đăng nhập
     LIST_AUCTIONS_REQ, // client gửi yc lấy ds phiên
-    LIST_AUCYION_RES, // server trả ds phiên
+    LIST_AUCTIONS_RES, // server trả ds phiên
 }
