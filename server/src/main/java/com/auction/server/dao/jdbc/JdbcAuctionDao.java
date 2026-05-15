@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.auction.common.exception.AuctionConnectException;
 import com.auction.server.config.DatabaseConfig;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.model.Auction;
@@ -92,7 +93,7 @@ public class JdbcAuctionDao implements AuctionDao {
     }
 
     @Override
-    public Auction save(Auction auction) {
+    public Auction save(Auction auction) throws AuctionConnectException {
         String sql = """
             INSERT INTO auction_db.auctions
                 (item_id, seller_id, starting_price, current_price, status, start_time, end_time)
@@ -117,7 +118,7 @@ public class JdbcAuctionDao implements AuctionDao {
     }
 
     @Override
-    public Auction update(Auction auction) {
+    public Auction update(Auction auction) throws AuctionConnectException {
         String sql = """
             UPDATE auction_db.auctions
             SET current_price = ?, status = ?, end_time = ?, winner_bidder_id = ?
