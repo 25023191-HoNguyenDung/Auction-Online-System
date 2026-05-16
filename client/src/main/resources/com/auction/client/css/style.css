@@ -329,6 +329,57 @@
     -fx-background-color: #1e1c15;
     -fx-text-fill: #f5f0e6;
     -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 4 8;
+    -fx-cursor: hand;
+}
+
+.sort-combo .list-cell {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #f5f0e6;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+    -fx-padding: 4 8;
+}
+
+.sort-combo .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.sort-combo .arrow {
+    -fx-background-color: #f0b429;
+}
+
+.sort-combo:hover {
+    -fx-border-color: rgba(240,180,41,0.4);
+}
+
+/* Dropdown popup */
+.sort-combo .combo-box-popup .list-view {
+    -fx-background-color: #1e1c15;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 10, 0, 0, 4);
+}
+
+.sort-combo .combo-box-popup .list-cell {
+    -fx-background-color: #1e1c15;
+    -fx-text-fill: #d4cdb8;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Arial';
+    -fx-padding: 8 14;
+}
+
+.sort-combo .combo-box-popup .list-cell:hover {
+    -fx-background-color: #2a2510;
+    -fx-text-fill: #f0b429;
+}
+
+.sort-combo .combo-box-popup .list-cell:selected {
+    -fx-background-color: rgba(240,180,41,0.15);
+    -fx-text-fill: #f0b429;
 }
 
 /* Card styling (already good, slightly enhanced) */
@@ -448,7 +499,41 @@
     -fx-background-radius: 20;
 }
 
-/* ===================== AUCTION DETAIL PAGE ===================== */
+/* ===================== AUCTION LIST MAIN AREA ===================== */
+.main-content {
+    -fx-background-color: #0d0c08;
+}
+
+.al-scroll {
+    -fx-background: #0d0c08;
+    -fx-background-color: #0d0c08;
+}
+
+.al-scroll .viewport {
+    -fx-background-color: #0d0c08;
+}
+
+.al-scroll .scroll-bar:vertical,
+.al-scroll .scroll-bar:horizontal {
+    -fx-background-color: #1a1813;
+}
+
+.al-scroll .scroll-bar:vertical .thumb,
+.al-scroll .scroll-bar:horizontal .thumb {
+    -fx-background-color: #3a3628;
+    -fx-background-radius: 4;
+}
+
+.al-scroll .scroll-bar:vertical .thumb:hover,
+.al-scroll .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #f0b429;
+}
+
+.al-scroll .corner {
+    -fx-background-color: #1a1813;
+}
+
+
 
 /* Shared text utilities used across detail page */
 .text-gold {

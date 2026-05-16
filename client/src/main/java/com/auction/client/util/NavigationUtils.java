@@ -3,6 +3,7 @@ package com.auction.client.util;
 import java.io.IOException;
 
 import com.auction.client.controller.AuctionDetailController;
+import com.auction.client.controller.BidController;
 import com.auction.client.model.AuctionItem;
 import com.auction.client.sessions.UserSession;
 
@@ -63,6 +64,36 @@ public class NavigationUtils {
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("❌ Navigation to AuctionDetail failed");
+        }
+    }
+
+    /**
+     * Navigate to BidScreen and pass the selected item to its controller.
+     */
+    public static void navigateToBidScreen(AuctionItem item) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                NavigationUtils.class.getResource("/com/auction/client/view/BidScreen.fxml")
+            );
+            Parent root = loader.load();
+
+            BidController controller = loader.getController();
+            controller.setAuctionItem(item);
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(
+                NavigationUtils.class.getResource("/com/auction/client/css/style.css").toExternalForm()
+            );
+
+            Stage stage = getCurrentStage();
+            if (stage != null) {
+                stage.setTitle("Place Bid — " + item.getItemName() + " — Auction Pro");
+                stage.setScene(scene);
+                stage.show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("❌ Navigation to BidScreen failed");
         }
     }
 

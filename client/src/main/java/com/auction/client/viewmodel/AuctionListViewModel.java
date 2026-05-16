@@ -3,7 +3,9 @@ package com.auction.client.viewmodel;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.auction.client.model.AuctionItem;
@@ -19,12 +21,12 @@ public class AuctionListViewModel {
     private final List<AuctionItem> allItems      = new ArrayList<>();
     private final List<AuctionItem> filteredItems = new ArrayList<>();
 
-    private String filterStatus   = "ALL";
-    private String filterCategory = "ALL";
-    private String keyword        = "";
-    private double priceMin       = 0;
-    private double priceMax       = Double.MAX_VALUE;
-    private String sortBy         = "NEWEST";
+    private String filterStatus        = "ALL";
+    private Set<String> filterCategories = new HashSet<>(); // empty = ALL
+    private String keyword             = "";
+    private double priceMin            = 0;
+    private double priceMax            = Double.MAX_VALUE;
+    private String sortBy              = "NEWEST";
 
     // ── Load data ─────────────────────────────────────────────
     /**
@@ -111,8 +113,8 @@ public class AuctionListViewModel {
         this.filterStatus = status == null ? "ALL" : status;
     }
 
-    public void setFilterCategory(String category) {
-        this.filterCategory = category == null ? "ALL" : category;
+    public void setFilterCategories(Set<String> categories) {
+        this.filterCategories = categories == null ? new HashSet<>() : categories;
     }
 
     public void setPriceRange(double min, double max) {
@@ -152,8 +154,9 @@ public class AuctionListViewModel {
     }
 
     private boolean matchCategory(AuctionItem item) {
-        return "ALL".equals(filterCategory)
-            || filterCategory.equalsIgnoreCase(item.getCategory());
+        if (filterCategories.isEmpty()) return true;
+        return filterCategories.stream()
+            .anyMatch(cat -> cat.equalsIgnoreCase(item.getCategory()));
     }
 
     private boolean matchPrice(AuctionItem item) {

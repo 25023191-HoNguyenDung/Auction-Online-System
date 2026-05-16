@@ -77,14 +77,24 @@ public class AuctionListController {
     private void setupSortCombo() {
         if (sortCombo != null) {
             sortCombo.getItems().addAll(
-                "Newest", 
-                "Price: Low to High", 
-                "Price: High to Low", 
+                "Newest",
+                "Price: Low to High",
+                "Price: High to Low",
                 "Ending Soon"
             );
             sortCombo.getSelectionModel().selectFirst();
 
-            sortCombo.setOnAction(e -> refreshCards());
+            sortCombo.setOnAction(e -> {
+                String selected = sortCombo.getValue();
+                if (selected == null) return;
+                switch (selected) {
+                    case "Price: Low to High" -> viewModel.setSortBy("PRICE_ASC");
+                    case "Price: High to Low" -> viewModel.setSortBy("PRICE_DESC");
+                    case "Ending Soon"        -> viewModel.setSortBy("ENDING_SOON");
+                    default                   -> viewModel.setSortBy("NEWEST");
+                }
+                refreshCards();
+            });
         }
     }
 
@@ -101,21 +111,22 @@ public class AuctionListController {
 }
 
     private void setActiveStatus(Button activeBtn) {
-        // Reset all
+        boolean alreadyActive = activeBtn.getStyleClass().contains("active");
+
+        // Reset all buttons
         statusLive.getStyleClass().remove("active");
         statusUpcoming.getStyleClass().remove("active");
         statusEndingSoon.getStyleClass().remove("active");
 
-        // Activate selected
-        activeBtn.getStyleClass().add("active");
-
-        // Set filter
-        if (activeBtn == statusLive) {
-            viewModel.setFilterStatus("LIVE");
-        } else if (activeBtn == statusUpcoming) {
-            viewModel.setFilterStatus("PENDING");     // or "UPCOMING"
-        } else if (activeBtn == statusEndingSoon) {
-            viewModel.setFilterStatus("ENDING_SOON");
+        if (alreadyActive) {
+            // Toggle off — show all
+            viewModel.setFilterStatus("ALL");
+        } else {
+            // Activate selected
+            activeBtn.getStyleClass().add("active");
+            if (activeBtn == statusLive)         viewModel.setFilterStatus("LIVE");
+            else if (activeBtn == statusUpcoming) viewModel.setFilterStatus("PENDING");
+            else if (activeBtn == statusEndingSoon) viewModel.setFilterStatus("ENDING_SOON");
         }
 
         refreshCards();
@@ -134,17 +145,16 @@ public class AuctionListController {
         double max = Double.MAX_VALUE;
         try { min = Double.parseDouble(priceMin.getText().trim()); } catch (Exception ignored) {}
         try { max = Double.parseDouble(priceMax.getText().trim()); } catch (Exception ignored) {}
-
         viewModel.setPriceRange(min, max);
 
-        // Simple category filter (can be improved later)
-        String category = "ALL";
-        if (!catFineArt.isSelected() && !catLuxuryWatches.isSelected() && 
-            !catClassicCars.isSelected() && !catJewelry.isSelected()) {
-            category = "ALL";
-        }
+        // Categories — collect ALL checked boxes (empty set = show all)
+        java.util.Set<String> categories = new java.util.HashSet<>();
+        if (catFineArt.isSelected())       categories.add("Art");
+        if (catLuxuryWatches.isSelected()) categories.add("Watches");
+        if (catClassicCars.isSelected())   categories.add("Vehicles");
+        if (catJewelry.isSelected())       categories.add("Jewellery");
 
-        viewModel.setFilterCategory(category);
+        viewModel.setFilterCategories(categories);
         refreshCards();
     }
 

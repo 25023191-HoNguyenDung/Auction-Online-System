@@ -1,9 +1,13 @@
 package com.auction.client.controller;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import com.auction.client.model.AuctionItem;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionDetailViewModel;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
@@ -13,7 +17,7 @@ import javafx.scene.control.TextField;
 
 public class AuctionDetailController {
 
-    @FXML private TextField searchField;        // navbar search (bound but unused for now)
+    @FXML private TextField searchField;
     @FXML private Label    currentBidLabel;
     @FXML private Label    timeRemainingLabel;
     @FXML private Label    titleLabel;
@@ -24,18 +28,19 @@ public class AuctionDetailController {
     @FXML private TextField bidAmountField;
 
     private final AuctionDetailViewModel viewModel = new AuctionDetailViewModel();
+    private Timer countdownTimer;
 
     @FXML
     public void initialize() {
         if (btnBack != null) {
-            btnBack.setOnAction(e -> NavigationUtils.navigateTo(
-                "/com/auction/client/view/AuctionList.fxml", "Live Auctions"));
+            btnBack.setOnAction(e -> {
+                stopTimer();
+                NavigationUtils.navigateTo(
+                    "/com/auction/client/view/AuctionList.fxml", "Live Auctions");
+            });
         }
     }
 
-    /**
-     * Called from AuctionListController after loading this FXML.
-     */
     public void setAuctionItem(AuctionItem item) {
         viewModel.setItem(item);
 
@@ -45,14 +50,49 @@ public class AuctionDetailController {
         if (timeRemainingLabel != null) timeRemainingLabel.setText(viewModel.getDisplayTimeRemaining());
 
         setupChart();
+        startCountdownTimer();
     }
 
     @FXML
     private void handlePlaceBid() {
         AuctionItem item = viewModel.getItem();
         if (item != null) {
-            System.out.println("Placing bid on auction: " + item.getAuctionId());
-            NavigationUtils.navigateTo("/com/auction/client/view/BidScreen.fxml", "Place Bid");
+            stopTimer();
+            NavigationUtils.navigateToBidScreen(item);
+        }
+    }
+
+    private void startCountdownTimer() {
+        stopTimer(); // cancel any existing timer first
+        countdownTimer = new Timer(true);
+        countdownTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    AuctionItem item = viewModel.getItem();
+                    if (item == null || timeRemainingLabel == null) return;
+
+                    int seconds = item.secondsLeft();
+                    timeRemainingLabel.setText(formatTime(seconds));
+
+                    // Switch to red style when ending soon
+                    if (seconds < 900) {
+                        timeRemainingLabel.getStyleClass().setAll("ad-timer-ending");
+                    } else {
+                        timeRemainingLabel.getStyleClass().setAll("ad-timer-value");
+                    }
+
+                    // Stop ticking when auction ends
+                    if (seconds <= 0) stopTimer();
+                });
+            }
+        }, 1000, 1000);
+    }
+
+    private void stopTimer() {
+        if (countdownTimer != null) {
+            countdownTimer.cancel();
+            countdownTimer = null;
         }
     }
 
@@ -68,5 +108,11 @@ public class AuctionDetailController {
         }
 
         priceChart.getData().add(series);
+    }
+
+    private String formatTime(int seconds) {
+        if (seconds <= 0) return "00:00:00";
+        return String.format("%02d:%02d:%02d",
+            seconds / 3600, (seconds % 3600) / 60, seconds % 60);
     }
 }
