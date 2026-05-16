@@ -1,4 +1,7 @@
-package com.auction.server.observer;
+package com.auction.server.network;
+
+import com.auction.server.observer.AuctionEventPublisher;
+import com.auction.server.observer.ClientAuctionObserver;
 
 import java.io.PrintWriter;
 import java.util.Collections;
@@ -10,7 +13,7 @@ public class SubscriptionRegistry {
     private final AuctionEventPublisher publisher = AuctionEventPublisher.getInstance();
     // client đag theo dõi các phiên đgia nào
     private final ConcurrentHashMap<String, Set<Long>> clientSubscriptions = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String,ClientAuctionObserver> observerMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ClientAuctionObserver> observerMap = new ConcurrentHashMap<>();
 
     private SubscriptionRegistry() {
     }

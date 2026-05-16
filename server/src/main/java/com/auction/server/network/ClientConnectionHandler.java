@@ -3,10 +3,8 @@ package com.auction.server.network;
 import com.auction.common.protocol.MessageEnvelope;
 import com.auction.common.protocol.ProtocolMapper;
 import com.auction.common.protocol.ProtocolMappingException;
-import com.auction.server.observer.SubscriptionRegistry;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;

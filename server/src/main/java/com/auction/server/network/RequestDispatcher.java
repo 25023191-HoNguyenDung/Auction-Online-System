@@ -6,12 +6,12 @@ import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
 import com.auction.common.protocol.*;
 import com.auction.server.dao.UserDao;
+import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.User;
-import com.auction.server.observer.AuctionEvent;
 import com.auction.server.observer.AuctionEventPublisher;
-import com.auction.server.observer.SubscriptionRegistry;
 import com.auction.server.service.AuctionService;
+import com.auction.server.service.AuctionServiceImpl;
 import com.auction.server.service.AutoBidService;
 
 import java.io.PrintWriter;
@@ -25,16 +25,17 @@ public class RequestDispatcher {
     private final UserDao userDao;
     private final ProtocolMapper mapper;
     private final SubscriptionRegistry subscriptionRegistry; // qlý các client đag theo dõi auction
-    private final AuctionEventPublisher auctionEventPublisher; // gửi event khi có thay đổi
+    private final AuctionEventPublisher publisher; // gửi event khi có thay đổi
 
-    public RequestDispatcher(AuctionService auctionService, AutoBidService autoBidService, UserDao userDao, ProtocolMapper mapper, SubscriptionRegistry subscriptionRegistry, AuctionEventPublisher auctionEventPublisher) {
-        this.auctionService = auctionService;
-        this.autoBidService = autoBidService;
-        this.userDao = userDao;
-        this.mapper = mapper;
-        this.subscriptionRegistry = subscriptionRegistry;
-        this.auctionEventPublisher = auctionEventPublisher;
+    public RequestDispatcher() {
+        this.auctionService = new AuctionServiceImpl();
+        this.autoBidService = new AutoBidService(auctionService);
+        this.userDao = new JdbcUserDao();
+        this.mapper = new ProtocolMapper();
+        this.subscriptionRegistry = SubscriptionRegistry.getInstance();
+        this.publisher = AuctionEventPublisher.getInstance();
     }
+
 
     // nhận req từ client và chuyển đến hàm xử lý tương ứng
     public void dispatch(MessageEnvelope envelope, String clientId, PrintWriter out) {

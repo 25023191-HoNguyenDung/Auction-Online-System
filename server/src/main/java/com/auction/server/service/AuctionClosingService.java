@@ -16,7 +16,7 @@ public class AuctionClosingService {
     private final AuctionService auctionService;
     private final ScheduledExecutorService scheduler; // chạy tự động theo tg
 
-    public AuctionClosingService(AuctionDao auctionDao, AuctionService auctionService, ScheduledExecutorService scheduler) {
+    public AuctionClosingService(AuctionDao auctionDao, AuctionService auctionService) {
         this.auctionDao = auctionDao;
         this.auctionService = auctionService;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> { // scheduler có 1 thread duy nhất
@@ -25,9 +25,29 @@ public class AuctionClosingService {
             return t;
         });
     }
+
+    public AuctionClosingService(AuctionService auctionService) {
+        this(new JdbcAuctionDao(), auctionService);
+    }
+
     //khời động ktra tự động
     public void start(){
         scheduler.scheduleAtFixedRate(() -> {checkAndCloseExpiredAuctions();}, 0, 10, TimeUnit.SECONDS); // chạy method 10s 1 lần
+        System.out.println("Đã khởi động, kiểm tra mỗi " + check + "giây");
+    }
+
+    // tắt scheduler
+    public void stop(){
+        scheduler.shutdown(); // ko nhận task mới nữa
+        try{
+            if(!scheduler.awaitTermination(5, TimeUnit.SECONDS)){ // chờ 5s để dừng htoan
+                scheduler.shutdownNow();
+            }
+        }catch (InterruptedException e){
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("Đã dừng.");
     }
 
     //ktra cái nào hết giờ thì đóng
@@ -40,7 +60,7 @@ public class AuctionClosingService {
 
             for (Auction auction : expired) {
                 try {
-                    auctionService.closeAuction(auction.getId());
+                    auctionService.cancelAuction(auction.getId());
                     System.out.println("Đã đóng phiên id=" + auction.getId());
                 } catch (Exception e) {
                     System.err.println("Lỗi đóng phiên id=" + auction.getId() + ": " + e.getMessage());
