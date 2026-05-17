@@ -30,7 +30,7 @@ public class TransactionManager {
         try{
             con.commit(); // ghi xuống db
         }catch (SQLException e){
-            throw new RuntimeException("Lỗi commit transaction", e);
+            throw new RuntimeException("Transaction commit failed", e);
         }finally {
             close(con);
         }
@@ -41,7 +41,7 @@ public class TransactionManager {
         try{
             con.rollback();
         }catch (SQLException e){
-            throw new RuntimeException("Lỗi rollback transaction", e);
+            throw new RuntimeException("Transaction rollback failed", e);
         }
         finally {
             close(con);
