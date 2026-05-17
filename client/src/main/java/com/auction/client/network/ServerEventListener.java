@@ -21,10 +21,11 @@ public class ServerEventListener implements Runnable {
 
     private volatile boolean running = false; // check verser có đag chạy không
 
-    public ServerEventListener(){
+    public ServerEventListener() {
         this.connection = ServerConnection.getInstance();
         this.mapper = new ProtocolMapper();
     }
+
     // chạy ServerEventListener
     public void start() {
         running = true;
@@ -32,6 +33,7 @@ public class ServerEventListener implements Runnable {
         thread.setDaemon(true); // thread nền
         thread.start();
     }
+
     // ngừng nghe dlieu từ server
     public void stop() {
         running = false;
@@ -91,22 +93,24 @@ public class ServerEventListener implements Runnable {
             default -> System.err.println("Unhandled type: " + envelope.getType());
         }
     }
+
     // đki callback cho req cụ thể
     public void onResponse(String messageId, Consumer<MessageEnvelope> callback) {
         callbacks.put(messageId, callback);
     }
+
     // đki hàm xử lý khi có thông báo bid mới
     public void setOnBidUpdated(Consumer<BidUpdatedEventPayload> handler) {
         this.onBidUpdated = handler;
     }
+
     // đki hàm xử lý khi auction kết thúc.
     public void setOnAuctionClosed(Consumer<AuctionClosedEventPayload> handler) {
         this.onAuctionClosed = handler;
     }
+
     // đki ký hàm xử lý khi server gửi lỗi.
     public void setOnError(Consumer<ErrorPayload> handler) {
         this.onError = handler;
     }
-
-
 }
