@@ -12,8 +12,8 @@ public class Art extends Item {
     //Constructor:
 
 
-    public Art(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, double reserve_price, String artist, String style) {
-        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl, reserve_price);
+    public Art(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, String artist, String style) {
+        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl);
         this.artist = artist;
         this.style = style;
     }

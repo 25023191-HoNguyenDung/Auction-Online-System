@@ -212,7 +212,6 @@
                         <ListView fx:id="bidHistoryList" VBox.vgrow="ALWAYS"
                                   styleClass="bs-bid-history" />
                     </VBox>
-
                 </VBox>
             </HBox>
         </VBox>

@@ -14,7 +14,6 @@ public class User {
     private String role;       // ADMIN | SELLER | BIDDER
 
     public User() {}
-
     public User(long id, String username, String email, String role) {
         this.id       = id;
         this.username = username;

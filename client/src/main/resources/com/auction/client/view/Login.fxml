@@ -35,7 +35,6 @@
             </HBox>
         </HBox>
     </top>
-
     <center>
         <HBox>
             <StackPane styleClass="center-pane" HBox.hgrow="ALWAYS">
