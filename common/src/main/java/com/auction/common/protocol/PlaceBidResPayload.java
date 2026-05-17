@@ -5,18 +5,18 @@ import java.util.UUID;
 // kết quả khi đặt giá
 public class PlaceBidResPayload {
     private boolean accepted; // đặt giá thành công không
-    private UUID auctionId; // sp nào
+    private long auctionId; // sp nào
     private BigDecimal currentHighestBid; // giá cao nhất
-    private UUID leaderBidderId; // người dẫn đầu
+    private long leaderBidderId; // người dẫn đầu
 
     public PlaceBidResPayload() {
     }
 
     public PlaceBidResPayload(
             boolean accepted,
-            UUID auctionId,
+            long auctionId,
             BigDecimal currentHighestBid,
-            UUID leaderBidderId
+            long leaderBidderId
     ) {
         this.accepted = accepted;
         this.auctionId = auctionId;
@@ -32,11 +32,11 @@ public class PlaceBidResPayload {
         this.accepted = accepted;
     }
 
-    public UUID getAuctionId() {
+    public long getAuctionId() {
         return auctionId;
     }
 
-    public void setAuctionId(UUID auctionId) {
+    public void setAuctionId(long auctionId) {
         this.auctionId = auctionId;
     }
 
@@ -48,11 +48,11 @@ public class PlaceBidResPayload {
         this.currentHighestBid = currentHighestBid;
     }
 
-    public UUID getLeaderBidderId() {
+    public long getLeaderBidderId() {
         return leaderBidderId;
     }
 
-    public void setLeaderBidderId(UUID leaderBidderId) {
+    public void setLeaderBidderId(long leaderBidderId) {
         this.leaderBidderId = leaderBidderId;
     }
 }
