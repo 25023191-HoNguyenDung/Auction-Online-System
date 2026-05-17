@@ -278,7 +278,6 @@ public class AuctionListController {
             }
         }, 1000, 1000);
     }
-
     // ── Utilities ─────────────────────────────────────────────
     private String emojiFor(String category) {
         if (category == null) return "⭐";

@@ -408,7 +408,6 @@ public class SellerDashboardController {
     private void handleLogout() {
         NavigationUtils.logout();
     }
-
     // ── Utilities ─────────────────────────────────────────────
     private String formatTime(int seconds) {
         if (seconds <= 0) return "Ended";

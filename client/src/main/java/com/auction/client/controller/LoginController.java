@@ -54,20 +54,17 @@ public class LoginController {
                  INVALID_CREDENTIALS -> showError(viewModel.getErrorMessage());
         }
     }
-
     // ── Navigation ────────────────────────────────────────────
     @FXML
     private void handleForgotPassword() {
         NavigationUtils.navigateTo(
             "/com/auction/client/view/ForgotPassword.fxml", "Forgot Password");
     }
-
     @FXML
     private void handleSignUp() {
         NavigationUtils.navigateTo(
             "/com/auction/client/view/Register.fxml", "Register Account");
     }
-
     // ── UI helpers ────────────────────────────────────────────
     private void showError(String message) {
         if (errorLabel != null) {
