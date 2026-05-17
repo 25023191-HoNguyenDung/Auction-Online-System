@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.Separator?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
@@ -150,7 +150,7 @@
                     </VBox>
                     <VBox GridPane.columnIndex="2" styleClass="sd-stat-card" spacing="8">
                         <Label text="PLATFORM REVENUE" styleClass="sd-stat-label"/>
-                        <Label fx:id="cardRevenue"   text="$2.4M" styleClass="sd-stat-value-gold"/>
+                        <Label fx:id="cardRevenue"   text="\$2.4M" styleClass="sd-stat-value-gold"/>
                         <Label text="↑ 8% this month"  style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';"/>
                     </VBox>
                     <VBox GridPane.columnIndex="3" styleClass="sd-stat-card" spacing="8">
