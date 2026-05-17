@@ -25,6 +25,7 @@ public class SellerDashboardController {
     @FXML private Label  navInitialLabel;
     @FXML private Label  sideInitialLabel;
     @FXML private Label  sideNameLabel;
+    @FXML private Label  pageSubtitleLabel;
     @FXML private Label  quickActiveLabel;
     @FXML private Label  quickPendingLabel;
     @FXML private Label  quickBidsLabel;
@@ -33,6 +34,8 @@ public class SellerDashboardController {
     @FXML private Button sideCreate;
     @FXML private Button sideBids;
     @FXML private Button sideHistory;
+
+    @FXML private javafx.scene.control.TabPane tabPane;
 
     // ── Stat cards ────────────────────────────────────────────
     @FXML private Label cardActive;
@@ -62,7 +65,6 @@ public class SellerDashboardController {
     @FXML private ComboBox<String> formCondition;
     @FXML private TextArea         formDescription;
     @FXML private Label            formMessage;
-    @FXML private Button           btnSubmitListing;
 
     // Preview
     @FXML private Label previewTitle;
@@ -109,8 +111,23 @@ public class SellerDashboardController {
 
     // ── Sidebar navigation ────────────────────────────────────
     private void setupSidebarButtons() {
-        // Simple tab switching via TabPane index would need fx:id on TabPane
-        // For now sidebar buttons are visual-only placeholders
+        sideOverview  .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideOverview);   });
+        sideMyAuctions.setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideMyAuctions); });
+        sideCreate    .setOnAction(e -> { tabPane.getSelectionModel().select(1); setActive(sideCreate);     });
+        sideBids      .setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideBids);       });
+        sideHistory   .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideHistory);    });
+    }
+
+    private void setActive(Button active) {
+        java.util.List.of(sideOverview, sideMyAuctions, sideCreate, sideBids, sideHistory)
+            .forEach(b -> {
+                b.getStyleClass().remove("al-nav-item-active");
+                if (!b.getStyleClass().contains("al-nav-item"))
+                    b.getStyleClass().add("al-nav-item");
+            });
+        active.getStyleClass().remove("al-nav-item");
+        if (!active.getStyleClass().contains("al-nav-item-active"))
+            active.getStyleClass().add("al-nav-item-active");
     }
 
     // ── My Auctions tab ───────────────────────────────────────
@@ -128,7 +145,28 @@ public class SellerDashboardController {
         colMyBids    .setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().getTotalBids())));
         colMyStatus  .setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDisplayStatus()));
         colMyEnds    .setCellValueFactory(d -> new SimpleStringProperty(formatTime(d.getValue().secondsLeft())));
-        colMyAction  .setCellValueFactory(d -> new SimpleStringProperty("Edit / End"));
+
+        // Action buttons
+        colMyAction.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            private final Button endBtn  = makeBtn("End",  "#f59e0b", "rgba(245,158,11,0.15)");
+            private final Button editBtn = makeBtn("Edit", "#f0b429", "rgba(240,180,41,0.15)");
+            private final javafx.scene.layout.HBox box = new javafx.scene.layout.HBox(6, endBtn, editBtn);
+            {
+                box.setAlignment(javafx.geometry.Pos.CENTER);
+                endBtn.setOnAction(e -> {
+                    AuctionItem item = getTableView().getItems().get(getIndex());
+                    handleEndMyAuction(item);
+                });
+                editBtn.setOnAction(e -> {
+                    AuctionItem item = getTableView().getItems().get(getIndex());
+                    handleEditMyAuction(item);
+                });
+            }
+            @Override protected void updateItem(String v, boolean empty) {
+                super.updateItem(v, empty);
+                setGraphic(empty ? null : box);
+            }
+        });
 
         myAuctionsTable.setItems(myAuctions);
     }
@@ -240,8 +278,49 @@ public class SellerDashboardController {
 
     @FXML
     private void handleCreateListing() {
-        // Switch to Create Listing tab (index 1)
-        // Would need fx:id on TabPane — handled via sidebar button
+        tabPane.getSelectionModel().select(1);
+        setActive(sideCreate);
+    }
+
+    private void handleEndMyAuction(AuctionItem item) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.setTitle("End Auction");
+        alert.setHeaderText(null);
+        alert.setContentText("End \"" + item.getItemName() + "\" early?\nThis cannot be undone.");
+        alert.showAndWait().ifPresent(btn -> {
+            if (btn == javafx.scene.control.ButtonType.OK) {
+                myAuctions.remove(item);
+                updateStatCards();
+                updateSidebarStats();
+                System.out.println("🔨 Ended: " + item.getItemName());
+            }
+        });
+    }
+
+    private void handleEditMyAuction(AuctionItem item) {
+        // Pre-fill the Create Listing form with this item's data
+        formItemName.setText(item.getItemName());
+        formCategory.setValue(item.getCategory());
+        formStartPrice.setText(String.format("%.0f", item.getCurrentPrice()));
+        formDescription.setText(item.getDescription() != null ? item.getDescription() : "");
+
+        // Switch to Create Listing tab
+        tabPane.getSelectionModel().select(1);
+        setActive(sideCreate);
+
+        showFormMessage("Editing: " + item.getItemName() + " — submit to update.", true);
+    }
+
+    private Button makeBtn(String text, String textColor, String bgColor) {
+        Button btn = new Button(text);
+        btn.setStyle(
+            "-fx-background-color:" + bgColor + ";" +
+            "-fx-text-fill:" + textColor + ";" +
+            "-fx-font-size:10px; -fx-font-family:'Arial'; -fx-font-weight:bold;" +
+            "-fx-border-color:" + textColor + "; -fx-border-radius:4;" +
+            "-fx-background-radius:4; -fx-padding:3 8; -fx-cursor:hand;");
+        return btn;
     }
 
     private void showFormMessage(String msg, boolean success) {

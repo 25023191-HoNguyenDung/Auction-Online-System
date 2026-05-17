@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionListViewModel;
 
@@ -27,33 +28,34 @@ public class AuctionListController {
 
     private final AuctionListViewModel viewModel = new AuctionListViewModel();
 
-    // Navbar
+    // ── Navbar ────────────────────────────────────────────────
     @FXML private TextField searchField;
+    @FXML private Label     userInitialLabel;
+    @FXML private Button    btnLogout;
 
-    // Sidebar Filters
+    // ── Sidebar Filters ───────────────────────────────────────
     @FXML private CheckBox catFineArt;
     @FXML private CheckBox catLuxuryWatches;
     @FXML private CheckBox catClassicCars;
     @FXML private CheckBox catJewelry;
-
     @FXML private TextField priceMin;
     @FXML private TextField priceMax;
+    @FXML private Button    statusLive;
+    @FXML private Button    statusUpcoming;
+    @FXML private Button    statusEndingSoon;
+    @FXML private Button    applyFilterBtn;
 
-    @FXML private Button statusLive;
-    @FXML private Button statusUpcoming;
-    @FXML private Button statusEndingSoon;
-
-    @FXML private Button applyFilterBtn;
-
-    // Main Content
-    @FXML private Label countLabel;
+    // ── Main Content ──────────────────────────────────────────
+    @FXML private Label            countLabel;
     @FXML private ComboBox<String> sortCombo;
-    @FXML private GridPane cardsGrid;
+    @FXML private GridPane         cardsGrid;
 
     private Timer clockTimer;
 
+    // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
+        loadUserInfo();
         setupSearch();
         setupSortCombo();
         setupStatusButtons();
@@ -61,152 +63,143 @@ public class AuctionListController {
 
         viewModel.loadData();
         refreshCards();
-
         startCountdownTimer();
     }
 
+    // ── User info ─────────────────────────────────────────────
+    private void loadUserInfo() {
+        if (userInitialLabel == null) return;
+        if (UserSession.getInstance().isLoggedIn()) {
+            String name = UserSession.getInstance().getCurrentUser().getUsername();
+            userInitialLabel.setText(
+                name != null && !name.isEmpty()
+                    ? String.valueOf(name.charAt(0)).toUpperCase() : "?");
+        }
+    }
+
+    // ── Logout ────────────────────────────────────────────────
+    @FXML
+    private void handleLogout() {
+        if (clockTimer != null) clockTimer.cancel();
+        NavigationUtils.logout();
+    }
+
+    // ── Search ────────────────────────────────────────────────
     private void setupSearch() {
         if (searchField != null) {
-            searchField.textProperty().addListener((obs, old, newText) -> {
-                viewModel.setKeyword(newText);
+            searchField.textProperty().addListener((obs, old, val) -> {
+                viewModel.setKeyword(val);
                 refreshCards();
             });
         }
     }
 
+    // ── Sort ──────────────────────────────────────────────────
     private void setupSortCombo() {
-        if (sortCombo != null) {
-            sortCombo.getItems().addAll(
-                "Newest",
-                "Price: Low to High",
-                "Price: High to Low",
-                "Ending Soon"
-            );
-            sortCombo.getSelectionModel().selectFirst();
-
-            sortCombo.setOnAction(e -> {
-                String selected = sortCombo.getValue();
-                if (selected == null) return;
-                switch (selected) {
-                    case "Price: Low to High" -> viewModel.setSortBy("PRICE_ASC");
-                    case "Price: High to Low" -> viewModel.setSortBy("PRICE_DESC");
-                    case "Ending Soon"        -> viewModel.setSortBy("ENDING_SOON");
-                    default                   -> viewModel.setSortBy("NEWEST");
-                }
-                refreshCards();
-            });
-        }
+        if (sortCombo == null) return;
+        sortCombo.getItems().addAll(
+            "Newest", "Price: Low to High", "Price: High to Low", "Ending Soon");
+        sortCombo.getSelectionModel().selectFirst();
+        sortCombo.setOnAction(e -> {
+            String s = sortCombo.getValue();
+            if (s == null) return;
+            switch (s) {
+                case "Price: Low to High" -> viewModel.setSortBy("PRICE_ASC");
+                case "Price: High to Low" -> viewModel.setSortBy("PRICE_DESC");
+                case "Ending Soon"        -> viewModel.setSortBy("ENDING_SOON");
+                default                   -> viewModel.setSortBy("NEWEST");
+            }
+            refreshCards();
+        });
     }
 
+    // ── Status buttons ────────────────────────────────────────
     private void setupStatusButtons() {
-    if (statusLive != null) {
-        statusLive.setOnAction(e -> setActiveStatus(statusLive));
+        if (statusLive      != null) statusLive.setOnAction(e -> setActiveStatus(statusLive));
+        if (statusUpcoming  != null) statusUpcoming.setOnAction(e -> setActiveStatus(statusUpcoming));
+        if (statusEndingSoon!= null) statusEndingSoon.setOnAction(e -> setActiveStatus(statusEndingSoon));
     }
-    if (statusUpcoming != null) {
-        statusUpcoming.setOnAction(e -> setActiveStatus(statusUpcoming));
-    }
-    if (statusEndingSoon != null) {
-        statusEndingSoon.setOnAction(e -> setActiveStatus(statusEndingSoon));
-    }
-}
 
     private void setActiveStatus(Button activeBtn) {
         boolean alreadyActive = activeBtn.getStyleClass().contains("active");
 
-        // Reset all buttons
         statusLive.getStyleClass().remove("active");
         statusUpcoming.getStyleClass().remove("active");
         statusEndingSoon.getStyleClass().remove("active");
 
         if (alreadyActive) {
-            // Toggle off — show all
             viewModel.setFilterStatus("ALL");
         } else {
-            // Activate selected
             activeBtn.getStyleClass().add("active");
-            if (activeBtn == statusLive)         viewModel.setFilterStatus("LIVE");
-            else if (activeBtn == statusUpcoming) viewModel.setFilterStatus("PENDING");
-            else if (activeBtn == statusEndingSoon) viewModel.setFilterStatus("ENDING_SOON");
+            if      (activeBtn == statusLive)        viewModel.setFilterStatus("LIVE");
+            else if (activeBtn == statusUpcoming)     viewModel.setFilterStatus("PENDING");
+            else if (activeBtn == statusEndingSoon)   viewModel.setFilterStatus("ENDING_SOON");
         }
-
         refreshCards();
     }
 
+    // ── Apply filters ─────────────────────────────────────────
     private void setupApplyFilter() {
-        if (applyFilterBtn != null) {
+        if (applyFilterBtn != null)
             applyFilterBtn.setOnAction(e -> handleApplyFilter());
-        }
     }
 
     @FXML
     private void handleApplyFilter() {
-        // Price Range
-        double min = 0;
-        double max = Double.MAX_VALUE;
+        double min = 0, max = Double.MAX_VALUE;
         try { min = Double.parseDouble(priceMin.getText().trim()); } catch (Exception ignored) {}
         try { max = Double.parseDouble(priceMax.getText().trim()); } catch (Exception ignored) {}
         viewModel.setPriceRange(min, max);
 
-        // Categories — collect ALL checked boxes (empty set = show all)
-        java.util.Set<String> categories = new java.util.HashSet<>();
-        if (catFineArt.isSelected())       categories.add("Art");
-        if (catLuxuryWatches.isSelected()) categories.add("Watches");
-        if (catClassicCars.isSelected())   categories.add("Vehicles");
-        if (catJewelry.isSelected())       categories.add("Jewellery");
+        java.util.Set<String> cats = new java.util.HashSet<>();
+        if (catFineArt.isSelected())       cats.add("Art");
+        if (catLuxuryWatches.isSelected()) cats.add("Watches");
+        if (catClassicCars.isSelected())   cats.add("Vehicles");
+        if (catJewelry.isSelected())       cats.add("Jewellery");
+        viewModel.setFilterCategories(cats);
 
-        viewModel.setFilterCategories(categories);
         refreshCards();
     }
 
+    // ── Cards ─────────────────────────────────────────────────
     private void refreshCards() {
         List<AuctionItem> items = viewModel.applyFilters();
-
         countLabel.setText("Showing " + items.size() + " of " + viewModel.getTotalCount() + " items");
-
         cardsGrid.getChildren().clear();
 
         int col = 0, row = 0;
         for (AuctionItem item : items) {
-            VBox card = buildAureateCard(item);
+            VBox card = buildCard(item);
             GridPane.setColumnIndex(card, col);
             GridPane.setRowIndex(card, row);
             cardsGrid.getChildren().add(card);
-
-            col++;
-            if (col == 3) {
-                col = 0;
-                row++;
-            }
+            if (++col == 3) { col = 0; row++; }
         }
     }
 
-    private VBox buildAureateCard(AuctionItem item) {
+    private VBox buildCard(AuctionItem item) {
         VBox card = new VBox();
         card.getStyleClass().add("al-card");
         card.setPrefWidth(340);
 
-        // Image Area
+        // Image area
         StackPane imagePane = new StackPane();
         imagePane.setPrefHeight(220);
         imagePane.setStyle("-fx-background-color: #1e1c15; -fx-background-radius: 12 12 0 0;");
 
-        Label emoji = new Label(getEmojiForCategory(item.getCategory()));
+        Label emoji = new Label(emojiFor(item.getCategory()));
         emoji.setStyle("-fx-font-size: 80px;");
         imagePane.getChildren().add(emoji);
 
-        // Status Badge
-        String displayStatus = item.getDisplayStatus(); // LIVE | ENDING_SOON | PENDING
-        String badgeText;
-        String badgeStyle;
+        // Badge
+        String displayStatus = item.getDisplayStatus();
+        String badgeText, badgeStyle;
         if ("ENDING_SOON".equals(displayStatus)) {
-            badgeText  = "⏰ ENDING SOON";
-            badgeStyle = "al-badge-ending";
-        } else if ("PENDING".equals(displayStatus) || item.isPending()) {
-            badgeText  = "🕐 UPCOMING";
-            badgeStyle = "al-badge-upcoming";
+            badgeText = "⏰ ENDING SOON"; badgeStyle = "al-badge-ending";
+        } else if (item.isPending()) {
+            badgeText = "🕐 UPCOMING";   badgeStyle = "al-badge-upcoming";
         } else {
-            badgeText  = "● LIVE";
-            badgeStyle = "al-badge-live";
+            badgeText = "● LIVE";        badgeStyle = "al-badge-live";
         }
         Label badge = new Label(badgeText);
         badge.getStyleClass().add(badgeStyle);
@@ -214,10 +207,9 @@ public class AuctionListController {
         StackPane.setMargin(badge, new Insets(12, 0, 0, 12));
         imagePane.getChildren().add(badge);
 
-        // Card Body
+        // Body
         VBox body = new VBox(10);
         body.setPadding(new Insets(16));
-        body.getStyleClass().add("al-card-body");
 
         Label title = new Label(item.getItemName());
         title.getStyleClass().add("al-card-title");
@@ -227,6 +219,7 @@ public class AuctionListController {
         subtitle.getStyleClass().add("al-card-subtitle");
         subtitle.setWrapText(true);
 
+        // Bid row
         HBox bidRow = new HBox(8);
         bidRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -252,76 +245,56 @@ public class AuctionListController {
         Button bidButton = new Button("PLACE BID");
         bidButton.getStyleClass().add("al-btn-bid");
         bidButton.setMaxWidth(Double.MAX_VALUE);
-        bidButton.setOnAction(e -> handlePlaceBid(item));
+        bidButton.setOnAction(e -> NavigationUtils.navigateToAuctionDetail(item));
 
         body.getChildren().addAll(title, subtitle, bidRow, bidButton);
-
         card.getChildren().addAll(imagePane, body);
 
-        // Click on card (except button) to open detail
+        // Click card body to open detail
         card.setOnMouseClicked(e -> {
-            if (!(e.getTarget() instanceof Button)) {
-                handleOpenDetail(item);
-            }
+            if (!(e.getTarget() instanceof Button))
+                NavigationUtils.navigateToAuctionDetail(item);
         });
 
         return card;
     }
 
-    private String getEmojiForCategory(String category) {
+    // ── Countdown timer ───────────────────────────────────────
+    private void startCountdownTimer() {
+        clockTimer = new Timer(true);
+        clockTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override public void run() {
+                Platform.runLater(() -> {
+                    for (AuctionItem item : viewModel.getFilteredItems()) {
+                        Label lbl = (Label) cardsGrid.lookup("#timer_" + item.getAuctionId());
+                        if (lbl != null) {
+                            int remaining = item.secondsLeft();
+                            lbl.setText(formatTime(remaining));
+                            if (remaining < 900)
+                                lbl.getStyleClass().setAll("al-timer-ending");
+                        }
+                    }
+                });
+            }
+        }, 1000, 1000);
+    }
+
+    // ── Utilities ─────────────────────────────────────────────
+    private String emojiFor(String category) {
+        if (category == null) return "⭐";
         return switch (category.toLowerCase()) {
-            case "vehicles" -> "🏎️";
-            case "watches" -> "⌚";
-            case "art" -> "🖼️";
-            case "jewelry", "jewellery" -> "💎";
-            default -> "⭐";
+            case "vehicles"            -> "🏎️";
+            case "watches"             -> "⌚";
+            case "art"                 -> "🖼️";
+            case "jewelry","jewellery" -> "💎";
+            case "electronics"         -> "💻";
+            default                    -> "⭐";
         };
     }
 
     private String formatTime(int seconds) {
         if (seconds <= 0) return "00:00:00";
-        int h = seconds / 3600;
-        int m = (seconds % 3600) / 60;
-        int s = seconds % 60;
-        return String.format("%02d:%02d:%02d", h, m, s);
-    }
-
-    private void startCountdownTimer() {
-        clockTimer = new Timer(true);
-        clockTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(this::updateTimers);
-            }
-
-            private void updateTimers() {
-                for (AuctionItem item : viewModel.getFilteredItems()) {
-                    Label timerLabel = (Label) cardsGrid.lookup("#timer_" + item.getAuctionId());
-                    if (timerLabel != null) {
-                        int remaining = item.secondsLeft();
-                        timerLabel.setText(formatTime(remaining));
-                        if (remaining < 900) {
-                            timerLabel.getStyleClass().setAll("al-timer-ending");
-                        }
-                    }
-                }
-            }
-        }, 1000, 1000);
-    }
-
-    private void handlePlaceBid(AuctionItem item) {
-        System.out.println("Placing bid on: " + item.getItemName());
-        NavigationUtils.navigateToAuctionDetail(item);
-    }
-
-    private void handleOpenDetail(AuctionItem item) {
-        System.out.println("Opening detail for: " + item.getItemName());
-        NavigationUtils.navigateToAuctionDetail(item);
-    }
-
-    public void shutdown() {
-        if (clockTimer != null) {
-            clockTimer.cancel();
-        }
+        return String.format("%02d:%02d:%02d",
+            seconds / 3600, (seconds % 3600) / 60, seconds % 60);
     }
 }

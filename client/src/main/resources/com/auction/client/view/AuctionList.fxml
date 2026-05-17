@@ -11,11 +11,17 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane prefHeight="820.0" prefWidth="1280.0" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionListController">
+<BorderPane prefHeight="820.0" prefWidth="1280.0"
+            styleClass="root-pane"
+            stylesheets="@../css/style.css"
+            xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.controller.AuctionListController">
 
     <!-- TOP NAVBAR -->
     <top>
@@ -31,9 +37,15 @@
             <HBox HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER" spacing="16">
                 <TextField fx:id="searchField" prefWidth="280" promptText="Search collections..." styleClass="search-field" />
+                <Button fx:id="btnLogout" onAction="#handleLogout"
+                        text="Logout"
+                        style="-fx-background-color:rgba(239,68,68,0.1); -fx-text-fill:#ef4444;
+                               -fx-font-size:11px; -fx-font-family:'Arial';
+                               -fx-border-color:rgba(239,68,68,0.3); -fx-border-radius:20;
+                               -fx-background-radius:20; -fx-padding:5 14; -fx-cursor:hand;"/>
                 <StackPane>
                     <Circle radius="18" style="-fx-fill: #1e1c15; -fx-stroke: #f0b429; -fx-stroke-width: 2;" />
-                    <Label style="-fx-text-fill: #f0b429; -fx-font-weight: bold; -fx-font-size: 14px;" text="A" />
+                    <Label fx:id="userInitialLabel" style="-fx-text-fill: #f0b429; -fx-font-weight: bold; -fx-font-size: 14px;" text="A" />
                 </StackPane>
             </HBox>
         </HBox>
@@ -49,10 +61,10 @@
 
                 <VBox spacing="12">
                     <Label styleClass="section-title" text="CATEGORY" />
-                    <CheckBox fx:id="catFineArt" styleClass="filter-checkbox" text="Fine Art" />
+                    <CheckBox fx:id="catFineArt"       styleClass="filter-checkbox" text="Fine Art" />
                     <CheckBox fx:id="catLuxuryWatches" styleClass="filter-checkbox" text="Luxury Watches" />
-                    <CheckBox fx:id="catClassicCars" styleClass="filter-checkbox" text="Classic Cars" />
-                    <CheckBox fx:id="catJewelry" styleClass="filter-checkbox" text="Jewelry" />
+                    <CheckBox fx:id="catClassicCars"   styleClass="filter-checkbox" text="Classic Cars" />
+                    <CheckBox fx:id="catJewelry"       styleClass="filter-checkbox" text="Jewelry" />
                 </VBox>
 
                 <VBox spacing="12">
@@ -64,17 +76,15 @@
                     </HBox>
                 </VBox>
 
-                <!-- Inside the STATUS VBox -->
                 <VBox spacing="12">
                     <Label styleClass="section-title" text="STATUS" />
-               <VBox prefHeight="163.0" prefWidth="160.0" spacing="15.0">
-                  <children>
-                           <Button fx:id="statusLive" styleClass="status-btn status-live" text="Live" />
-                           <Button fx:id="statusUpcoming" styleClass="status-btn status-upcoming" text="Upcoming" />
-                           <Button fx:id="statusEndingSoon" styleClass="status-btn status-ending" text="Ending Soon" />
-                  </children>
-               </VBox>
+                    <VBox spacing="15.0">
+                        <Button fx:id="statusLive"      styleClass="status-btn status-live"     text="Live" />
+                        <Button fx:id="statusUpcoming"  styleClass="status-btn status-upcoming" text="Upcoming" />
+                        <Button fx:id="statusEndingSoon" styleClass="status-btn status-ending"  text="Ending Soon" />
+                    </VBox>
                 </VBox>
+
                 <Button fx:id="applyFilterBtn" prefHeight="48" styleClass="btn-primary" text="APPLY FILTERS" />
             </VBox>
 
@@ -83,14 +93,14 @@
                 <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 25 32 15 32;">
                     <VBox>
                         <Label styleClass="page-title" text="Active Auctions" />
-                        <Label styleClass="page-subtitle" text="Discover 7 curated luxury assets globally." />
+                        <Label styleClass="page-subtitle" text="Discover curated luxury assets globally." />
                     </VBox>
                     <HBox HBox.hgrow="ALWAYS" />
-                    <Label fx:id="countLabel" styleClass="count-label" text="Showing 6 of 248 items" />
+                    <Label fx:id="countLabel" styleClass="count-label" text="Showing 0 items" />
                     <ComboBox fx:id="sortCombo" promptText="Sort by: Newest" styleClass="sort-combo" />
                 </HBox>
 
-                <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="al-scroll" VBox.vgrow="ALWAYS">
+                <ScrollPane fitToWidth="true" styleClass="al-scroll" VBox.vgrow="ALWAYS">
                     <GridPane fx:id="cardsGrid" hgap="24" style="-fx-padding: 10 32 40 32;" vgap="30">
                         <columnConstraints>
                             <ColumnConstraints percentWidth="33.33" />
