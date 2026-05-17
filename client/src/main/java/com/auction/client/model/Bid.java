@@ -1,5 +1,5 @@
 package com.auction.client.model;
 
-public class AuctionModel {
+public class Bid {
     
 }

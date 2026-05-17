@@ -1,4 +1,4 @@
-package com.auction.network;
+package com.auction.client.network;
 
 import com.auction.common.protocol.*;
 

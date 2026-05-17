@@ -1,4 +1,4 @@
-package com.auction.network;
+package com.auction.client.network;
 
 import java.io.BufferedReader;
 import java.io.IOException;
