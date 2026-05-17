@@ -401,7 +401,6 @@ public class AdminDashboardController {
             new AuctionItem(9L,109L,2L,"@sterlinghouse","Ferrari 488 Spider","2019 LOW MILEAGE","Vehicles","PENDING",280000,280000,now.plusDays(1),now.plusDays(7),null,0)
         ));
     }
-
     // ── UI helpers ────────────────────────────────────────────
     private Button makeBtn(String text, String textColor, String bgColor) {
         Button btn = new Button(text);
@@ -422,7 +421,6 @@ public class AdminDashboardController {
         styleDialog(alert);
         alert.showAndWait();
     }
-
     private boolean showConfirm(String title, String msg) {
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle(title);
@@ -431,7 +429,6 @@ public class AdminDashboardController {
         styleDialog(alert);
         return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
-
     private void showAlert(AlertType type, String title, String msg) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -440,7 +437,6 @@ public class AdminDashboardController {
         styleDialog(alert);
         alert.showAndWait();
     }
-
     private void styleDialog(javafx.scene.control.Dialog<?> dialog) {
         dialog.getDialogPane().setStyle(
             "-fx-background-color:#161410; -fx-border-color:#2e2a1e;");

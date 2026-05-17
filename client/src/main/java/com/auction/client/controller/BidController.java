@@ -18,7 +18,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 public class BidController {
-
     @FXML private Button btnBack;
 
     @FXML private Label itemEmojiLabel;

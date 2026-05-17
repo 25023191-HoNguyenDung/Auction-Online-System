@@ -66,7 +66,6 @@ public class LoginViewModel {
     public String getErrorMessage() {
         return errorMessage;
     }
-
     // ── Mock credentials ──────────────────────────────────────
     /**
      * Returns a User for known mock credentials, null otherwise.
