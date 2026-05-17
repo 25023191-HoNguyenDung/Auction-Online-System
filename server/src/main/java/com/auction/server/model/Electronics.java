@@ -12,8 +12,8 @@ public class Electronics extends Item {
     //Constructor:
 
 
-    public Electronics(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, double reserve_price, String brand, int warrantyMonths, int year_of_manufacture) {
-        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl, reserve_price);
+    public Electronics(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, String brand, int warrantyMonths, int year_of_manufacture) {
+        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl);
         this.brand = brand;
         this.warrantyMonths = warrantyMonths;
         this.year_of_manufacture = year_of_manufacture;

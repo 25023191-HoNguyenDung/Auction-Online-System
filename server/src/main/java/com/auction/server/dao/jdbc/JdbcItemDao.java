@@ -24,9 +24,8 @@ public class JdbcItemDao implements ItemDao {
         item.setDescription(rs.getString("description"));
         item.setCategory(rs.getString("category"));
         item.setStartingPrice(rs.getBigDecimal("starting_price"));
-        item.setCurrentPrice(rs.getBigDecimal("current_price")); // thêm
-        item.setImageUrl(rs.getString("image_url"));             // thêm
-        item.setReserve_price(rs.getDouble("reserve_price"));                              // không có trong DB
+        item.setCurrentPrice(rs.getBigDecimal("current_price"));
+        item.setImageUrl(rs.getString("image_url"));
         return item;
     }
 
@@ -86,9 +85,8 @@ public class JdbcItemDao implements ItemDao {
             ps.setString(3, item.getDescription());
             ps.setString(4, item.getCategory());
             ps.setBigDecimal(5, item.getStartingPrice());
-            ps.setBigDecimal(6, item.getCurrentPrice()); // thêm
-            ps.setString(7, item.getImageUrl());         // thêm
-            ps.setDouble(8, item.getReserve_price());    
+            ps.setBigDecimal(6, item.getCurrentPrice());
+            ps.setString(7, item.getImageUrl());
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) item.setItemId(keys.getLong(1));
@@ -103,7 +101,7 @@ public class JdbcItemDao implements ItemDao {
         String sql = """
             UPDATE items
             SET name = ?, description = ?, category = ?,
-                starting_price = ?, current_price = ?, image_url = ?, reserve_price = ?
+                starting_price = ?, current_price = ?, image_url = ?
             WHERE id = ?
         """;
         try (Connection conn = db.getConnection();
@@ -115,7 +113,6 @@ public class JdbcItemDao implements ItemDao {
             ps.setBigDecimal(5, item.getCurrentPrice()); // thêm
             ps.setString(6, item.getImageUrl());         // thêm
             ps.setLong(7, item.getItemId());
-            ps.setDouble(8, item.getReserve_price());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi update item id: " + item.getItemId(), e);
