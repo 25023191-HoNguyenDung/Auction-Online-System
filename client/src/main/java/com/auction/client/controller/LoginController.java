@@ -10,7 +10,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
 public class LoginController {
-
     @FXML private TextField     emailField;
     @FXML private PasswordField passwordField;
     @FXML private Label         errorLabel;
@@ -37,7 +36,6 @@ public class LoginController {
         if (goLoginNav != null)
             goLoginNav.setStyle("-fx-background-color: #d4981f; -fx-text-fill: #0d0c08;");
     }
-
     // ── Login ─────────────────────────────────────────────────
     @FXML
     private void handleLogin() {
@@ -72,7 +70,6 @@ public class LoginController {
             errorLabel.setVisible(true);
         }
     }
-
     private void hideError() {
         if (errorLabel != null) errorLabel.setVisible(false);
     }

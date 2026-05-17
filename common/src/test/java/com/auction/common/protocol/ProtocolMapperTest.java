@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,8 +17,8 @@ class ProtocolMapperTest {
     @Test
     void testPlaceBidRequestRoundTrip() { //Object → JSON → Object xem dữ liệu có dữ nguyên không
         PlaceBidReqPayload payload = new PlaceBidReqPayload(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
+                ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE), // ramdom cho đa luồng
+                ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE),
                 new BigDecimal("1250000")
         );
 
@@ -39,9 +40,9 @@ class ProtocolMapperTest {
 
         PlaceBidResPayload payload = new PlaceBidResPayload(
                 true,
-                UUID.randomUUID(),
+                ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE),
                 new BigDecimal("1500000"),
-                UUID.randomUUID()
+                ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE)
         );
 
         MessageEnvelope res = mapper.buildResponse(MessageType.PLACE_BID_RES, correlationId, payload);
@@ -55,9 +56,9 @@ class ProtocolMapperTest {
     @Test
     void testBidUpdatedEventRoundTrip() { //Test xem event gửi đi → chuyển thành JSON → parse lại có giữ nguyên dữ liệu không
         BidUpdatedEventPayload payload = new BidUpdatedEventPayload(
-                UUID.randomUUID(),
+                ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE),
                 new BigDecimal("1700000"),
-                UUID.randomUUID(),
+                ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE),
                 Instant.now()
         );
 

@@ -20,7 +20,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 public class SellerDashboardController {
-
     // ── Sidebar ───────────────────────────────────────────────
     @FXML private Label  navInitialLabel;
     @FXML private Label  sideInitialLabel;

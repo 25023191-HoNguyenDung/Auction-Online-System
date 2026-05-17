@@ -19,6 +19,7 @@ public class AuctionItem {
     private String imageUrl;
     private int totalBids;
 
+    
     // Constructor used in ViewModel
     public AuctionItem(long auctionId, long itemId, long sellerId, String sellerName,
                        String itemName, String description, String category, String status,

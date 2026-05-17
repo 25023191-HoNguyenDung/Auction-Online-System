@@ -35,7 +35,6 @@ public class NavigationUtils {
             System.err.println("❌ Navigation failed: " + fxmlPath);
         }
     }
-
     /**
      * Navigate to AuctionDetail and pass the selected item to its controller.
      */
