@@ -29,4 +29,5 @@ public interface AuctionService {
     void processPayment(long auctionId) throws AuctionTimeException, AuctionConnectException;
     // Hủy phiên đấu giá 
     void cancelAuction(long auctionId) throws AuctionTimeException, AuctionConnectException;
+
 }
