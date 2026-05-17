@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane prefHeight="820.0" prefWidth="1280.0"
+            styleClass="root-pane"
+            stylesheets="@../css/style.css"
+            xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.controller.AuctionListController">
+
+    <!-- TOP NAVBAR -->
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="60.0" styleClass="navbar">
+            <Label styleClass="nav-logo-text" text="AUCTION PRO" />
+            <HBox HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="40">
+                <Label style="-fx-text-fill: #f0b429;" styleClass="nav-link" text="AUCTIONS" />
+                <Label styleClass="nav-link" text="SELLING" />
+                <Label styleClass="nav-link" text="HISTORY" />
+                <Label styleClass="nav-link" text="PROFILE" />
+            </HBox>
+            <HBox HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="16">
+                <TextField fx:id="searchField" prefWidth="280" promptText="Search collections..." styleClass="search-field" />
+                <Button fx:id="btnLogout" onAction="#handleLogout"
+                        text="Logout"
+                        style="-fx-background-color:rgba(239,68,68,0.1); -fx-text-fill:#ef4444;
+                               -fx-font-size:11px; -fx-font-family:'Arial';
+                               -fx-border-color:rgba(239,68,68,0.3); -fx-border-radius:20;
+                               -fx-background-radius:20; -fx-padding:5 14; -fx-cursor:hand;"/>
+                <StackPane>
+                    <Circle radius="18" style="-fx-fill: #1e1c15; -fx-stroke: #f0b429; -fx-stroke-width: 2;" />
+                    <Label fx:id="userInitialLabel" style="-fx-text-fill: #f0b429; -fx-font-weight: bold; -fx-font-size: 14px;" text="A" />
+                </StackPane>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <HBox>
+            <!-- FILTER SIDEBAR -->
+            <VBox prefHeight="760.0" prefWidth="318.0" spacing="24" styleClass="filter-sidebar">
+                <padding><Insets bottom="20" left="24" right="24" top="30" /></padding>
+
+                <Label styleClass="filter-title" text="FILTERS" />
+
+                <VBox spacing="12">
+                    <Label styleClass="section-title" text="CATEGORY" />
+                    <CheckBox fx:id="catFineArt"       styleClass="filter-checkbox" text="Fine Art" />
+                    <CheckBox fx:id="catLuxuryWatches" styleClass="filter-checkbox" text="Luxury Watches" />
+                    <CheckBox fx:id="catClassicCars"   styleClass="filter-checkbox" text="Classic Cars" />
+                    <CheckBox fx:id="catJewelry"       styleClass="filter-checkbox" text="Jewelry" />
+                </VBox>
+
+                <VBox spacing="12">
+                    <Label styleClass="section-title" text="PRICE RANGE" />
+                    <HBox spacing="12">
+                        <TextField fx:id="priceMin" prefWidth="100" promptText="Min" styleClass="price-field" />
+                        <Label style="-fx-text-fill: #8a8272; -fx-font-size: 16px;" text="—" />
+                        <TextField fx:id="priceMax" prefWidth="100" promptText="Max" styleClass="price-field" />
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="12">
+                    <Label styleClass="section-title" text="STATUS" />
+                    <VBox spacing="15.0">
+                        <Button fx:id="statusLive"      styleClass="status-btn status-live"     text="Live" />
+                        <Button fx:id="statusUpcoming"  styleClass="status-btn status-upcoming" text="Upcoming" />
+                        <Button fx:id="statusEndingSoon" styleClass="status-btn status-ending"  text="Ending Soon" />
+                    </VBox>
+                </VBox>
+
+                <Button fx:id="applyFilterBtn" prefHeight="48" styleClass="btn-primary" text="APPLY FILTERS" />
+            </VBox>
+
+            <!-- MAIN AUCTION AREA -->
+            <VBox styleClass="main-content" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 25 32 15 32;">
+                    <VBox>
+                        <Label styleClass="page-title" text="Active Auctions" />
+                        <Label styleClass="page-subtitle" text="Discover curated luxury assets globally." />
+                    </VBox>
+                    <HBox HBox.hgrow="ALWAYS" />
+                    <Label fx:id="countLabel" styleClass="count-label" text="Showing 0 items" />
+                    <ComboBox fx:id="sortCombo" promptText="Sort by: Newest" styleClass="sort-combo" />
+                </HBox>
+
+                <ScrollPane fitToWidth="true" styleClass="al-scroll" VBox.vgrow="ALWAYS">
+                    <GridPane fx:id="cardsGrid" hgap="24" style="-fx-padding: 10 32 40 32;" vgap="30">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="33.33" />
+                            <ColumnConstraints percentWidth="33.33" />
+                            <ColumnConstraints percentWidth="33.33" />
+                        </columnConstraints>
+                    </GridPane>
+                </ScrollPane>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

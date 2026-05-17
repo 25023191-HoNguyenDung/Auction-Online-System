@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+
+<BorderPane prefHeight="820.0" prefWidth="1280.0" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionDetailController">
+   <top>
+      <HBox alignment="CENTER_LEFT" prefHeight="60.0" styleClass="navbar">
+         <children>
+            <Label styleClass="nav-logo-text" text="AUCTION PRO" />
+            <HBox HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="40">
+               <children>
+                  <Label style="-fx-text-fill: #f0b429;" styleClass="nav-link" text="AUCTIONS" />
+                  <Label styleClass="nav-link" text="SELLING" />
+                  <Label styleClass="nav-link" text="HISTORY" />
+                  <Label styleClass="nav-link" text="PROFILE" />
+               </children>
+            </HBox>
+            <HBox HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="16">
+               <children>
+                  <TextField fx:id="searchField" prefWidth="280" promptText="Search collections..." styleClass="search-field" />
+                  <StackPane>
+                     <children>
+                        <Circle radius="18" style="-fx-fill: #1e1c15; -fx-stroke: #f0b429; -fx-stroke-width: 2;" />
+                        <Label style="-fx-text-fill: #f0b429; -fx-font-weight: bold; -fx-font-size: 14px;" text="A" />
+                     </children>
+                  </StackPane>
+               </children>
+            </HBox>
+         </children>
+      </HBox>
+   </top>
+   <bottom>
+      <VBox styleClass="footer" BorderPane.alignment="CENTER">
+         <children>
+            <HBox alignment="CENTER_LEFT">
+               <children>
+                  <VBox spacing="4">
+                     <children>
+                        <Label styleClass="footer-logo-text" text="AUCTION LUXURY PRO" />
+                        <Label styleClass="footer-copyright" text="© 2026 AUCTION LUXURY PRO. ALL RIGHTS RESERVED." />
+                     </children>
+                  </VBox>
+                  <HBox HBox.hgrow="ALWAYS" />
+                  <HBox alignment="CENTER" spacing="32">
+                     <children>
+                        <Label styleClass="footer-link" text="TERMS OF SERVICE" />
+                        <Label styleClass="footer-link" text="PRIVACY POLICY" />
+                        <Label styleClass="footer-link" text="AUCTION RULES" />
+                        <Label styleClass="footer-link" text="CONTACT SUPPORT" />
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </bottom>
+   <center>
+      <VBox styleClass="ad-content-area" BorderPane.alignment="CENTER">
+         <children>
+            <!-- Back button row -->
+            <HBox style="-fx-padding: 16 32 0 32;">
+               <children>
+                  <Button fx:id="btnBack" styleClass="ad-btn-back" text="← Back to Auctions" />
+               </children>
+            </HBox>
+
+            <HBox spacing="30.0" VBox.vgrow="ALWAYS" style="-fx-padding: 16 32 24 32;">
+               <children>
+                  <!-- LEFT: Image panel -->
+                  <VBox spacing="15.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <StackPane alignment="TOP_RIGHT" prefHeight="500.0" styleClass="ad-image-pane">
+                           <children>
+                              <Region prefHeight="500.0" styleClass="ad-image-placeholder" />
+                              <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity"
+                                    spacing="5.0" styleClass="ad-live-badge"
+                                    StackPane.alignment="TOP_RIGHT">
+                                 <padding>
+                                    <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                 </padding>
+                                 <StackPane.margin>
+                                    <Insets right="20.0" top="20.0" />
+                                 </StackPane.margin>
+                                 <children>
+                                    <Rectangle arcHeight="8" arcWidth="8" fill="#4ADE80" height="8.0" width="8.0" />
+                                    <Label styleClass="text-gold" text="LIVE" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </StackPane>
+                     </children>
+                  </VBox>
+
+                  <!-- RIGHT: Detail panel -->
+                  <VBox minWidth="300.0" prefWidth="520.0" spacing="25.0" styleClass="ad-right-panel">
+                     <padding>
+                        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+                     </padding>
+                     <children>
+
+                        <!-- Title + subtitle -->
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label fx:id="titleLabel" styleClass="ad-item-title" text="Quantum X Laptop" />
+                              <Label fx:id="subtitleLabel" styleClass="ad-item-subtitle" text="TITANIUM EDITION 2024" />
+                           </children>
+                        </VBox>
+
+                        <!-- Current bid + timer -->
+                        <HBox>
+                           <children>
+                              <VBox HBox.hgrow="ALWAYS" spacing="3.0">
+                                 <children>
+                                    <Label styleClass="ad-field-label" text="CURRENT BID" />
+                                    <Label fx:id="currentBidLabel" styleClass="ad-bid-value" text="\$4,200.00" />
+                                 </children>
+                              </VBox>
+                              <VBox alignment="TOP_RIGHT" spacing="3.0">
+                                 <children>
+                                    <Label styleClass="ad-field-label" text="TIME REMAINING" />
+                                    <Label fx:id="timeRemainingLabel" styleClass="ad-timer-value" text="04:12:35" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+
+                        <!-- Meta info -->
+                        <VBox spacing="10.0" styleClass="ad-meta-box">
+                           <children>
+                              <HBox>
+                                 <children>
+                                    <Label styleClass="ad-meta-label" text="Reserve Price Met" HBox.hgrow="ALWAYS" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="text-green" text="✔ Yes" />
+                                 </children>
+                              </HBox>
+                              <HBox>
+                                 <children>
+                                    <Label styleClass="ad-meta-label" text="Bidders Participating" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="ad-meta-value" text="14 active" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <!-- Bid input -->
+                        <VBox spacing="10.0">
+                           <children>
+                              <Label styleClass="ad-field-label" text="PLACE YOUR BID" />
+                              <HBox spacing="10.0">
+                                 <children>
+                                    <HBox alignment="CENTER_LEFT" prefHeight="46.0" styleClass="ad-bid-input" HBox.hgrow="ALWAYS">
+                                       <padding>
+                                          <Insets left="15.0" right="10.0" />
+                                       </padding>
+                                       <children>
+                                          <Label styleClass="ad-currency-symbol" text="\$" />
+                                          <TextField fx:id="bidAmountField" promptText="Enter amount" styleClass="ad-bid-field" HBox.hgrow="ALWAYS" />
+                                       </children>
+                                    </HBox>
+                                    <Button fx:id="placeBidButton" onAction="#handlePlaceBid" prefHeight="46.0" prefWidth="160.0" styleClass="btn-primary" text="PLACE BID" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <!-- Price chart -->
+                        <VBox spacing="12.0">
+                           <children>
+                              <HBox alignment="CENTER_LEFT">
+                                 <children>
+                                    <Label styleClass="ad-field-label" text="REALTIME PRICE CURVE" />
+                                    <Label styleClass="ad-live-pill" text="● LIVE">
+                                       <HBox.margin><Insets left="8.0"/></HBox.margin>
+                                    </Label>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="ad-view-all" text="View All" />
+                                 </children>
+                              </HBox>
+                              <HBox alignment="BOTTOM_LEFT">
+                                 <children>
+                                    <VBox spacing="3.0">
+                                       <children>
+                                          <Label styleClass="ad-chart-sublabel" text="MARKET PERFORMANCE" />
+                                          <Label styleClass="text-gold" text="High Stability" />
+                                       </children>
+                                    </VBox>
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="ad-chart-sublabel" text="Rising fast" style="-fx-font-style: italic;" />
+                                 </children>
+                              </HBox>
+                              <LineChart fx:id="priceChart" createSymbols="true" legendVisible="false"
+                                         prefHeight="155.0" styleClass="ad-price-chart">
+                                 <xAxis>
+                                    <CategoryAxis side="BOTTOM" />
+                                 </xAxis>
+                                 <yAxis>
+                                    <NumberAxis autoRanging="false" lowerBound="175000" minorTickVisible="false"
+                                                side="LEFT" tickUnit="5000" upperBound="186000" />
+                                 </yAxis>
+                              </LineChart>
+                              <HBox>
+                                 <children>
+                                    <Label styleClass="ad-chart-sublabel" text="Current Momentum" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="text-green" text="+2.4% LAST 10M" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>

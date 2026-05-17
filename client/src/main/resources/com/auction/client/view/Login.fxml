@@ -41,7 +41,7 @@
             <StackPane styleClass="center-pane" HBox.hgrow="ALWAYS">
                 <ImageView fitHeight="658.0" fitWidth="1021.0" pickOnBounds="true" preserveRatio="true">
                     <image>
-                        <Image url="@../../../../../../../../../bg.png" />
+                        <Image url="@../image/bg.png" />
                     </image>
                     <effect>
                         <Lighting>
@@ -63,7 +63,7 @@
                     
                     <ImageView fitHeight="64.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true">
                         <image>
-                            <Image url="@../../../../../../../../../logo.png" />
+                            <Image url="@../image/logo.png" />
                         </image>
                     </ImageView>
 
