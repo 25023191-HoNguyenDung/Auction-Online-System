@@ -11,6 +11,7 @@ public class AutoBidProfile {
     private BigDecimal max_bid;
     private BigDecimal increment;
     private LocalDateTime created_at;
+    private boolean active;
 
     public AutoBidProfile() {}
 
@@ -23,6 +24,7 @@ public class AutoBidProfile {
         this.max_bid = max_bid;
         this.increment = increment;
         this.created_at = created_at;
+        this.active = true; // Mặc định khi tạo mới sẽ active   
     }
 
 
@@ -45,9 +47,12 @@ public class AutoBidProfile {
     public LocalDateTime getCreated_at() { return created_at; }
     public void setCreated_at(LocalDateTime created_at) { this.created_at = created_at; }
 
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+
     @Override
     public String toString() {
         return "AutoBidProfile{id=" + id + ", user_id=" + user_id
-                + ", auction_id=" + auction_id + ", max_bid=" + max_bid + "}";
+                + ", auction_id=" + auction_id + ", max_bid=" + max_bid + ", active=" + active + "}";
     }
 }
