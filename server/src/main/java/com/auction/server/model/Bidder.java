@@ -14,10 +14,14 @@ public class Bidder extends User {
 
     public Bidder(String name, long ID, String email,
                   String password, String role,
+<<<<<<< HEAD
                   BigDecimal account_balance,
+=======
+                  double account_balance,
+>>>>>>> c049462482c8c94b427c0465d43fa8f4e14dd959
                   ArrayList<Auction> history_of_auction) {
         super(name, ID, email, password, role);
-        this.account_balance = account_balance;
+        this.account_balance = BigDecimal.valueOf(account_balance);
         this.history_of_auction = history_of_auction;
     }
 
