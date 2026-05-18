@@ -11,31 +11,36 @@ import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.BidDao;
+import com.auction.server.dao.TransactionDao;
 import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcAuctionDao;
 import com.auction.server.dao.jdbc.JdbcBidDao;
+import com.auction.server.dao.jdbc.JdbcTransactionDao;
 import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.BidTransaction;
 import com.auction.server.model.Bidder;
+import com.auction.server.model.Transaction;
 import com.auction.server.model.User;
 
 public class AuctionServiceImpl implements AuctionService {
 
-    private final AuctionDao auctionDao; // Lưu trữ và truy xuất thông tin phiên đấu giá
-    private final BidDao bidDao; // Lưu trữ và truy xuất thông tin giao dịch đặt giá    
-    private final UserDao userDao; // Lưu trữ và truy xuất thông tin người dùng
-    private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>(); // Cache để lưu trữ các phiên đấu giá đang hoạt động
-    
-    public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao) {
+    private final AuctionDao auctionDao;
+    private final BidDao bidDao;
+    private final UserDao userDao;
+    private final TransactionDao transactionDao;
+    private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>();
+
+    public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao, TransactionDao transactionDao) {
         this.auctionDao = auctionDao;
         this.bidDao = bidDao;
         this.userDao = userDao;
+        this.transactionDao = transactionDao;
     }
-    // Constructor mặc định sử dụng các DAO JDBC để kết nối với cơ sở dữ liệu
+
     public AuctionServiceImpl() {
-        this(new JdbcAuctionDao(), new JdbcBidDao(), new JdbcUserDao());
+        this(new JdbcAuctionDao(), new JdbcBidDao(), new JdbcUserDao(), new JdbcTransactionDao());
     }
     // Lấy bộ quản lý logic của phiên đấu giá từ cache hoặc tạo mới nếu chưa tồn tại
     private AuctionLogicManager getManager(long auctionId) {
@@ -103,6 +108,15 @@ public class AuctionServiceImpl implements AuctionService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to place bid: " + e.getMessage(), e);
         }
+        BidTransaction previousHighest = getHighestBid(auctionId);
+        if (previousHighest != null) {
+            refundBidBalance(
+                previousHighest.getBidderId(),
+                auctionId,
+                previousHighest.getBidAmount().doubleValue()
+            );
+        }
+        holdBalanceForBid(bidderId, auctionId, amount.doubleValue());
         bidDao.save(bid);
         return bid;
     }
@@ -150,5 +164,56 @@ public class AuctionServiceImpl implements AuctionService {
             throw new RuntimeException("Database error during cancellation of auction " + auctionId + ": " + e.getMessage(), e);
         }
         clearCached(auctionId); // Dọn cache vì phiên đã CANCELLED
+    }
+
+    public void deposit(long userId, double amount) {
+        JdbcUserDao userDao = (JdbcUserDao) this.userDao;
+        double currentBalance = userDao.getBalance(userId);
+        double newBalance = currentBalance + amount;
+        userDao.updateBalance(userId, newBalance);
+        Transaction transaction = new Transaction(userId, "DEPOSIT", amount, null, "User deposit");
+        transactionDao.save(transaction);
+    }
+
+    public void withdraw(long userId, double amount) {
+        JdbcUserDao userDao = (JdbcUserDao) this.userDao;
+        double currentBalance = userDao.getBalance(userId);
+        if (currentBalance < amount) {
+            throw new RuntimeException("Insufficient balance. Current: " + currentBalance + ", Required: " + amount);
+        }
+        double newBalance = currentBalance - amount;
+        userDao.updateBalance(userId, newBalance);
+        Transaction transaction = new Transaction(userId, "WITHDRAWAL", amount, null, "User withdrawal");
+        transactionDao.save(transaction);
+    }
+
+    public double getBalance(long userId) {
+        JdbcUserDao userDao = (JdbcUserDao) this.userDao;
+        return userDao.getBalance(userId);
+    }
+
+    public List<Transaction> getTransactionHistory(long userId) {
+        return transactionDao.findByUserId(userId);
+    }
+
+    public void holdBalanceForBid(long userId, long auctionId, double bidAmount) {
+        JdbcUserDao userDao = (JdbcUserDao) this.userDao;
+        double currentBalance = userDao.getBalance(userId);
+        if (currentBalance < bidAmount) {
+            throw new RuntimeException("Insufficient balance. Current: " + currentBalance + ", Bid: " + bidAmount);
+        }
+        double newBalance = currentBalance - bidAmount;
+        userDao.updateBalance(userId, newBalance);
+        Transaction transaction = new Transaction(userId, "BID_HOLD", bidAmount, auctionId, "Balance held for bid");
+        transactionDao.save(transaction);
+    }
+
+    public void refundBidBalance(long userId, long auctionId, double bidAmount) {
+        JdbcUserDao userDao = (JdbcUserDao) this.userDao;
+        double currentBalance = userDao.getBalance(userId);
+        double newBalance = currentBalance + bidAmount;
+        userDao.updateBalance(userId, newBalance);
+        Transaction transaction = new Transaction(userId, "BID_REFUND", bidAmount, auctionId, "Bid refunded - outbid");
+        transactionDao.save(transaction);
     }
 }

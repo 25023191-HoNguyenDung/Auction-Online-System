@@ -28,4 +28,12 @@ public class Seller extends User {
         this.role = "Seller";
     }
 
+    public double getAccount_balance() {
+        return account_balance;
+    }
+
+    public void setAccount_balance(double account_balance) {
+        this.account_balance = account_balance;
+    }
+
 }

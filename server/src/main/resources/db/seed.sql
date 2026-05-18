@@ -2,17 +2,18 @@ USE auction_db;
 
 -- Xóa dữ liệu cũ trước khi insert (an toàn)
 DELETE FROM bids;
+DELETE FROM transactions;
 DELETE FROM auto_bid_profiles;
 DELETE FROM auctions;
 DELETE FROM items;
 DELETE FROM users;
 
 -- 1. Users
-INSERT INTO users (id, user_name, password, email, role) VALUES
-(1, 'admin', 'admin2308', 'admin@gmail.com', 'ADMIN'),
-(2, 'seller1', 'seller12308', 'ducanh@gmail.com', 'SELLER'),
-(3, 'bidder1', 'bidder12308', 'dung@gmail.com',  'BIDDER'),
-(4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER');
+INSERT INTO users (id, user_name, password, email, role, account_balance) VALUES
+(1, 'admin', 'admin2308', 'admin@gmail.com', 'ADMIN', 0.00),
+(2, 'seller1', 'seller12308', 'ducanh@gmail.com', 'SELLER', 50000.00),
+(3, 'bidder1', 'bidder12308', 'dung@gmail.com',  'BIDDER', 50000.00),
+(4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER', 50000.00);
 
 -- 2. Items
 INSERT INTO items (id, seller_id, name, description, category, starting_price, current_price, image_url) VALUES

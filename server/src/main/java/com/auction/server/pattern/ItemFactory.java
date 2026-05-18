@@ -17,7 +17,6 @@ public class ItemFactory {
                                   BigDecimal startingPrice,
                                   BigDecimal currentPrice,
                                   String imageUrl,
-                                  double reservePrice,
                                   Object... additionalParams) {
 
         switch (category.toUpperCase()) {
@@ -29,7 +28,7 @@ public class ItemFactory {
                 return new Electronics(
                         itemId, sellerId, itemName, description,
                         "ELECTRONICS",
-                        startingPrice, currentPrice, imageUrl, reservePrice,
+                        startingPrice, currentPrice, imageUrl,
                         brand, warrantyMonths, year_of_manufacture
                 );
             }
@@ -40,7 +39,7 @@ public class ItemFactory {
                 return new Art(
                         itemId, sellerId, itemName, description,
                         "ART",
-                        startingPrice, currentPrice, imageUrl, reservePrice,
+                        startingPrice, currentPrice, imageUrl,
                         artist, style
                 );
             }
@@ -53,7 +52,7 @@ public class ItemFactory {
                 return new Vehicle(
                         itemId, sellerId, itemName, description,
                         "VEHICLE",
-                        startingPrice, currentPrice, imageUrl, reservePrice,
+                        startingPrice, currentPrice, imageUrl,
                         fuel_type, type_of_vehicle, color, year
                 );
             }
