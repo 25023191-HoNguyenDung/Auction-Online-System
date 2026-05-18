@@ -35,37 +35,12 @@ public class Seller extends User {
         this.account_balance += amount;
     }
 
-    public ArrayList<Item> getSold_list_items() { return sold_list_items; }
-
-    public void addSoldItem(Item item) {
-        if (item != null) sold_list_items.add(item);
+    public double getAccount_balance() {
+        return account_balance;
     }
 
-    public int getTotalSold() { return sold_list_items.size(); }
-
-    public double getTotalRevenue() {
-
-        return sold_list_items.stream()
-                .map(item -> item.getCurrentPrice().doubleValue())
-                .reduce(0.0, (a, b) -> a + b);
-
-    }
-    
-    public void withdraw(double amount) {
-        if (amount <= 0)
-            throw new IllegalArgumentException("Withdraw amount must be > 0");
-        if (amount > account_balance)
-            throw new IllegalStateException(
-                "Insufficient balance — current balance is " + account_balance
-            );
-        this.account_balance -= amount;
+    public void setAccount_balance(double account_balance) {
+        this.account_balance = account_balance;
     }
 
-    public ArrayList<Auction> getHistory_of_auction() {
-        return history_of_auction;
-    }
-
-    public void addAuctionHistory(Auction auction) {
-        if (auction != null) history_of_auction.add(auction);
-    }
 }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.sessions.AccountService;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
@@ -41,6 +42,7 @@ public class SellerDashboardController {
     @FXML private Label cardTotalBids;
     @FXML private Label cardRevenue;
     @FXML private Label cardPending;
+    @FXML private Label cardBalance;
 
     // ── My Auctions tab ───────────────────────────────────────
     @FXML private TextField              searchMyAuctions;
@@ -59,7 +61,6 @@ public class SellerDashboardController {
     @FXML private TextField        formItemName;
     @FXML private ComboBox<String> formCategory;
     @FXML private TextField        formStartPrice;
-    @FXML private TextField        formReservePrice;
     @FXML private ComboBox<String> formDuration;
     @FXML private ComboBox<String> formCondition;
     @FXML private TextArea         formDescription;
@@ -69,7 +70,6 @@ public class SellerDashboardController {
     @FXML private Label previewTitle;
     @FXML private Label previewCategory;
     @FXML private Label previewPrice;
-    @FXML private Label previewReserve;
     @FXML private Label previewDuration;
     @FXML private Label previewEmoji;
 
@@ -84,6 +84,7 @@ public class SellerDashboardController {
     // ── Mock data ─────────────────────────────────────────────
     private final ObservableList<AuctionItem> myAuctions = FXCollections.observableArrayList();
     private final ObservableList<String[]>    bidsData   = FXCollections.observableArrayList();
+    private final AccountService accountService = AccountService.getInstance();
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
@@ -207,8 +208,6 @@ public class SellerDashboardController {
         });
         formStartPrice.textProperty().addListener((o, old, v) ->
             previewPrice.setText(v.isEmpty() ? "$—" : "$" + v));
-        formReservePrice.textProperty().addListener((o, old, v) ->
-            previewReserve.setText(v.isEmpty() ? "$—" : "$" + v));
         formDuration.setOnAction(e -> {
             String dur = formDuration.getValue();
             previewDuration.setText(dur != null ? dur : "—");
@@ -262,7 +261,6 @@ public class SellerDashboardController {
     private void handleClearForm() {
         formItemName.clear();
         formStartPrice.clear();
-        formReservePrice.clear();
         formDescription.clear();
         formCategory.getSelectionModel().selectFirst();
         formDuration.getSelectionModel().selectFirst();
@@ -270,7 +268,6 @@ public class SellerDashboardController {
         previewTitle.setText("Item Name");
         previewCategory.setText("Category");
         previewPrice.setText("$—");
-        previewReserve.setText("$—");
         previewDuration.setText("—");
         previewEmoji.setText("⭐");
     }
@@ -390,6 +387,7 @@ public class SellerDashboardController {
         if (cardTotalBids != null) cardTotalBids.setText(String.valueOf(bids));
         if (cardRevenue   != null) cardRevenue.setText(String.format("$%,.0f", rev));
         if (cardPending   != null) cardPending.setText(String.valueOf(pending));
+        if (cardBalance   != null) cardBalance.setText(String.format("$%,.0f", accountService.getBalance()));
     }
 
     private void updateSidebarStats() {

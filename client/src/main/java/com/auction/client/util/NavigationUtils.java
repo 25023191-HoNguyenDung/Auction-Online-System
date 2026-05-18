@@ -96,6 +96,10 @@ public class NavigationUtils {
         }
     }
 
+    public static void navigateToBidHistory() {
+        navigateTo("/com/auction/client/view/BidHistory.fxml", "Bid History");
+    }
+
     private static Stage getCurrentStage() {
         for (var window : Stage.getWindows()) {
             if (window instanceof Stage s && s.isShowing()) {

@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -11,13 +12,8 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.control.Separator?>
 
-<BorderPane prefHeight="820.0" prefWidth="1280.0" styleClass="root-pane"
-            stylesheets="@../css/style.css"
-            xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.auction.client.controller.BidController">
+<BorderPane prefHeight="820.0" prefWidth="1280.0" styleClass="root-pane" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.BidController">
 
     <!-- ═══════════ NAVBAR ═══════════ -->
     <top>
@@ -25,10 +21,8 @@
             <Label styleClass="nav-logo-text" text="AUCTION PRO" />
             <HBox HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER" spacing="40">
-                <Label style="-fx-text-fill: #f0b429;" styleClass="nav-link" text="AUCTIONS" />
-                <Label styleClass="nav-link" text="SELLING" />
-                <Label styleClass="nav-link" text="HISTORY" />
-                <Label styleClass="nav-link" text="PROFILE" />
+                <Button onAction="#handleAuctionsNav" styleClass="nav-link-btn" text="AUCTIONS" />
+                <Button onAction="#handleHistoryNav" styleClass="nav-link-btn" text="HISTORY" />
             </HBox>
             <HBox HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER" spacing="16">
@@ -69,7 +63,7 @@
             </HBox>
 
             <!-- Main layout: LEFT summary | RIGHT bid form -->
-            <HBox spacing="28.0" VBox.vgrow="ALWAYS" style="-fx-padding: 16 32 24 32;">
+            <HBox spacing="28.0" style="-fx-padding: 16 32 24 32;" VBox.vgrow="ALWAYS">
 
                 <!-- ── LEFT: Item Summary Card ── -->
                 <VBox prefWidth="420.0" spacing="0" styleClass="bs-summary-card">
@@ -78,8 +72,7 @@
                     <!-- Image placeholder -->
                     <StackPane prefHeight="240.0" styleClass="bs-image-pane">
                         <Label fx:id="itemEmojiLabel" style="-fx-font-size: 90px;" text="⭐" />
-                        <Label fx:id="badgeLabel" styleClass="al-badge-live" text="● LIVE"
-                               StackPane.alignment="TOP_LEFT">
+                        <Label fx:id="badgeLabel" styleClass="al-badge-live" text="● LIVE" StackPane.alignment="TOP_LEFT">
                             <StackPane.margin><Insets left="12.0" top="12.0" /></StackPane.margin>
                         </Label>
                     </StackPane>
@@ -99,14 +92,12 @@
                         <HBox>
                             <Label styleClass="ad-meta-label" text="Current Bid" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label fx:id="currentBidLabel" styleClass="ad-bid-value"
-                                   style="-fx-font-size: 18px;" text="\$0" />
+                            <Label fx:id="currentBidLabel" style="-fx-font-size: 18px;" styleClass="ad-bid-value" text="\$0" />
                         </HBox>
                         <HBox>
                             <Label styleClass="ad-meta-label" text="Time Remaining" />
                             <Region HBox.hgrow="ALWAYS" />
-                            <Label fx:id="timeRemainingLabel" styleClass="ad-timer-value"
-                                   style="-fx-font-size: 15px;" text="00:00:00" />
+                            <Label fx:id="timeRemainingLabel" style="-fx-font-size: 15px;" styleClass="ad-timer-value" text="00:00:00" />
                         </HBox>
                         <HBox>
                             <Label styleClass="ad-meta-label" text="Total Bids" />
@@ -122,95 +113,75 @@
                 </VBox>
 
                 <!-- ── RIGHT: Bid Form + History ── -->
-                <VBox HBox.hgrow="ALWAYS" spacing="20.0">
+                <VBox spacing="20.0" HBox.hgrow="ALWAYS">
 
                     <!-- Bid Form Card -->
-                    <VBox styleClass="bs-form-card" spacing="20.0">
+                    <VBox spacing="20.0" styleClass="bs-form-card">
                         <padding><Insets bottom="28.0" left="28.0" right="28.0" top="28.0" /></padding>
 
                         <!-- Header -->
                         <VBox spacing="4.0">
-                            <Label text="Place Your Bid" styleClass="ad-item-title"
-                                   style="-fx-font-size: 22px;" />
-                            <Label text="Enter an amount higher than the current bid to participate."
-                                   styleClass="ad-item-subtitle" wrapText="true" />
+                            <Label style="-fx-font-size: 22px;" styleClass="ad-item-title" text="Place Your Bid" />
+                            <Label styleClass="ad-item-subtitle" text="Enter an amount higher than the current bid to participate." wrapText="true" />
                         </VBox>
 
                         <!-- Minimum bid notice -->
-                        <HBox styleClass="bs-notice-box" alignment="CENTER_LEFT" spacing="10.0">
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="bs-notice-box">
                             <padding><Insets bottom="12.0" left="14.0" right="14.0" top="12.0" /></padding>
-                            <Label text="⚡" style="-fx-font-size: 14px;" />
+                            <Label style="-fx-font-size: 14px;" text="⚡" />
                             <VBox spacing="2.0">
-                                <Label text="MINIMUM BID" styleClass="ad-field-label" />
-                                <Label fx:id="minBidLabel" styleClass="text-gold"
-                                       style="-fx-font-size: 16px; -fx-font-weight: bold;" text="\$0" />
+                                <Label styleClass="ad-field-label" text="MINIMUM BID" />
+                                <Label fx:id="minBidLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" styleClass="text-gold" text="\$0" />
                             </VBox>
                             <Region HBox.hgrow="ALWAYS" />
-                            <VBox spacing="2.0" alignment="CENTER_RIGHT">
-                                <Label text="YOUR BALANCE" styleClass="ad-field-label" />
-                                <Label fx:id="balanceLabel" styleClass="text-green"
-                                       style="-fx-font-size: 16px; -fx-font-weight: bold;" text="\$50000" />
+                            <VBox alignment="CENTER_RIGHT" spacing="2.0">
+                                <Label styleClass="ad-field-label" text="YOUR BALANCE" />
+                                <Label fx:id="balanceLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" styleClass="text-green" text="\$50000" />
                             </VBox>
                         </HBox>
 
                         <!-- Bid input -->
                         <VBox spacing="8.0">
-                            <Label text="BID AMOUNT" styleClass="ad-field-label" />
-                            <HBox alignment="CENTER_LEFT" prefHeight="52.0"
-                                  styleClass="ad-bid-input bs-bid-input-lg">
+                            <Label styleClass="ad-field-label" text="BID AMOUNT" />
+                            <HBox alignment="CENTER_LEFT" prefHeight="52.0" styleClass="ad-bid-input bs-bid-input-lg">
                                 <padding><Insets left="18.0" right="14.0" /></padding>
-                                <Label text="\$" styleClass="ad-currency-symbol"
-                                       style="-fx-font-size: 20px;" />
-                                <TextField fx:id="bidAmountField"
-                                           promptText="Enter your bid"
-                                           styleClass="ad-bid-field"
-                                           style="-fx-font-size: 20px;"
-                                           HBox.hgrow="ALWAYS" />
+                                <Label style="-fx-font-size: 20px;" styleClass="ad-currency-symbol" text="\$" />
+                                <TextField fx:id="bidAmountField" promptText="Enter your bid" style="-fx-font-size: 20px;" styleClass="ad-bid-field" HBox.hgrow="ALWAYS" />
                             </HBox>
                         </VBox>
 
                         <!-- Quick bid buttons -->
                         <VBox spacing="8.0">
-                            <Label text="QUICK BID" styleClass="ad-field-label" />
+                            <Label styleClass="ad-field-label" text="QUICK BID" />
                             <HBox spacing="10.0">
-                                <Button fx:id="quickBid1" onAction="#handleQuickBid"
-                                        styleClass="bs-quick-btn" text="+\$100" />
-                                <Button fx:id="quickBid2" onAction="#handleQuickBid"
-                                        styleClass="bs-quick-btn" text="+\$500" />
-                                <Button fx:id="quickBid3" onAction="#handleQuickBid"
-                                        styleClass="bs-quick-btn" text="+\$1000" />
-                                <Button fx:id="quickBid4" onAction="#handleQuickBid"
-                                        styleClass="bs-quick-btn" text="+\$5,000" />
+                                <Button fx:id="quickBid1" onAction="#handleQuickBid" styleClass="bs-quick-btn" text="+$100" />
+                                <Button fx:id="quickBid2" onAction="#handleQuickBid" styleClass="bs-quick-btn" text="+$500" />
+                                <Button fx:id="quickBid3" onAction="#handleQuickBid" styleClass="bs-quick-btn" text="+$1000" />
+                                <Button fx:id="quickBid4" onAction="#handleQuickBid" styleClass="bs-quick-btn" text="+$5,000" />
                             </HBox>
                         </VBox>
 
                         <!-- Error / success message -->
-                        <Label fx:id="messageLabel" styleClass="error-text"
-                               text="" visible="false" wrapText="true" />
+                        <Label fx:id="messageLabel" styleClass="error-text" text="" visible="false" wrapText="true" />
 
                         <!-- Confirm button -->
-                        <Button fx:id="confirmBidButton" onAction="#handleConfirmBid"
-                                prefHeight="50.0" maxWidth="Infinity"
-                                styleClass="btn-primary bs-confirm-btn"
-                                text="CONFIRM BID" />
+                        <Button fx:id="confirmBidButton" maxWidth="Infinity" onAction="#handleConfirmBid" prefHeight="50.0" styleClass="btn-primary bs-confirm-btn" text="CONFIRM BID" />
 
                         <!-- Terms note -->
-                        <Label text="By placing a bid you agree to our Auction Rules and Terms of Service."
-                               styleClass="ad-chart-sublabel" wrapText="true" style="-fx-text-alignment: center;" />
+                        <Label style="-fx-text-alignment: center;" styleClass="ad-chart-sublabel" text="By placing a bid you agree to our Auction Rules and Terms of Service." wrapText="true" />
                     </VBox>
 
                     <!-- Bid History Card -->
-                    <VBox styleClass="bs-form-card" VBox.vgrow="ALWAYS" spacing="14.0">
+                    <VBox spacing="14.0" styleClass="bs-form-card" VBox.vgrow="ALWAYS">
                         <padding><Insets bottom="20.0" left="24.0" right="24.0" top="20.0" /></padding>
 
                         <HBox alignment="CENTER_LEFT">
-                            <Label text="BID HISTORY" styleClass="ad-field-label" />
+                            <Label styleClass="ad-field-label" text="BID HISTORY" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Label fx:id="bidCountLabel" styleClass="ad-live-pill" text="0 bids" />
                         </HBox>
 
-                        <ListView fx:id="bidHistoryList" VBox.vgrow="ALWAYS"
-                                  styleClass="bs-bid-history" />
+                        <ListView fx:id="bidHistoryList" styleClass="bs-bid-history" VBox.vgrow="ALWAYS" />
                     </VBox>
                 </VBox>
             </HBox>

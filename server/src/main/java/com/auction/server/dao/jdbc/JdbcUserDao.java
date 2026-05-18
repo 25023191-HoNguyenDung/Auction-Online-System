@@ -23,13 +23,15 @@ public class JdbcUserDao implements UserDao {
         String email    = rs.getString("email");
         String password = rs.getString("password");
         String role     = rs.getString("role");
+        double balance  = rs.getDouble("account_balance");
 
-        return switch (role.toUpperCase()) {
-            case "BIDDER" -> new Bidder(username, id, email, password, role, 0.0, new ArrayList<>());
-            case "SELLER" -> new Seller(username, id, email, password, role, 0.0, new ArrayList<>(), new ArrayList<>());
+        User user = switch (role.toUpperCase()) {
+            case "BIDDER" -> new Bidder(username, id, email, password, role, balance, new ArrayList<>());
+            case "SELLER" -> new Seller(username, id, email, password, role, balance, new ArrayList<>(), new ArrayList<>());
             case "ADMIN"  -> new Admin(username, id, email, password, role);
             default -> throw new RuntimeException("Role không hợp lệ: " + role);
         };
+        return user;
     }
 
     @Override
@@ -76,14 +78,17 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public User save(User user) {
-        // Chỉ còn 4 cột: user_name, password, email, role
-        String sql = "INSERT INTO users (user_name, password, email, role) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (user_name, password, email, role, account_balance) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.get_user_name());
             ps.setString(2, user.get_password());
             ps.setString(3, user.get_email());
             ps.setString(4, user.getRole());
+            double balance = (user instanceof Bidder) ? ((Bidder) user).getAccount_balance()
+                           : (user instanceof Seller) ? ((Seller) user).getAccount_balance()
+                           : 0.0;
+            ps.setDouble(5, balance);
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) user.set_ID(keys.getLong(1));
@@ -95,12 +100,16 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public User update(User user) {
-        String sql = "UPDATE users SET email = ?, password = ? WHERE id = ?";
+        String sql = "UPDATE users SET email = ?, password = ?, account_balance = ? WHERE id = ?";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.get_email());
             ps.setString(2, user.get_password());
-            ps.setLong(3, user.get_ID());
+            double balance = (user instanceof Bidder) ? ((Bidder) user).getAccount_balance()
+                           : (user instanceof Seller) ? ((Seller) user).getAccount_balance()
+                           : 0.0;
+            ps.setDouble(3, balance);
+            ps.setLong(4, user.get_ID());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi update user id: " + user.get_ID(), e);
@@ -117,6 +126,31 @@ public class JdbcUserDao implements UserDao {
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi deleteById user: " + id, e);
+        }
+    }
+
+    public double getBalance(long userId) {
+        String sql = "SELECT account_balance FROM users WHERE id = ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getDouble("account_balance");
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi getBalance user: " + userId, e);
+        }
+        return 0.0;
+    }
+
+    public void updateBalance(long userId, double newBalance) {
+        String sql = "UPDATE users SET account_balance = ? WHERE id = ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, newBalance);
+            ps.setLong(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi updateBalance user: " + userId, e);
         }
     }
 }

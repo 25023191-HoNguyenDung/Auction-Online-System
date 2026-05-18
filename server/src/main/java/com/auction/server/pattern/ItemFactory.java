@@ -1,10 +1,10 @@
 package com.auction.server.pattern;
+import java.math.BigDecimal;
+
 import com.auction.server.model.Art;
 import com.auction.server.model.Electronics;
 import com.auction.server.model.Item;
 import com.auction.server.model.Vehicle;
-
-import java.math.BigDecimal;
 
 public class ItemFactory {
 
@@ -25,7 +25,14 @@ public class ItemFactory {
                 String brand              = (String) additionalParams[0];
                 int warrantyMonths        = toInt(additionalParams[1]);
                 int year_of_manufacture   = toInt(additionalParams[2]);
-                return new Electronics(itemId, sellerId, itemName, description, "ELECTRONICS", startingPrice, currentPrice, imageUrl, brand, warrantyMonths, year_of_manufacture);
+
+                return new Electronics(
+                        itemId, sellerId, itemName, description,
+                        "ELECTRONICS",
+                        startingPrice, currentPrice, imageUrl,
+                        brand, warrantyMonths, year_of_manufacture
+                );
+
             }
 
             case "ART": {
