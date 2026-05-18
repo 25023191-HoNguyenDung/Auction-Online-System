@@ -10,15 +10,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+// làm việc trực tiếp với db
 public class JdbcBidDao implements BidDao {
 
     private final DatabaseConfig db = DatabaseConfig.getInstance();
 
     private BidTransaction mapRow(ResultSet rs) throws SQLException {
-        long id        = rs.getLong("bidId");        // đổi id → bidId
-        long auctionId = rs.getLong("auctionId");    // đổi auction_id → auctionId
-        long bidderId  = rs.getLong("bidder");       // đổi bidder_id → bidder
+        long id        = rs.getLong("bidId");
+        long auctionId = rs.getLong("auctionId");
+        long bidderId  = rs.getLong("bidder");
         java.math.BigDecimal amount = rs.getBigDecimal("amount");
         java.time.LocalDateTime bidTime = rs.getTimestamp("bid_time").toLocalDateTime();
 
