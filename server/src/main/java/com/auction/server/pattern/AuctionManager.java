@@ -1,9 +1,11 @@
 package com.auction.server.pattern;
 
+import com.auction.common.exception.AuctionConnectException;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +40,11 @@ public class AuctionManager {
         if (auction.getId() != 0 && auctionDao.findById(auction.getId()).isPresent())
             throw new IllegalArgumentException("Auction ID already exists: " + auction.getId());
 
-        return auctionDao.save(auction);
+        try {
+            return auctionDao.save(auction);
+        } catch (SQLException | AuctionConnectException e) {
+            throw new RuntimeException("Failed to add auction: " + e.getMessage(), e);
+        }        
     }
 
 

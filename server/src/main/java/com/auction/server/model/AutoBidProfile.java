@@ -11,6 +11,7 @@ public class AutoBidProfile {
     private BigDecimal max_bid;
     private BigDecimal increment;
     private LocalDateTime created_at;
+    private boolean active;
 
     public AutoBidProfile() {}
 
@@ -22,7 +23,7 @@ public class AutoBidProfile {
         this.auction_id = auction_id;
         this.max_bid = max_bid;
         this.increment = increment;
-        this.created_at = created_at;
+        this.created_at = created_at;   
     }
 
 
@@ -48,6 +49,6 @@ public class AutoBidProfile {
     @Override
     public String toString() {
         return "AutoBidProfile{id=" + id + ", user_id=" + user_id
-                + ", auction_id=" + auction_id + ", max_bid=" + max_bid + "}";
+                + ", auction_id=" + auction_id + ", max_bid=" + max_bid + ", increment=" + increment + ", created_at=" + created_at + "}";
     }
 }
