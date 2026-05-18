@@ -4,7 +4,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.auction.client.model.AuctionItem;
-import com.auction.client.sessions.AccountService;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
@@ -45,7 +44,7 @@ public class BidController {
 
     private AuctionItem currentItem;
     private double currentBid = 0;
-    private final AccountService accountService = AccountService.getInstance();
+    private static final double MOCK_BALANCE = 50_000.0;
     private Timer countdownTimer;
 
     // ── Lifecycle ─────────────────────────────────────────────
@@ -62,20 +61,7 @@ public class BidController {
                 }
             });
         }
-        setupQuickBidButtons();
         setupBidHistoryList();
-    }
-
-    @FXML
-    private void handleAuctionsNav() {
-        stopTimer();
-        NavigationUtils.navigateTo("/com/auction/client/view/AuctionList.fxml", "Live Auctions");
-    }
-
-    @FXML
-    private void handleHistoryNav() {
-        stopTimer();
-        NavigationUtils.navigateToBidHistory();
     }
 
     // ── Called from NavigationUtils after FXML load ───────────
@@ -104,7 +90,7 @@ public class BidController {
 
         double minBid = currentBid + 1;
         minBidLabel.setText(fmt(minBid));
-        balanceLabel.setText(fmt(accountService.getBalance()));
+        balanceLabel.setText(fmt(MOCK_BALANCE));
         bidAmountField.setPromptText(fmt(minBid));
 
         seedMockHistory(item);
@@ -148,50 +134,15 @@ public class BidController {
     }
 
     // ── Quick bid ─────────────────────────────────────────────
-    private void setupQuickBidButtons() {
-        setQuickBidIncrement(quickBid1, 100);
-        setQuickBidIncrement(quickBid2, 500);
-        setQuickBidIncrement(quickBid3, 1000);
-        setQuickBidIncrement(quickBid4, 5000);
-    }
-
-    private void setQuickBidIncrement(Button button, double increment) {
-        if (button != null) button.setUserData(increment);
-    }
-
     @FXML
     private void handleQuickBid(javafx.event.ActionEvent e) {
         Button src = (Button) e.getSource();
-        double increment = src.getUserData() instanceof Number number
-            ? number.doubleValue()
-            : parseQuickBidIncrement(src.getText());
-
-        if (increment <= 0) {
-            showError("Quick bid amount is invalid.");
-            return;
-        }
-
-        double baseAmount = currentBid;
-        String currentInput = bidAmountField.getText().trim().replace(",", "");
-        if (!currentInput.isEmpty()) {
-            try {
-                double inputAmount = Double.parseDouble(currentInput);
-                if (inputAmount > currentBid) baseAmount = inputAmount;
-            } catch (NumberFormatException ignored) {}
-        }
-
-        double nextBid = baseAmount + increment;
-        bidAmountField.setText(String.format("%.0f", nextBid));
-        hideMessage();
-    }
-
-    private double parseQuickBidIncrement(String text) {
-        String raw = text == null ? "" : text.replace("+", "").replace("$", "").replace(",", "").trim();
+        String raw = src.getText().replace("+$", "").replace(",", "").trim();
         try {
-            return Double.parseDouble(raw);
-        } catch (NumberFormatException e) {
-            return 0;
-        }
+            double increment = Double.parseDouble(raw);
+            bidAmountField.setText(String.format("%.0f", currentBid + increment));
+            hideMessage();
+        } catch (NumberFormatException ignored) {}
     }
 
     // ── Confirm bid ───────────────────────────────────────────
@@ -214,15 +165,14 @@ public class BidController {
             showError("Your bid must be higher than the current bid of " + fmt(currentBid) + ".");
             return;
         }
-        if (!accountService.placeBid(currentItem.getAuctionId(), currentItem.getItemName(), amount)) {
-            showError("Insufficient balance. Your balance is " + fmt(accountService.getBalance()) + ".");
+        if (amount > MOCK_BALANCE) {
+            showError("Insufficient balance. Your balance is " + fmt(MOCK_BALANCE) + ".");
             return;
         }
 
         currentBid = amount;
         currentBidLabel.setText(fmt(currentBid));
         minBidLabel.setText(fmt(currentBid + 1));
-        balanceLabel.setText(fmt(accountService.getBalance()));
         bidAmountField.clear();
 
         String bidder = UserSession.getInstance().isLoggedIn()

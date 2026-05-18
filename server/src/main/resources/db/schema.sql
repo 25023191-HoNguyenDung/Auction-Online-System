@@ -9,7 +9,6 @@ CREATE TABLE `users` (
 `password` varchar(300) NOT NULL,
 `email` varchar(100) NOT NULL,
 `role` varchar(20) NOT NULL,
-`account_balance` decimal(15,2) NOT NULL DEFAULT 0.00,
 PRIMARY KEY (`id`),
  UNIQUE KEY `username` (`user_name`),
  UNIQUE KEY `email` (`email`)
@@ -25,6 +24,7 @@ CREATE TABLE `items` (
 `starting_price` decimal(15,2) NOT NULL,
 `current_price` decimal(15,2) NOT NULL,       -- thêm: giá hiện tại
 `image_url`  varchar(500)  DEFAULT NULL,   -- thêm: ảnh sản phẩm
+`reserve_price` decimal(15,2) NULL DEFAULT NULL, -- thêm: giá sàn
 PRIMARY KEY (`id`),
 KEY `seller_id` (`seller_id`),
 CONSTRAINT `items_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -64,21 +64,6 @@ CONSTRAINT `bids_ibfk_1` FOREIGN KEY (`auctionId`) REFERENCES `auctions` (`id`) 
 CONSTRAINT `bids_ibfk_2` FOREIGN KEY (`bidder`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `transactions` (
-`transaction_id` bigint NOT NULL AUTO_INCREMENT,
-`user_id` bigint NOT NULL,
-`transaction_type` varchar(30) NOT NULL,
-`amount` decimal(15,2) NOT NULL,
-`auction_id` bigint DEFAULT NULL,
-`description` varchar(255) DEFAULT NULL,
-`created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY (`transaction_id`),
-KEY `user_id` (`user_id`),
-KEY `auction_id` (`auction_id`),
-CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`auction_id`) REFERENCES `auctions` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 CREATE TABLE `auto_bid_profiles` (
 `id` bigint NOT NULL AUTO_INCREMENT,
@@ -92,20 +77,4 @@ UNIQUE KEY `unique_auto_bid` (`user_id`,`auction_id`),
 KEY `auction_id` (`auction_id`),
 CONSTRAINT `auto_bid_profiles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
 CONSTRAINT `auto_bid_profiles_ibfk_2` FOREIGN KEY (`auction_id`) REFERENCES `auctions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
-CREATE TABLE `transactions` (
-`transaction_id` bigint NOT NULL AUTO_INCREMENT,
-`user_id` bigint NOT NULL,
-`transaction_type` varchar(50) NOT NULL,
-`amount` decimal(15,2) NOT NULL,
-`auction_id` bigint DEFAULT NULL,
-`description` varchar(255) DEFAULT NULL,
-`created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY (`transaction_id`),
-KEY `user_id` (`user_id`),
-KEY `auction_id` (`auction_id`),
-CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`auction_id`) REFERENCES `auctions` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

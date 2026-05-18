@@ -1,13 +1,13 @@
 package com.auction.server.pattern;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
+
 import com.auction.common.exception.AuctionConnectException;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Optional;
 
 
 public class AuctionManager {

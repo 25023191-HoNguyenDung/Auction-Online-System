@@ -62,18 +62,6 @@ public class AuctionDetailController {
         }
     }
 
-    @FXML
-    private void handleAuctionsNav() {
-        stopTimer();
-        NavigationUtils.navigateTo("/com/auction/client/view/AuctionList.fxml", "Live Auctions");
-    }
-
-    @FXML
-    private void handleHistoryNav() {
-        stopTimer();
-        NavigationUtils.navigateToBidHistory();
-    }
-
     private void startCountdownTimer() {
         stopTimer(); // cancel any existing timer first
         countdownTimer = new Timer(true);

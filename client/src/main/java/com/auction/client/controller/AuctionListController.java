@@ -5,7 +5,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.auction.client.model.AuctionItem;
-import com.auction.client.sessions.AccountService;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionListViewModel;
@@ -18,7 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -29,7 +27,6 @@ import javafx.scene.layout.VBox;
 public class AuctionListController {
 
     private final AuctionListViewModel viewModel = new AuctionListViewModel();
-    private final AccountService accountService = AccountService.getInstance();
 
     // ── Navbar ────────────────────────────────────────────────
     @FXML private TextField searchField;
@@ -47,11 +44,6 @@ public class AuctionListController {
     @FXML private Button    statusUpcoming;
     @FXML private Button    statusEndingSoon;
     @FXML private Button    applyFilterBtn;
-    @FXML private Label     balanceLabel;
-    @FXML private TextField walletAmountField;
-    @FXML private Label     walletMessageLabel;
-    @FXML private ListView<String> bidHistoryList;
-    @FXML private ListView<String> paymentHistoryList;
 
     // ── Main Content ──────────────────────────────────────────
     @FXML private Label            countLabel;
@@ -68,7 +60,6 @@ public class AuctionListController {
         setupSortCombo();
         setupStatusButtons();
         setupApplyFilter();
-        setupWallet();
 
         viewModel.loadData();
         refreshCards();
@@ -91,12 +82,6 @@ public class AuctionListController {
     private void handleLogout() {
         if (clockTimer != null) clockTimer.cancel();
         NavigationUtils.logout();
-    }
-
-    @FXML
-    private void handleHistoryNav() {
-        if (clockTimer != null) clockTimer.cancel();
-        NavigationUtils.navigateToBidHistory();
     }
 
     // ── Search ────────────────────────────────────────────────
@@ -157,64 +142,6 @@ public class AuctionListController {
     private void setupApplyFilter() {
         if (applyFilterBtn != null)
             applyFilterBtn.setOnAction(e -> handleApplyFilter());
-    }
-
-    private void setupWallet() {
-        refreshBalance();
-        if (bidHistoryList != null) bidHistoryList.setItems(accountService.getBidHistory());
-        if (paymentHistoryList != null) paymentHistoryList.setItems(accountService.getPaymentHistory());
-    }
-
-    @FXML
-    private void handleDeposit() {
-        Double amount = readWalletAmount();
-        if (amount == null) return;
-        accountService.deposit(amount);
-        walletAmountField.clear();
-        refreshBalance();
-        showWalletMessage("Deposited " + fmt(amount) + ".", true);
-    }
-
-    @FXML
-    private void handleWithdraw() {
-        Double amount = readWalletAmount();
-        if (amount == null) return;
-        if (!accountService.withdraw(amount)) {
-            showWalletMessage("Insufficient balance for withdrawal.", false);
-            return;
-        }
-        walletAmountField.clear();
-        refreshBalance();
-        showWalletMessage("Withdrew " + fmt(amount) + ".", true);
-    }
-
-    private Double readWalletAmount() {
-        if (walletAmountField == null) return null;
-        String raw = walletAmountField.getText().trim().replace(",", "");
-        try {
-            double amount = Double.parseDouble(raw);
-            if (amount <= 0) {
-                showWalletMessage("Enter an amount greater than 0.", false);
-                return null;
-            }
-            return amount;
-        } catch (NumberFormatException e) {
-            showWalletMessage("Enter a valid amount.", false);
-            return null;
-        }
-    }
-
-    private void refreshBalance() {
-        if (balanceLabel != null) balanceLabel.setText(fmt(accountService.getBalance()));
-    }
-
-    private void showWalletMessage(String message, boolean success) {
-        if (walletMessageLabel == null) return;
-        walletMessageLabel.setText(message);
-        walletMessageLabel.setStyle(success
-            ? "-fx-text-fill: #4ade80; -fx-font-size: 12px;"
-            : "-fx-text-fill: #ef4444; -fx-font-size: 12px;");
-        walletMessageLabel.setVisible(true);
     }
 
     @FXML
@@ -367,9 +294,5 @@ public class AuctionListController {
         if (seconds <= 0) return "00:00:00";
         return String.format("%02d:%02d:%02d",
             seconds / 3600, (seconds % 3600) / 60, seconds % 60);
-    }
-
-    private String fmt(double value) {
-        return String.format("$%,.0f", value);
     }
 }

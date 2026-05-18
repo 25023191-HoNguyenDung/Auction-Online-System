@@ -1,4 +1,5 @@
 package com.auction.server.service;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -12,7 +13,6 @@ import com.auction.server.dao.AuctionDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.BidTransaction;
-import com.auction.server.pattern.BidStrategy;
 //class quan ly logic phien dau gia
 public class AuctionLogicManager {
 
@@ -20,7 +20,6 @@ public class AuctionLogicManager {
     private final AuctionDao auctionDao; // Luu tru va truy xuat thong tin phien dau gia
     //Dung ReadWriteLock de tranh xung dot khi co nhieu nguoi cung tham gia dau gia
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    private final BidStrategy bidStrategy = new BidStrategy(); // Chua cac quy tac lien quan den dat gia va cap nhat phien dau gia
 
     public AuctionLogicManager(Auction auction, AuctionDao auctionDao) {
         if (auction == null || auctionDao == null) {
@@ -33,11 +32,30 @@ public class AuctionLogicManager {
     public void placeBid(BidTransaction bid) throws AuctionMisMatchException,AuctionTimeException, InvalidBidException, AuctionConnectException, SQLException {
         rwLock.writeLock().lock();
         try {
-            bidStrategy.validate(auction, bid); // Kiem tra tinh hop le cua giao dich dat gia
-            bidStrategy.updateAuctionAfterBid(auction, bid); // Cap nhat thong tin phien dau gia sau moi lan dat gia
-            bidStrategy.applyAntiSniping(auction); // Kiem tra va kich hoat anti-sniping neu can thiet
-            saveAuction("placeBid"); // Luu thong tin phien dau gia sau khi dat gia thanh cong
-        } finally {
+            if (bid.getAuctionId() != auction.getId()) {
+                throw new AuctionMisMatchException("Auction ID does not match.");
+            }
+            if (auction.getStatus() != AuctionStatus.RUNNING) {
+                throw new AuctionTimeException("Auction has not started or has ended.");
+            }
+            BigDecimal bidAmount = bid.getBidAmount();
+            BigDecimal currentPrice = auction.getCurrent_price();
+            long bidderId = bid.getBidderId();
+            boolean isFirstBidder = (auction.getWinner_bidder_id() == 0);
+            if (isFirstBidder) {
+                if (bidAmount.compareTo(currentPrice) < 0) {
+                    throw new InvalidBidException("Bid amount must be higher than or equal to the current price.");
+                }
+            } else {
+                if (bidAmount.compareTo(currentPrice) <= 0) {
+                    throw new InvalidBidException("Bid amount must be higher than the current price.");
+                }
+            }
+            auction.setCurrent_price(bidAmount);
+            auction.setWinner_bidder_id(bidderId);
+            saveAuction("placeBid");
+        }
+        finally {
             rwLock.writeLock().unlock();
         }
     }

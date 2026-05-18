@@ -25,14 +25,7 @@ public class ItemFactory {
                 String brand              = (String) additionalParams[0];
                 int warrantyMonths        = toInt(additionalParams[1]);
                 int year_of_manufacture   = toInt(additionalParams[2]);
-
-                return new Electronics(
-                        itemId, sellerId, itemName, description,
-                        "ELECTRONICS",
-                        startingPrice, currentPrice, imageUrl,
-                        brand, warrantyMonths, year_of_manufacture
-                );
-
+                return new Electronics(itemId, sellerId, itemName, description, "ELECTRONICS", startingPrice, currentPrice, imageUrl, brand, warrantyMonths, year_of_manufacture);
             }
 
             case "ART": {

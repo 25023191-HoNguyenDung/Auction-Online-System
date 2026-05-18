@@ -26,26 +26,23 @@ public class ItemService {
                            String description,
                            String category,
                            BigDecimal startingPrice,
-                           String imageUrl) {
+                           String imageUrl
+                          ) {
 
-                           
-                           {
+        validateItemFields(itemName, startingPrice);
 
+        Item item = new Item();
+        item.setSellerId(sellerId);
+        item.setItemName(itemName.trim());
+        item.setDescription(description);
+        item.setCategory(category.toUpperCase());
+        item.setStartingPrice(startingPrice);
+        item.setCurrentPrice(startingPrice);   // ban đầu current = starting
+        item.setImageUrl(imageUrl);
 
-            validateItemFields(itemName, startingPrice);
-
-            Item item = new Item();
-            item.setSellerId(sellerId);
-            item.setItemName(itemName.trim());
-            item.setDescription(description);
-            item.setCategory(category.toUpperCase());
-            item.setStartingPrice(startingPrice);
-            item.setCurrentPrice(startingPrice);   // ban đầu current = starting
-            item.setImageUrl(imageUrl);
-
-            return itemDao.save(item);
-        }
+        return itemDao.save(item);
     }
+
     
     public Item createTypedItem(long sellerId,
                                 String itemName,
