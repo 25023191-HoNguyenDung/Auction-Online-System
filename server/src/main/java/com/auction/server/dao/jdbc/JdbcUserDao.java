@@ -8,6 +8,7 @@ import com.auction.server.model.Bidder;
 import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,7 @@ public class JdbcUserDao implements UserDao {
 
         return switch (role.toUpperCase()) {
             case "BIDDER" -> new Bidder(username, id, email, password, role, 0.0, new ArrayList<>());
-            case "SELLER" -> new Seller(username, id, email, password, role, 0.0, new ArrayList<>(), new ArrayList<>());
+            case "SELLER" -> new Seller(username, id, email, password, role, rs.getBigDecimal("account_balance"), new ArrayList<>(), new ArrayList<>());
             case "ADMIN"  -> new Admin(username, id, email, password, role);
             default -> throw new RuntimeException("Role không hợp lệ: " + role);
         };
@@ -76,7 +77,6 @@ public class JdbcUserDao implements UserDao {
 
     @Override
     public User save(User user) {
-        // Chỉ còn 4 cột: user_name, password, email, role
         String sql = "INSERT INTO users (user_name, password, email, role) VALUES (?, ?, ?, ?)";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -84,6 +84,11 @@ public class JdbcUserDao implements UserDao {
             ps.setString(2, user.get_password());
             ps.setString(3, user.get_email());
             ps.setString(4, user.getRole());
+            if (user instanceof Seller seller) {
+                ps.setBigDecimal(5, seller.getAccount_balance());
+            } else {
+                ps.setBigDecimal(5, null); // Bidder/Admin để null
+            }
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
             if (keys.next()) user.set_ID(keys.getLong(1));

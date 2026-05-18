@@ -8,11 +8,11 @@ DELETE FROM items;
 DELETE FROM users;
 
 -- 1. Users
-INSERT INTO users (id, user_name, password, email, role) VALUES
-(1, 'admin', 'admin2308', 'admin@gmail.com', 'ADMIN'),
-(2, 'seller1', 'seller12308', 'ducanh@gmail.com', 'SELLER'),
-(3, 'bidder1', 'bidder12308', 'dung@gmail.com',  'BIDDER'),
-(4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER');
+INSERT INTO users (id, user_name, password, email, role,account_balance) VALUES
+(1, 'admin', 'admin2308', 'admin@gmail.com', 'ADMIN',NULL),
+(2, 'seller1', 'seller12308', 'ducanh@gmail.com', 'SELLER',0.0000),
+(3, 'bidder1', 'bidder12308', 'dung@gmail.com',  'BIDDER',NULL),
+(4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER',NULL);
 
 -- 2. Items
 INSERT INTO items (id, seller_id, name, description, category, starting_price, current_price, image_url) VALUES

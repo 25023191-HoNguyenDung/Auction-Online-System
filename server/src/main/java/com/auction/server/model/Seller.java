@@ -1,11 +1,16 @@
 package com.auction.server.model;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 public class Seller extends User {
 
     //Fields
-    double account_balance;
+    BigDecimal account_balance;
     ArrayList<Item> sold_list_items;
+
+    public BigDecimal getAccount_balance() {
+        return account_balance;
+    }
 
     //Constructor:
     public Seller(  String name,
@@ -13,7 +18,7 @@ public class Seller extends User {
                     String email, 
                     String password, 
                     String role, 
-                    double account_balance, 
+                    BigDecimal account_balance,
                     ArrayList<Auction> history_of_auction, 
                     ArrayList<Item> sold_list_items) {
         

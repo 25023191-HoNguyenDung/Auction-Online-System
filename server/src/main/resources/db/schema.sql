@@ -9,6 +9,7 @@ CREATE TABLE `users` (
 `password` varchar(300) NOT NULL,
 `email` varchar(100) NOT NULL,
 `role` varchar(20) NOT NULL,
+`account_balance` DECIMAL(19, 4) DEFAULT NULL,
 PRIMARY KEY (`id`),
  UNIQUE KEY `username` (`user_name`),
  UNIQUE KEY `email` (`email`)

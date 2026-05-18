@@ -6,6 +6,7 @@ import com.auction.server.model.Seller;
 import com.auction.server.service.AuthService;
 import com.auction.common.exception.ValidRegisterException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,7 +90,7 @@ public class AuthController {
             case "BIDDER" -> new Bidder(username, 0L, email, password, "BIDDER",
                                         0.0, new ArrayList<>());
             case "SELLER" -> new Seller(username, 0L, email, password, "SELLER",
-                                        0.0, new ArrayList<>(), new ArrayList<>());
+                    BigDecimal.ZERO, new ArrayList<>(), new ArrayList<>());
             default -> throw new ValidRegisterException(
                     "Invalid role: " + role + ". Only BIDDER or SELLER are allowed.");
         };
