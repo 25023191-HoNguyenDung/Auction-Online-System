@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Seller extends User {
 
     private double account_balance;
-    private ArrayList<Auction> history_of_auction; // thêm vào: Seller cũng cần
+    private ArrayList<Auction> history_of_auction; 
     private ArrayList<Item> sold_list_items;
 
     public Seller(String name, long ID, String email,
@@ -31,7 +31,7 @@ public class Seller extends User {
 
     public void receivePayment(double amount) {
         if (amount <= 0)
-            throw new IllegalArgumentException("Số tiền nhận phải > 0");
+            throw new IllegalArgumentException("Amount must be > 0");
         this.account_balance += amount;
     }
 
@@ -48,6 +48,17 @@ public class Seller extends User {
         return sold_list_items.stream()
                 .map(item -> item.getCurrentPrice().doubleValue())
                 .reduce(0.0, (a, b) -> a + b);
+
+    }
+    
+    public void withdraw(double amount) {
+        if (amount <= 0)
+            throw new IllegalArgumentException("Withdraw amount must be > 0");
+        if (amount > account_balance)
+            throw new IllegalStateException(
+                "Insufficient balance — current balance is " + account_balance
+            );
+        this.account_balance -= amount;
     }
 
     public ArrayList<Auction> getHistory_of_auction() {

@@ -70,6 +70,24 @@ public class Bidder extends User {
         this.account_balance = account_balance.subtract(amount);
     }
 
+    public void deposit(BigDecimal amount) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
+        throw new IllegalArgumentException("Deposit amount must be > 0");
+    this.account_balance = account_balance.add(amount);
+    }
+
+    public void withdraw(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
+            throw new IllegalArgumentException("Withdraw amount must be > 0");
+        if (amount.compareTo(getAvailableBalance()) > 0)
+            throw new IllegalStateException(
+                "Cannot withdraw " + amount +
+                " — available: " + getAvailableBalance() +
+                " (holding " + getTotalHeld() + " in active auctions)"
+            );
+        this.account_balance = account_balance.subtract(amount);
+    }
+
     public ArrayList<Auction> getHistory_of_auction() { return history_of_auction; }
 
     public void addAuctionHistory(Auction auction) {
