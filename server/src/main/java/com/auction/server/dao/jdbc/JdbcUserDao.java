@@ -26,7 +26,7 @@ public class JdbcUserDao implements UserDao {
         String role     = rs.getString("role");
 
         return switch (role.toUpperCase()) {
-            case "BIDDER" -> new Bidder(username, id, email, password, role, 0.0, new ArrayList<>());
+            case "BIDDER" -> new Bidder(username, id, email, password, role, rs.getBigDecimal("account_balance"), new ArrayList<>());
             case "SELLER" -> new Seller(username, id, email, password, role, rs.getBigDecimal("account_balance"), new ArrayList<>(), new ArrayList<>());
             case "ADMIN"  -> new Admin(username, id, email, password, role);
             default -> throw new RuntimeException("Role không hợp lệ: " + role);
@@ -86,8 +86,10 @@ public class JdbcUserDao implements UserDao {
             ps.setString(4, user.getRole());
             if (user instanceof Seller seller) {
                 ps.setBigDecimal(5, seller.getAccount_balance());
+            } else if (user instanceof Bidder bidder) {
+                ps.setBigDecimal(5, bidder.getAccount_balance());
             } else {
-                ps.setBigDecimal(5, null); // Bidder/Admin để null
+                ps.setBigDecimal(5, null);
             }
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
@@ -105,7 +107,14 @@ public class JdbcUserDao implements UserDao {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.get_email());
             ps.setString(2, user.get_password());
-            ps.setLong(3, user.get_ID());
+            if (user instanceof Seller seller) {
+                ps.setBigDecimal(3, seller.getAccount_balance());
+            } else if (user instanceof Bidder bidder) {
+                ps.setBigDecimal(3, bidder.getAccount_balance());
+            } else {
+                ps.setBigDecimal(3, null);
+            }
+            ps.setLong(4, user.get_ID());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi update user id: " + user.get_ID(), e);

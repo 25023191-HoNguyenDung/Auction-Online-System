@@ -88,7 +88,7 @@ public class AuthController {
     private User buildUser(String username, String email, String password, String role) {
         return switch (role.toUpperCase()) {
             case "BIDDER" -> new Bidder(username, 0L, email, password, "BIDDER",
-                                        0.0, new ArrayList<>());
+                                        BigDecimal.ZERO, new ArrayList<>());
             case "SELLER" -> new Seller(username, 0L, email, password, "SELLER",
                     BigDecimal.ZERO, new ArrayList<>(), new ArrayList<>());
             default -> throw new ValidRegisterException(

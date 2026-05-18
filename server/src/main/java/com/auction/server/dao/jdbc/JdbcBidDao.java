@@ -5,6 +5,7 @@ import com.auction.server.dao.BidDao;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.BidTransaction;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ public class JdbcBidDao implements BidDao {
                 "",
                 bidderId,
                 "", "", "BIDDER",
-                0.0,
+                BigDecimal.ZERO,
                 new ArrayList<>()
         );
         return new BidTransaction(id, auctionId, bidder, amount, bidTime);
