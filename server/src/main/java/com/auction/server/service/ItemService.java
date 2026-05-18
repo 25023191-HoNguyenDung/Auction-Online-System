@@ -26,10 +26,10 @@ public class ItemService {
                            String description,
                            String category,
                            BigDecimal startingPrice,
-                           String imageUrl,
-                           double reservePrice) {
+                           String imageUrl
+                          ) {
 
-        validateItemFields(itemName, startingPrice, reservePrice);
+        validateItemFields(itemName, startingPrice);
 
         Item item = new Item();
         item.setSellerId(sellerId);
@@ -39,7 +39,6 @@ public class ItemService {
         item.setStartingPrice(startingPrice);
         item.setCurrentPrice(startingPrice);   // ban đầu current = starting
         item.setImageUrl(imageUrl);
-        item.setReserve_price(reservePrice);
 
         return itemDao.save(item);
     }
@@ -51,17 +50,16 @@ public class ItemService {
                                 String category,
                                 BigDecimal startingPrice,
                                 String imageUrl,
-                                double reservePrice,
                                 Object... additionalParams) {
 
-        validateItemFields(itemName, startingPrice, reservePrice);
+        validateItemFields(itemName, startingPrice);
 
         // ItemFactory tự xử lý logic tạo item dựa trên category và additionalParams.
         Item item = ItemFactory.createItem(
                 category, 0L, sellerId,
                 itemName, description,
                 startingPrice, startingPrice,
-                imageUrl, reservePrice,
+                imageUrl,
                 additionalParams
         );
 
@@ -90,7 +88,6 @@ public class ItemService {
     public Item updateItem(long itemId,
                            String newName,
                            String newDescription,
-                           double newReservePrice,
                            String newImageUrl) {
 
         Item item = getById(itemId);
@@ -98,7 +95,6 @@ public class ItemService {
 
         if (newName        != null && !newName.isBlank())        item.setItemName(newName.trim()) ;
         if (newDescription != null && !newDescription.isBlank()) item.setDescription(newDescription) ;
-        if (newReservePrice > 0)                                 item.setReserve_price(newReservePrice) ;
         if (newImageUrl    != null && !newImageUrl.isBlank())    item.setImageUrl(newImageUrl) ;
 
         return itemDao.update(item);
@@ -131,12 +127,10 @@ public class ItemService {
     }
 
     // Validate các trường cơ bản của item khi tạo mới hoặc cập nhật.
-    private void validateItemFields(String itemName, BigDecimal startingPrice, double reservePrice) {
+    private void validateItemFields(String itemName, BigDecimal startingPrice) {
         if (itemName == null || itemName.isBlank())
             throw new IllegalArgumentException("Item name is required and cannot be blank.");
         if (startingPrice == null || startingPrice.compareTo(BigDecimal.ZERO) <= 0)
             throw new IllegalArgumentException("Starting price must be a positive number.");
-        if (reservePrice < 0)
-            throw new IllegalArgumentException("Reserve price cannot be negative.");
     }
 }

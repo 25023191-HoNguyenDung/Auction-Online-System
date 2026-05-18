@@ -13,8 +13,8 @@ public class Vehicle extends Item {
     //Constructor:
 
 
-    public Vehicle(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, double reserve_price, String fuel_type, String type_of_vehicle, String color, int year) {
-        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl, reserve_price);
+    public Vehicle(long itemId, long sellerId, String itemName, String description, String category, BigDecimal startingPrice, BigDecimal currentPrice, String imageUrl, String fuel_type, String type_of_vehicle, String color, int year) {
+        super(itemId, sellerId, itemName, description, category, startingPrice, currentPrice, imageUrl);
         this.fuel_type = fuel_type;
         this.type_of_vehicle = type_of_vehicle;
         this.color = color;

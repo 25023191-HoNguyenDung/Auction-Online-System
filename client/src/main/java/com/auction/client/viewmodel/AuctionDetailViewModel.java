@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.client.model.AuctionItem;
-
 /**
  * ViewModel for AuctionDetail screen.
  * Holds the currently displayed item and prepares chart/meta data for the controller.

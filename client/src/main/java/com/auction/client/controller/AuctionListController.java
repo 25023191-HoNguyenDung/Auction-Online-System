@@ -278,7 +278,6 @@ public class AuctionListController {
             }
         }, 1000, 1000);
     }
-
     // ── Utilities ─────────────────────────────────────────────
     private String emojiFor(String category) {
         if (category == null) return "⭐";
@@ -291,7 +290,6 @@ public class AuctionListController {
             default                    -> "⭐";
         };
     }
-
     private String formatTime(int seconds) {
         if (seconds <= 0) return "00:00:00";
         return String.format("%02d:%02d:%02d",

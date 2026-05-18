@@ -56,11 +56,10 @@ public class ItemController {
             String category      = (String) payload.get("category");
             BigDecimal startingPrice = new BigDecimal(payload.get("startingPrice").toString());
             String imageUrl      = (String) payload.getOrDefault("imageUrl", "");
-            double reservePrice  = Double.parseDouble(payload.getOrDefault("reservePrice", "0").toString());
 
             Item created = itemService.createItem(
                     sellerId, itemName, description, category,
-                    startingPrice, imageUrl, reservePrice);
+                    startingPrice, imageUrl);
 
             Map<String, Object> response = new HashMap<>();
             response.put("type", "CREATE_ITEM_RES");
@@ -82,10 +81,9 @@ public class ItemController {
             long   itemId        = toLong(payload.get("itemId"));
             String newName       = (String) payload.getOrDefault("itemName", null);
             String newDesc       = (String) payload.getOrDefault("description", null);
-            double newReserve    = Double.parseDouble(payload.getOrDefault("reservePrice", "0").toString());
             String newImageUrl   = (String) payload.getOrDefault("imageUrl", null);
 
-            Item updated = itemService.updateItem(itemId, newName, newDesc, newReserve, newImageUrl);
+            Item updated = itemService.updateItem(itemId, newName, newDesc, newImageUrl);
 
             Map<String, Object> response = new HashMap<>();
             response.put("type", "UPDATE_ITEM_RES");
@@ -135,7 +133,6 @@ public class ItemController {
         map.put("startingPrice", item.getStartingPrice());
         map.put("currentPrice",  item.getCurrentPrice());
         map.put("imageUrl",      item.getImageUrl());
-        map.put("reservePrice",  item.getReserve_price());
         return map;
     }
 

@@ -12,7 +12,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
 public class RegisterController {
-
     @FXML private ComboBox<String>  roleComboBox;
     @FXML private TextField         userNameField;
     @FXML private TextField         emailField;

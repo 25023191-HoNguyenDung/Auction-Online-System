@@ -17,7 +17,6 @@ import com.auction.client.model.AuctionItem;
  * - Khi server xong: thay loadData() bằng gọi network
  */
 public class AuctionListViewModel {
-
     private final List<AuctionItem> allItems      = new ArrayList<>();
     private final List<AuctionItem> filteredItems = new ArrayList<>();
 

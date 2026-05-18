@@ -109,7 +109,6 @@ public class AuctionDetailController {
 
         priceChart.getData().add(series);
     }
-
     private String formatTime(int seconds) {
         if (seconds <= 0) return "00:00:00";
         return String.format("%02d:%02d:%02d",

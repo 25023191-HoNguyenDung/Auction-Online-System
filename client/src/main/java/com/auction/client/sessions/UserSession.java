@@ -3,7 +3,6 @@ package com.auction.client.sessions;
 import com.auction.client.model.User;   // sẽ tạo sau
 
 public class UserSession {
-
     private static UserSession instance;
     private User currentUser;
 

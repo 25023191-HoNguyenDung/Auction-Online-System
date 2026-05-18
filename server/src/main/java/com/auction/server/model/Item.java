@@ -12,7 +12,6 @@ public class Item {
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
     private String imageUrl;
-    private double reserve_price;
 
     // Constructor mặc định
     public Item() {
@@ -21,7 +20,7 @@ public class Item {
     // Constructor đầy đủ
     public Item(long itemId, long sellerId, String itemName, String description,
                 String category, BigDecimal startingPrice, BigDecimal currentPrice,
-                String imageUrl, double reserve_price) {
+                String imageUrl) {
         this.itemId = itemId;
         this.sellerId = sellerId;
         this.itemName = itemName;
@@ -30,7 +29,6 @@ public class Item {
         this.startingPrice = startingPrice;
         this.currentPrice = currentPrice;
         this.imageUrl = imageUrl;
-        this.reserve_price = reserve_price;
     }
 
     public long getItemId() {
@@ -97,13 +95,7 @@ public class Item {
         this.imageUrl = imageUrl;
     }
 
-    public double getReserve_price() {
-        return reserve_price;
-    }
 
-    public void setReserve_price(double reserve_price) {
-        this.reserve_price = reserve_price;
-    }
 
     @Override
     public String toString() {
@@ -116,7 +108,6 @@ public class Item {
                 ", startingPrice=" + startingPrice +
                 ", currentPrice=" + currentPrice +
                 ", imageUrl='" + imageUrl + '\'' +
-                ", reserve_price=" + reserve_price +
                 '}';
     }
 }

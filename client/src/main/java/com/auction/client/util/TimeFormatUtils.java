@@ -1,5 +1,4 @@
 package com.auction.client.util;
 
-public class TimeFormatUtils {
-    
+public class TimeFormatUtils {   
 }
