@@ -20,7 +20,7 @@ import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.BidTransaction;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.User;
-
+// trung tâm xử lý nghiệp vụ đgia
 public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionDao auctionDao; // Lưu trữ và truy xuất thông tin phiên đấu giá

@@ -5,7 +5,6 @@ import com.auction.server.config.DatabaseConfig;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import static org.postgresql.util.JdbcBlackHole.close;
 
 public class TransactionManager {
     private static TransactionManager instance;

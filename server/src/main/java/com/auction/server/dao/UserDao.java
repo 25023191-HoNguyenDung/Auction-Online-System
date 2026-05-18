@@ -3,7 +3,7 @@ package com.auction.server.dao;
 import com.auction.server.model.User;
 import java.util.List;
 import java.util.Optional;
-
+// thao tác tới bảng user
 public interface UserDao {
     Optional<User> findById(long id);
     Optional<User> findByUsername(String username);

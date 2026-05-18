@@ -26,7 +26,7 @@ public class AuctionLockManager {
     //mở khóa
     public void unlock(long auctionId){
         ReentrantLock lock = lockMap.get(auctionId);
-        if(lock==null && lock.isHeldByCurrentThread()){
+        if(lock!=null && lock.isHeldByCurrentThread()){
             lock.unlock();
         }
     }

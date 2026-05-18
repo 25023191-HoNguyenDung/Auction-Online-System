@@ -34,9 +34,9 @@
 
         <!-- JDBC - PostgreSQL (DatabaseConfig, JdbcDao) -->
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.3</version>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.0.33</version>
         </dependency>
 
         <!-- Connection Pool (DatabaseConfig) -->

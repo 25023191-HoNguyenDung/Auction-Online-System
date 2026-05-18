@@ -3,7 +3,7 @@ package com.auction.server.dao;
 import com.auction.server.model.Item;
 import java.util.List;
 import java.util.Optional;
-
+// thao tác tới bảng item
 public interface ItemDao {
     Optional<Item> findById(long id);
     List<Item> findBySellerId(long sellerId);

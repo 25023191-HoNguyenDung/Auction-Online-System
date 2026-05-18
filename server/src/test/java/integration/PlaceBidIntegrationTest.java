@@ -28,14 +28,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class) // chạy theo thứ tự
+// ktra chức năng đặt đgia
 class PlaceBidIntegrationTest {
 
-    private static AuctionService auctionService;
+    private static AuctionService auctionService; //Service chính cần test
     private static AuctionDao auctionDao;
     private static BidDao bidDao;
-    private static AuctionEventPublisher publisher;
-    private static long testAuctionId;
+    private static AuctionEventPublisher publisher; // Quản lý observer/event
+    private static long testAuctionId; // id của phiên test
 
     @BeforeAll
     static void setUp() throws AuctionConnectException, SQLException {
@@ -44,7 +45,8 @@ class PlaceBidIntegrationTest {
         auctionService = new AuctionServiceImpl(auctionDao, bidDao, new JdbcUserDao());
         publisher      = AuctionEventPublisher.getInstance();
 
-        Auction auction = new Auction();
+        Auction auction = new Auction();// tạo phiên đgia mẫu
+        // khởi tạo gtri bđầu
         auction.setItem_id(1L);
         auction.setSeller_id(2L);
         auction.setStarting_price(new BigDecimal("5000000"));
@@ -54,96 +56,93 @@ class PlaceBidIntegrationTest {
         auction.setEnd_time(LocalDateTime.now().plusHours(2));
         auction.setWinner_bidder_id(0);
 
-        testAuctionId = auctionDao.save(auction).getId();
+        testAuctionId = auctionDao.save(auction).getId(); // lấy id
     }
 
     @AfterAll
     static void tearDown() {
         auctionDao.deleteById(testAuctionId);
-    }
+    } // xóa phiên
 
-    @Test
+    @Test // test đgia thành công
     @Order(1)
     void testPlaceBidSuccess() throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
-        BidTransaction bid = auctionService.placeBid(
-                testAuctionId, 3L, new BigDecimal("6000000"));
+        BidTransaction bid = auctionService.placeBid(testAuctionId, 3L, new BigDecimal("6000000")); // đặt giá
 
-        assertNotNull(bid);
-        assertTrue(bid.getId() > 0, "Bid phải được lưu vào DB với ID");
-        assertEquals(0, new BigDecimal("6000000").compareTo(bid.getBidAmount()));
-        assertEquals(3L, bid.getBidderId());
+        assertNotNull(bid); // ktra bid được tạo thành công
+        assertTrue(bid.getId() > 0, "Bid phải được lưu vào DB với ID"); // ktra có trog db chưa
+        assertEquals(0, new BigDecimal("6000000").compareTo(bid.getBidAmount())); // ktra giá đặt
+        assertEquals(3L, bid.getBidderId()); // ktra người đặt giá
 
 
-        Auction updated = auctionDao.findById(testAuctionId).orElseThrow();
-        assertEquals(0, new BigDecimal("6000000").compareTo(updated.getCurrent_price()));
-        assertEquals("3", updated.getWinner_bidder_id());
+        Auction updated = auctionDao.findById(testAuctionId).orElseThrow(); // lấy auction trog db sau khi đặt xog
+        assertEquals(0, new BigDecimal("6000000").compareTo(updated.getCurrent_price())); // current_price phải bằng giá vừa đặt
+        assertEquals("3", updated.getWinner_bidder_id()); // ktra người dẫn đầu
     }
 
-    @Test
+    @Test // đặt giá thấp hơn htai
     @Order(2)
     void testPlaceBidTooLowThrowsException() {
 
         assertThrows(RuntimeException.class, () ->
-                auctionService.placeBid(testAuctionId, 4L, new BigDecimal("5000000")));
+                auctionService.placeBid(testAuctionId, 4L, new BigDecimal("5000000"))); // vứt lỗi khi đặt giá thấp hơn
     }
 
-    @Test
+    @Test // cập nhật người đặt giá cao hơn hiên tại
     @Order(3)
     void testPlaceBidHigherSuccess() throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
-        BidTransaction bid = auctionService.placeBid(testAuctionId, 4L, new BigDecimal("7000000"));
+        BidTransaction bid = auctionService.placeBid(testAuctionId, 4L, new BigDecimal("7000000")); // đặt giá mới
 
-        assertNotNull(bid);
-        assertEquals(4L, bid.getBidderId());
+        assertNotNull(bid); // ktra đặt tcong chưa
+        assertEquals(4L, bid.getBidderId()); // ktra nguời đặt
 
-        Auction updated = auctionDao.findById(testAuctionId).orElseThrow();
-        assertEquals(0, new BigDecimal("7000000").compareTo(updated.getCurrent_price()));
-        assertEquals("4", updated.getWinner_bidder_id());
+        Auction updated = auctionDao.findById(testAuctionId).orElseThrow(); // lấy auction sau khi đặt xog
+        assertEquals(0, new BigDecimal("7000000").compareTo(updated.getCurrent_price())); // current_price phải bằng giá vừa đặt
+        assertEquals("4", updated.getWinner_bidder_id()); // ktra người dẫn đầu
     }
 
-    @Test
+    @Test // ktra những lần đặt giá trc đc lưu vào db chưa
     @Order(4)
     void testBidHistorySavedToDb() {
-        List<BidTransaction> history = auctionService.getBidHistory(testAuctionId);
+        List<BidTransaction> history = auctionService.getBidHistory(testAuctionId); // lấy toàn bộ bid phiên đgia
         assertTrue(history.size() >= 2, "Phải có ít nhất 2 bid trong lịch sử");
         for (int i = 1; i < history.size(); i++) {
-            assertFalse(history.get(i).getTimeBidding().isBefore(history.get(i - 1).getTimeBidding()),
-                    "Bid sau phải có thời gian >= bid trước");
+            assertFalse(history.get(i).getTimeBidding().isBefore(history.get(i - 1).getTimeBidding()), "Bid sau phải có thời gian >= bid trước"); // ktra thứ tự
         }
     }
 
-    @Test
+    @Test // khi có bid mới thì server đã phát event cho observer đã đki chưa
     @Order(5)
     void testObserverReceivesBidEvent() throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
-        List<AuctionEvent> events = new ArrayList<>();
-        AuctionObserver observer = events::add;
-        publisher.subscribe(testAuctionId, observer);
+        List<AuctionEvent> events = new ArrayList<>(); // ds chứa các event nhận đc
+        AuctionObserver observer = events::add; // có event thì observer tự động thêm vào events
+        publisher.subscribe(testAuctionId, observer); // observer bắt đầu nghe
 
-        auctionService.placeBid(testAuctionId, 3L, new BigDecimal("8000000"));
+        auctionService.placeBid(testAuctionId, 3L, new BigDecimal("8000000")); // đặt giá mơi
 
-        assertFalse(events.isEmpty(), "Observer phải nhận được BID_PLACED event");
-        assertEquals(AuctionEvent.Type.BID_PLACED, events.get(0).getType());
-        assertEquals(testAuctionId, events.get(0).getAuctionId());
-        assertEquals(0, new BigDecimal("8000000").compareTo(events.get(0).getCurrentPrice()));
+        assertFalse(events.isEmpty(), "Observer phải nhận được BID_PLACED event");  // ds ko được rỗng
+        assertEquals(AuctionEvent.Type.BID_PLACED, events.get(0).getType()); // event phải là BID_PLACED
+        assertEquals(testAuctionId, events.get(0).getAuctionId()); // event phải đúng phiên đgia
+        assertEquals(0, new BigDecimal("8000000").compareTo(events.get(0).getCurrentPrice())); // giá trog event là 8 tr
 
-        publisher.unsubscribe(testAuctionId, observer);
+        publisher.unsubscribe(testAuctionId, observer); // hủy theo dõi
     }
 
-    @Test
+    @Test // khi đóng phiên giá thì phải chuyển thành FINISHED
     @Order(6)
     void testCloseAuction() throws AuctionConnectException, AuctionTimeException {
-        auctionService.cancelAuction(testAuctionId);
+        auctionService.cancelAuction(testAuctionId); // kết thúc phiên
 
-        Auction closed = auctionDao.findById(testAuctionId).orElseThrow();
-        assertEquals(AuctionStatus.FINISHED, closed.getStatus(),
-                "Phiên phải chuyển sang FINISHED sau closeAuction");
+        Auction closed = auctionDao.findById(testAuctionId).orElseThrow(); // lấy dlieu
+        assertEquals(AuctionStatus.FINISHED, closed.getStatus(), "Phiên phải chuyển sang FINISHED sau closeAuction"); // ktra status
         assertNotNull(closed.getWinner_bidder_id(), "Phải có winner sau khi đóng phiên");
     }
 
-    @Test
+    @Test // sau khi kết thúc phiên thì ko ai đặt giá nữa
     @Order(7)
     void testPlaceBidOnClosedAuctionThrowsException() {
         // Phiên đã FINISHED — không thể đặt giá nữa
         assertThrows(RuntimeException.class, () ->
-                auctionService.placeBid(testAuctionId, 4L, new BigDecimal("9000000")));
+                auctionService.placeBid(testAuctionId, 4L, new BigDecimal("9000000"))); // cố đặt giá mới
     }
 }
