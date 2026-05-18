@@ -16,41 +16,28 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane prefWidth="1280" prefHeight="820"
-            styleClass="al-root"
-            stylesheets="@../css/style.css"
-            xmlns="http://javafx.com/javafx/17"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.auction.client.controller.SellerDashboardController">
+<BorderPane prefHeight="820" prefWidth="1280" styleClass="al-root" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SellerDashboardController">
 
     <!-- ═══════════ NAVBAR ═══════════ -->
     <top>
-        <HBox prefHeight="54" alignment="CENTER_LEFT" spacing="0" styleClass="al-navbar">
-            <Label text="AUCTION PRO" styleClass="nav-logo-text">
-                <HBox.margin><Insets right="32"/></HBox.margin>
+        <HBox alignment="CENTER_LEFT" prefHeight="54" spacing="0" styleClass="al-navbar">
+            <Label styleClass="nav-logo-text" text="AUCTION PRO">
+                <HBox.margin><Insets right="32" /></HBox.margin>
             </Label>
-            <Label text="SELLER PANEL"
-                   style="-fx-text-fill:#f0b429; -fx-font-size:11px; -fx-font-weight:bold;
-                          -fx-font-family:'Arial'; -fx-background-color:rgba(240,180,41,0.12);
-                          -fx-border-color:rgba(240,180,41,0.4); -fx-border-radius:20;
-                          -fx-background-radius:20; -fx-padding:3 12;">
-                <HBox.margin><Insets right="24"/></HBox.margin>
+            <Label style="-fx-text-fill:#f0b429; -fx-font-size:11px; -fx-font-weight:bold;                           -fx-font-family:'Arial'; -fx-background-color:rgba(240,180,41,0.12);                           -fx-border-color:rgba(240,180,41,0.4); -fx-border-radius:20;                           -fx-background-radius:20; -fx-padding:3 12;" text="SELLER PANEL">
+                <HBox.margin><Insets right="24" /></HBox.margin>
             </Label>
-            <Region HBox.hgrow="ALWAYS"/>
-            <HBox spacing="14" alignment="CENTER">
-                <Button text="🔔"
-                        style="-fx-background-color:#1a1813; -fx-text-fill:#9aa0b4;
-                               -fx-font-size:15px; -fx-background-radius:20;
-                               -fx-border-color:rgba(240,180,41,0.2); -fx-border-radius:20;
-                               -fx-border-width:1; -fx-padding:6 10; -fx-cursor:hand;"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="14">
+                <Button style="-fx-background-color:#1a1813; -fx-text-fill:#9aa0b4;                                -fx-font-size:15px; -fx-background-radius:20;                                -fx-border-color:rgba(240,180,41,0.2); -fx-border-radius:20;                                -fx-border-width:1; -fx-padding:6 10; -fx-cursor:hand;" text="🔔" />
                 <StackPane>
-                    <Circle radius="18" style="-fx-fill:#1e1c15; -fx-stroke:#f0b429; -fx-stroke-width:2;"/>
-                    <Label fx:id="navInitialLabel" text="S"
-                           style="-fx-text-fill:#f0b429; -fx-font-size:14px; -fx-font-weight:bold;"/>
+                    <Circle radius="18" style="-fx-fill:#1e1c15; -fx-stroke:#f0b429; -fx-stroke-width:2;" />
+                    <Label fx:id="navInitialLabel" style="-fx-text-fill:#f0b429; -fx-font-size:14px; -fx-font-weight:bold;" text="S" />
                 </StackPane>
             </HBox>
         </HBox>
@@ -61,273 +48,243 @@
         <HBox>
 
             <!-- ── SIDEBAR ── -->
-            <VBox prefWidth="230" styleClass="al-sidebar" spacing="0">
-                <HBox spacing="12" alignment="CENTER_LEFT">
+            <VBox prefWidth="230" spacing="0" styleClass="al-sidebar">
+                <HBox alignment="CENTER_LEFT" spacing="12">
                     <StackPane>
-                        <Circle radius="22" style="-fx-fill:#1e1c15; -fx-stroke:#f0b429; -fx-stroke-width:2;"/>
-                        <Label fx:id="sideInitialLabel" text="S"
-                               style="-fx-text-fill:#f0b429; -fx-font-size:16px; -fx-font-weight:bold;"/>
+                        <Circle radius="22" style="-fx-fill:#1e1c15; -fx-stroke:#f0b429; -fx-stroke-width:2;" />
+                        <Label fx:id="sideInitialLabel" style="-fx-text-fill:#f0b429; -fx-font-size:16px; -fx-font-weight:bold;" text="S" />
                     </StackPane>
                     <VBox spacing="2">
-                        <Label fx:id="sideNameLabel" text="Seller" styleClass="al-user-name"/>
-                        <Label text="VERIFIED SELLER"
-                               style="-fx-text-fill:#f0b429; -fx-font-size:9px; -fx-font-weight:bold;"/>
+                        <Label fx:id="sideNameLabel" styleClass="al-user-name" text="Seller" />
+                        <Label style="-fx-text-fill:#f0b429; -fx-font-size:9px; -fx-font-weight:bold;" text="VERIFIED SELLER" />
                     </VBox>
-                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                    <VBox.margin><Insets bottom="24" /></VBox.margin>
                 </HBox>
 
-                <Button fx:id="sideOverview"  text="📊  Overview"       styleClass="al-nav-item-active" maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideMyAuctions" text="🔨  My Auctions"   styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideCreate"    text="➕  Create Listing"  styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideBids"      text="💰  Bids Received"   styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideHistory"   text="📋  History"         styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="24"/></VBox.margin></Button>
+                <Button fx:id="sideOverview" maxWidth="Infinity" styleClass="al-nav-item-active" text="📊  Overview"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideMyAuctions" maxWidth="Infinity" styleClass="al-nav-item" text="🔨  My Auctions"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideCreate" maxWidth="Infinity" styleClass="al-nav-item" text="➕  Create Listing"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideBids" maxWidth="Infinity" styleClass="al-nav-item" text="💰  Bids Received"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideHistory" maxWidth="Infinity" styleClass="al-nav-item" text="📋  History"><VBox.margin><Insets bottom="24" /></VBox.margin></Button>
 
                 <Separator style="-fx-background-color:rgba(240,180,41,0.1);">
-                    <VBox.margin><Insets bottom="20"/></VBox.margin>
+                    <VBox.margin><Insets bottom="20" /></VBox.margin>
                 </Separator>
 
-                <Label text="QUICK STATS" styleClass="al-section-label">
-                    <VBox.margin><Insets bottom="14"/></VBox.margin>
+                <Label styleClass="al-section-label" text="QUICK STATS">
+                    <VBox.margin><Insets bottom="14" /></VBox.margin>
                 </Label>
 
                 <VBox spacing="12">
                     <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Circle radius="5" style="-fx-fill:#4ade80;"/>
-                        <Label fx:id="quickActiveLabel" text="0 Active Auctions"
-                               style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';"/>
+                        <Circle radius="5" style="-fx-fill:#4ade80;" />
+                        <Label fx:id="quickActiveLabel" style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';" text="0 Active Auctions" />
                     </HBox>
                     <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Circle radius="5" style="-fx-fill:#f0b429;"/>
-                        <Label fx:id="quickPendingLabel" text="0 Pending Approval"
-                               style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';"/>
+                        <Circle radius="5" style="-fx-fill:#f0b429;" />
+                        <Label fx:id="quickPendingLabel" style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';" text="0 Pending Approval" />
                     </HBox>
                     <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Circle radius="5" style="-fx-fill:#60a5fa;"/>
-                        <Label fx:id="quickBidsLabel" text="0 Bids Received"
-                               style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';"/>
+                        <Circle radius="5" style="-fx-fill:#60a5fa;" />
+                        <Label fx:id="quickBidsLabel" style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';" text="0 Bids Received" />
                     </HBox>
                 </VBox>
 
-                <VBox VBox.vgrow="ALWAYS"/>
+                <VBox VBox.vgrow="ALWAYS" />
 
-                <Button text="🚪  Logout" onAction="#handleLogout"
-                        maxWidth="Infinity" prefHeight="36"
-                        style="-fx-background-color:rgba(239,68,68,0.1); -fx-text-fill:#ef4444;
-                               -fx-font-size:12px; -fx-font-family:'Arial';
-                               -fx-border-color:rgba(239,68,68,0.3); -fx-border-radius:6;
-                               -fx-background-radius:6; -fx-cursor:hand;">
-                    <VBox.margin><Insets top="24"/></VBox.margin>
+                <Button maxWidth="Infinity" onAction="#handleLogout" prefHeight="36" style="-fx-background-color:rgba(239,68,68,0.1); -fx-text-fill:#ef4444;                                -fx-font-size:12px; -fx-font-family:'Arial';                                -fx-border-color:rgba(239,68,68,0.3); -fx-border-radius:6;                                -fx-background-radius:6; -fx-cursor:hand;" text="🚪  Logout">
+                    <VBox.margin><Insets top="24" /></VBox.margin>
                 </Button>
             </VBox>
 
             <!-- ── MAIN CONTENT ── -->
-            <VBox HBox.hgrow="ALWAYS" styleClass="al-content" spacing="0">
+            <VBox spacing="0" styleClass="al-content" HBox.hgrow="ALWAYS">
 
                 <!-- Page title -->
                 <HBox alignment="CENTER_LEFT">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label text="Seller Dashboard" styleClass="al-page-title"/>
-                        <Label fx:id="pageSubtitleLabel"
-                               text="Manage your listings, track bids and monitor revenue."
-                               styleClass="al-page-subtitle"
-                               style="-fx-text-fill:#5a5444;"/>
+                        <Label styleClass="al-page-title" text="Seller Dashboard" />
+                        <Label fx:id="pageSubtitleLabel" styleClass="al-page-subtitle" text="Manage your listings, track bids and monitor revenue." />
                     </VBox>
-                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                    <VBox.margin><Insets bottom="24" /></VBox.margin>
                 </HBox>
 
                 <!-- Stat cards -->
                 <GridPane hgap="16" vgap="16">
                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="20"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="20"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="20"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="20"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="20"/>
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
                     </columnConstraints>
 
-                    <VBox GridPane.columnIndex="0" styleClass="sd-stat-card" spacing="8">
-                        <Label text="ACTIVE AUCTIONS"  styleClass="sd-stat-label"/>
-                        <Label fx:id="cardActive"       text="0"    styleClass="sd-stat-value"/>
-                        <Label text="Currently live"    style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="0">
+                        <Label styleClass="sd-stat-label" text="ACTIVE AUCTIONS" />
+                        <Label fx:id="cardActive" styleClass="sd-stat-value" text="0" />
+                        <Label style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';" text="Currently live" />
                     </VBox>
-                    <VBox GridPane.columnIndex="1" styleClass="sd-stat-card" spacing="8">
-                        <Label text="TOTAL BIDS"        styleClass="sd-stat-label"/>
-                        <Label fx:id="cardTotalBids"    text="0"    styleClass="sd-stat-value"/>
-                        <Label text="Across all items"  style="-fx-text-fill:#60a5fa; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="1">
+                        <Label styleClass="sd-stat-label" text="TOTAL BIDS" />
+                        <Label fx:id="cardTotalBids" styleClass="sd-stat-value" text="0" />
+                        <Label style="-fx-text-fill:#60a5fa; -fx-font-size:11px; -fx-font-family:'Arial';" text="Across all items" />
                     </VBox>
-                    <VBox GridPane.columnIndex="2" styleClass="sd-stat-card" spacing="8">
-                        <Label text="TOTAL REVENUE"     styleClass="sd-stat-label"/>
-                        <Label fx:id="cardRevenue"      text="\$0"  styleClass="sd-stat-value-gold"/>
-                        <Label text="From closed sales" style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="2">
+                        <Label styleClass="sd-stat-label" text="TOTAL REVENUE" />
+                        <Label fx:id="cardRevenue" styleClass="sd-stat-value-gold" text="\$0" />
+                        <Label style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';" text="From closed sales" />
                     </VBox>
-                    <VBox GridPane.columnIndex="3" styleClass="sd-stat-card" spacing="8">
-                        <Label text="PENDING APPROVAL"  styleClass="sd-stat-label"/>
-                        <Label fx:id="cardPending"      text="0"    styleClass="sd-stat-value-red"/>
-                        <Label text="Awaiting review"   style="-fx-text-fill:#ef4444; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="3">
+                        <Label styleClass="sd-stat-label" text="PENDING APPROVAL" />
+                        <Label fx:id="cardPending" styleClass="sd-stat-value-red" text="0" />
+                        <Label style="-fx-text-fill:#ef4444; -fx-font-size:11px; -fx-font-family:'Arial';" text="Awaiting review" />
                     </VBox>
-                    <VBox GridPane.columnIndex="4" styleClass="sd-stat-card" spacing="8">
-                        <Label text="BALANCE"            styleClass="sd-stat-label"/>
-                        <Label fx:id="cardBalance"       text="\$0"  styleClass="sd-stat-value-gold"/>
-                        <Label text="Seller account"     style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';"/>
-                    </VBox>
-                    <GridPane.margin><Insets bottom="24"/></GridPane.margin>
+                    <GridPane.margin><Insets bottom="24" /></GridPane.margin>
+               <rowConstraints>
+                  <RowConstraints />
+               </rowConstraints>
                 </GridPane>
 
                 <!-- Tabs -->
                 <TabPane fx:id="tabPane" styleClass="sd-tab-pane" VBox.vgrow="ALWAYS">
 
                     <!-- Tab: My Auctions -->
-                    <Tab text="My Auctions" closable="false">
+                    <Tab closable="false" text="My Auctions">
                         <VBox spacing="14" style="-fx-padding:16 0 0 0;">
-                            <HBox spacing="12" alignment="CENTER_LEFT">
-                                <TextField fx:id="searchMyAuctions"
-                                           promptText="Search my listings..."
-                                           styleClass="al-search-field"
-                                           prefWidth="240" prefHeight="34"/>
-                                <ComboBox fx:id="filterMyStatus"
-                                          styleClass="al-sort-combo"
-                                          prefWidth="150" prefHeight="34"/>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Button text="➕ New Listing" onAction="#handleCreateListing"
-                                        styleClass="sd-btn-create"/>
+                            <HBox alignment="CENTER_LEFT" spacing="12">
+                                <TextField fx:id="searchMyAuctions" prefHeight="34" prefWidth="240" promptText="Search my listings..." styleClass="al-search-field" />
+                                <ComboBox fx:id="filterMyStatus" prefHeight="34" prefWidth="150" styleClass="al-sort-combo" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button onAction="#handleCreateListing" styleClass="sd-btn-create" text="➕ New Listing" />
                             </HBox>
-                            <TableView fx:id="myAuctionsTable" VBox.vgrow="ALWAYS" styleClass="sd-table">
+                            <TableView fx:id="myAuctionsTable" styleClass="sd-table" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="colMyId"       text="ID"          prefWidth="60"/>
-                                    <TableColumn fx:id="colMyItem"     text="Item"         prefWidth="200"/>
-                                    <TableColumn fx:id="colMyCategory" text="Category"     prefWidth="110"/>
-                                    <TableColumn fx:id="colMyBid"      text="Current Bid"  prefWidth="120"/>
-                                    <TableColumn fx:id="colMyBids"     text="Bids"         prefWidth="60"/>
-                                    <TableColumn fx:id="colMyStatus"   text="Status"       prefWidth="110"/>
-                                    <TableColumn fx:id="colMyEnds"     text="Ends"         prefWidth="130"/>
-                                    <TableColumn fx:id="colMyAction"   text="Actions"      prefWidth="100"/>
+                                    <TableColumn fx:id="colMyId" prefWidth="60" text="ID" />
+                                    <TableColumn fx:id="colMyItem" prefWidth="200" text="Item" />
+                                    <TableColumn fx:id="colMyCategory" prefWidth="110" text="Category" />
+                                    <TableColumn fx:id="colMyBid" prefWidth="120" text="Current Bid" />
+                                    <TableColumn fx:id="colMyBids" prefWidth="60" text="Bids" />
+                                    <TableColumn fx:id="colMyStatus" prefWidth="110" text="Status" />
+                                    <TableColumn fx:id="colMyEnds" prefWidth="130" text="Ends" />
+                                    <TableColumn fx:id="colMyAction" prefWidth="100" text="Actions" />
                                 </columns>
                             </TableView>
                         </VBox>
                     </Tab>
 
                     <!-- Tab: Create Listing -->
-                    <Tab text="Create Listing" closable="false">
+                    <Tab closable="false" text="Create Listing">
                         <VBox spacing="0" style="-fx-padding:16 0 0 0;">
                             <HBox spacing="32" VBox.vgrow="ALWAYS">
 
                                 <!-- Left: Form -->
-                                <VBox spacing="16" HBox.hgrow="ALWAYS" styleClass="sd-form-card">
-                                    <padding><Insets bottom="24" left="24" right="24" top="24"/></padding>
+                                <VBox spacing="16" styleClass="sd-form-card" HBox.hgrow="ALWAYS">
+                                    <padding><Insets bottom="24" left="24" right="24" top="24" /></padding>
 
-                                    <Label text="NEW AUCTION LISTING" styleClass="sd-form-title"/>
-                                    <Separator style="-fx-background-color:#2e2a1e;"/>
+                                    <Label styleClass="sd-form-title" text="NEW AUCTION LISTING" />
+                                    <Separator style="-fx-background-color:#2e2a1e;" />
 
                                     <GridPane hgap="16" vgap="14">
                                         <columnConstraints>
-                                            <ColumnConstraints percentWidth="50"/>
-                                            <ColumnConstraints percentWidth="50"/>
+                                            <ColumnConstraints percentWidth="50" />
+                                            <ColumnConstraints percentWidth="50" />
                                         </columnConstraints>
 
                                         <!-- Item Name -->
-                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="6">
-                                            <Label text="ITEM NAME" styleClass="sd-form-label"/>
-                                            <TextField fx:id="formItemName"
-                                                       promptText="e.g. Vanguard Tourbillon Watch"
-                                                       styleClass="sd-form-field"/>
+                                        <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <Label styleClass="sd-form-label" text="ITEM NAME" />
+                                            <TextField fx:id="formItemName" promptText="e.g. Vanguard Tourbillon Watch" styleClass="sd-form-field" />
                                         </VBox>
 
                                         <!-- Category -->
-                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="6">
-                                            <Label text="CATEGORY" styleClass="sd-form-label"/>
-                                            <ComboBox fx:id="formCategory"
-                                                      styleClass="sd-form-combo"
-                                                      maxWidth="Infinity"/>
+                                        <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <Label styleClass="sd-form-label" text="CATEGORY" />
+                                            <ComboBox fx:id="formCategory" maxWidth="Infinity" styleClass="sd-form-combo" />
                                         </VBox>
 
                                         <!-- Starting Price -->
-                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="6">
-                                            <Label text="STARTING PRICE (\$)" styleClass="sd-form-label"/>
-                                            <TextField fx:id="formStartPrice"
-                                                       promptText="e.g. 5000"
-                                                       styleClass="sd-form-field"/>
+                                        <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <Label styleClass="sd-form-label" text="STARTING PRICE (\$)" />
+                                            <TextField fx:id="formStartPrice" promptText="e.g. 5000" styleClass="sd-form-field" />
+                                        </VBox>
+
+                                        <!-- Reserve Price -->
+                                        <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <Label styleClass="sd-form-label" text="RESERVE PRICE (\$)" />
+                                            <TextField fx:id="formReservePrice" promptText="e.g. 8000" styleClass="sd-form-field" />
                                         </VBox>
 
                                         <!-- Duration -->
-                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="6">
-                                            <Label text="DURATION" styleClass="sd-form-label"/>
-                                            <ComboBox fx:id="formDuration"
-                                                      styleClass="sd-form-combo"
-                                                      maxWidth="Infinity"/>
+                                        <VBox spacing="6" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                            <Label styleClass="sd-form-label" text="DURATION" />
+                                            <ComboBox fx:id="formDuration" maxWidth="Infinity" styleClass="sd-form-combo" />
                                         </VBox>
 
                                         <!-- Condition -->
-                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" spacing="6">
-                                            <Label text="CONDITION" styleClass="sd-form-label"/>
-                                            <ComboBox fx:id="formCondition"
-                                                      styleClass="sd-form-combo"
-                                                      maxWidth="Infinity"/>
+                                        <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                            <Label styleClass="sd-form-label" text="CONDITION" />
+                                            <ComboBox fx:id="formCondition" maxWidth="Infinity" styleClass="sd-form-combo" />
                                         </VBox>
+                              <rowConstraints>
+                                 <RowConstraints />
+                                 <RowConstraints />
+                                 <RowConstraints />
+                              </rowConstraints>
                                     </GridPane>
 
                                     <!-- Description -->
                                     <VBox spacing="6">
-                                        <Label text="DESCRIPTION" styleClass="sd-form-label"/>
-                                        <TextArea fx:id="formDescription"
-                                                  promptText="Describe your item in detail..."
-                                                  styleClass="sd-form-textarea"
-                                                  prefHeight="100" wrapText="true"/>
+                                        <Label styleClass="sd-form-label" text="DESCRIPTION" />
+                                        <TextArea fx:id="formDescription" prefHeight="100" promptText="Describe your item in detail..." styleClass="sd-form-textarea" wrapText="true" />
                                     </VBox>
 
                                     <!-- Message -->
-                                    <Label fx:id="formMessage" text="" styleClass="error-text"
-                                           visible="false" wrapText="true"/>
+                                    <Label fx:id="formMessage" styleClass="error-text" text="" visible="false" wrapText="true" />
 
                                     <!-- Buttons -->
                                     <HBox spacing="12">
-                                        <Button fx:id="btnSubmitListing" onAction="#handleSubmitListing"
-                                                prefHeight="44" HBox.hgrow="ALWAYS" maxWidth="Infinity"
-                                                styleClass="btn-primary" text="SUBMIT FOR APPROVAL"/>
-                                        <Button onAction="#handleClearForm"
-                                                prefHeight="44" prefWidth="120"
-                                                styleClass="ad-btn-back" text="Clear"/>
+                                        <Button fx:id="btnSubmitListing" maxWidth="Infinity" onAction="#handleSubmitListing" prefHeight="44" styleClass="btn-primary" text="SUBMIT FOR APPROVAL" HBox.hgrow="ALWAYS" />
+                                        <Button onAction="#handleClearForm" prefHeight="44" prefWidth="120" styleClass="ad-btn-back" text="Clear" />
                                     </HBox>
 
-                                    <Label text="All listings are reviewed by admin before going live."
-                                           styleClass="ad-chart-sublabel"/>
+                                    <Label styleClass="ad-chart-sublabel" text="All listings are reviewed by admin before going live." />
                                 </VBox>
 
                                 <!-- Right: Preview card -->
                                 <VBox prefWidth="300" spacing="16" styleClass="sd-preview-card">
-                                    <padding><Insets bottom="24" left="24" right="24" top="24"/></padding>
+                                    <padding><Insets bottom="24" left="24" right="24" top="24" /></padding>
 
-                                    <Label text="PREVIEW" styleClass="sd-form-title"/>
-                                    <Separator style="-fx-background-color:#2e2a1e;"/>
+                                    <Label styleClass="sd-form-title" text="PREVIEW" />
+                                    <Separator style="-fx-background-color:#2e2a1e;" />
 
                                     <StackPane prefHeight="160" styleClass="bs-image-pane">
-                                        <Label fx:id="previewEmoji" text="⭐"
-                                               style="-fx-font-size:60px;"/>
+                                        <Label fx:id="previewEmoji" style="-fx-font-size:60px;" text="⭐" />
                                     </StackPane>
 
                                     <VBox spacing="6">
-                                        <Label fx:id="previewTitle" text="Item Name"
-                                               styleClass="ad-item-title" style="-fx-font-size:18px;" wrapText="true"/>
-                                        <Label fx:id="previewCategory" text="Category"
-                                               styleClass="ad-item-subtitle"/>
+                                        <Label fx:id="previewTitle" style="-fx-font-size:18px;" styleClass="ad-item-title" text="Item Name" wrapText="true" />
+                                        <Label fx:id="previewCategory" styleClass="ad-item-subtitle" text="Category" />
                                     </VBox>
 
                                     <VBox spacing="10" styleClass="ad-meta-box">
                                         <HBox>
-                                            <Label text="Starting Price" styleClass="ad-meta-label"/>
-                                            <Region HBox.hgrow="ALWAYS"/>
-                                            <Label fx:id="previewPrice" styleClass="text-gold"
-                                                   style="-fx-font-weight:bold;" text="\$—"/>
+                                            <Label styleClass="ad-meta-label" text="Starting Price" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="previewPrice" style="-fx-font-weight:bold;" styleClass="text-gold" text="\$—" />
                                         </HBox>
                                         <HBox>
-                                            <Label text="Duration" styleClass="ad-meta-label"/>
-                                            <Region HBox.hgrow="ALWAYS"/>
-                                            <Label fx:id="previewDuration" styleClass="ad-meta-value" text="—"/>
+                                            <Label styleClass="ad-meta-label" text="Reserve Price" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="previewReserve" styleClass="ad-meta-value" text="\$—" />
                                         </HBox>
                                         <HBox>
-                                            <Label text="Status" styleClass="ad-meta-label"/>
-                                            <Region HBox.hgrow="ALWAYS"/>
-                                            <Label text="Pending Review" styleClass="al-badge-upcoming"
-                                                   style="-fx-font-size:10px;"/>
+                                            <Label styleClass="ad-meta-label" text="Duration" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label fx:id="previewDuration" styleClass="ad-meta-value" text="—" />
+                                        </HBox>
+                                        <HBox>
+                                            <Label styleClass="ad-meta-label" text="Status" />
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <Label style="-fx-font-size:10px;" styleClass="al-badge-upcoming" text="Pending Review" />
                                         </HBox>
                                     </VBox>
                                 </VBox>
@@ -336,15 +293,15 @@
                     </Tab>
 
                     <!-- Tab: Bids Received -->
-                    <Tab text="Bids Received" closable="false">
+                    <Tab closable="false" text="Bids Received">
                         <VBox spacing="14" style="-fx-padding:16 0 0 0;">
-                            <TableView fx:id="bidsReceivedTable" VBox.vgrow="ALWAYS" styleClass="sd-table">
+                            <TableView fx:id="bidsReceivedTable" styleClass="sd-table" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="colBidItem"    text="Item"        prefWidth="220"/>
-                                    <TableColumn fx:id="colBidder"     text="Bidder"      prefWidth="160"/>
-                                    <TableColumn fx:id="colBidAmount"  text="Amount"      prefWidth="130"/>
-                                    <TableColumn fx:id="colBidTime"    text="Time"        prefWidth="160"/>
-                                    <TableColumn fx:id="colBidStatus"  text="Status"      prefWidth="110"/>
+                                    <TableColumn fx:id="colBidItem" prefWidth="220" text="Item" />
+                                    <TableColumn fx:id="colBidder" prefWidth="160" text="Bidder" />
+                                    <TableColumn fx:id="colBidAmount" prefWidth="130" text="Amount" />
+                                    <TableColumn fx:id="colBidTime" prefWidth="160" text="Time" />
+                                    <TableColumn fx:id="colBidStatus" prefWidth="110" text="Status" />
                                 </columns>
                             </TableView>
                         </VBox>

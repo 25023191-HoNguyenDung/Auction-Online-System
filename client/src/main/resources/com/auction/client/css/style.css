@@ -249,18 +249,6 @@
     -fx-border-width: 0 1 0 0;
 }
 
-.filter-sidebar-scroll,
-.filter-sidebar-scroll .viewport {
-    -fx-background-color: #0d0c08;
-}
-
-.filter-sidebar-scroll {
-    -fx-background: #0d0c08;
-    -fx-background-color: #0d0c08;
-    -fx-border-color: #2a2510;
-    -fx-border-width: 0 1 0 0;
-}
-
 .filter-title, .section-title {
     -fx-text-fill: #f0b429;
     -fx-font-size: 13px;
@@ -545,95 +533,6 @@
     -fx-background-color: #1a1813;
 }
 
-.al-wallet-panel,
-.al-history-panel {
-    -fx-background-color: #111008;
-    -fx-border-color: #2e2a1e;
-    -fx-border-width: 1;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 14;
-}
-
-.al-wallet-balance {
-    -fx-text-fill: #4ade80;
-    -fx-font-size: 22px;
-    -fx-font-weight: bold;
-    -fx-font-family: 'Arial';
-}
-
-.al-wallet-action {
-    -fx-background-color: rgba(240,180,41,0.12);
-    -fx-text-fill: #f0b429;
-    -fx-font-size: 10px;
-    -fx-font-weight: bold;
-    -fx-font-family: 'Arial';
-    -fx-border-color: rgba(240,180,41,0.3);
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-padding: 7 8;
-    -fx-cursor: hand;
-}
-
-.al-wallet-action:hover {
-    -fx-background-color: rgba(240,180,41,0.22);
-}
-
-.al-history-list {
-    -fx-background-color: #0d0c08;
-    -fx-border-color: #2e2a1e;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-}
-
-.al-history-list .list-cell {
-    -fx-background-color: #0d0c08;
-    -fx-text-fill: #d4cdb8;
-    -fx-font-size: 11px;
-    -fx-font-family: 'Arial';
-    -fx-padding: 6 8;
-    -fx-border-color: #1e1c15;
-    -fx-border-width: 0 0 1 0;
-}
-
-.al-history-list .list-cell:empty {
-    -fx-border-width: 0;
-}
-
-.history-content {
-    -fx-background-color: #0d0c08;
-    -fx-padding: 34 48 44 48;
-}
-
-.history-card {
-    -fx-background-color: #111008;
-    -fx-border-color: #2e2a1e;
-    -fx-border-width: 1;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-}
-
-.history-list {
-    -fx-background-color: #0d0c08;
-    -fx-border-color: #2e2a1e;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-}
-
-.history-list .list-cell {
-    -fx-background-color: #0d0c08;
-    -fx-text-fill: #d4cdb8;
-    -fx-font-size: 13px;
-    -fx-font-family: 'Arial';
-    -fx-padding: 10 12;
-    -fx-border-color: #1e1c15;
-    -fx-border-width: 0 0 1 0;
-}
-
-.history-list .list-cell:hover {
-    -fx-background-color: #1a1813;
-}
-
 
 
 /* Shared text utilities used across detail page */
@@ -749,7 +648,7 @@
     -fx-font-family: 'monospace';
 }
 
-/* Meta info box */
+/* Meta info box (reserve, bidders) */
 .ad-meta-box {
     -fx-background-color: #1a1813;
     -fx-background-radius: 6;

@@ -23,8 +23,8 @@
             <HBox HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER" spacing="40">
                <children>
-                  <Button onAction="#handleAuctionsNav" styleClass="nav-link-btn" text="AUCTIONS" />
-                  <Button onAction="#handleHistoryNav" styleClass="nav-link-btn" text="HISTORY" />
+                  <Label style="-fx-text-fill: #f0b429;" styleClass="nav-link" text="AUCTIONS" />
+                  <Label styleClass="nav-link" text="HISTORY" />
                </children>
             </HBox>
             <HBox HBox.hgrow="ALWAYS" />
@@ -138,6 +138,13 @@
                         <!-- Meta info -->
                         <VBox spacing="10.0" styleClass="ad-meta-box">
                            <children>
+                              <HBox>
+                                 <children>
+                                    <Label styleClass="ad-meta-label" text="Reserve Price Met" HBox.hgrow="ALWAYS" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Label styleClass="text-green" text="✔ Yes" />
+                                 </children>
+                              </HBox>
                               <HBox>
                                  <children>
                                     <Label styleClass="ad-meta-label" text="Bidders Participating" />
