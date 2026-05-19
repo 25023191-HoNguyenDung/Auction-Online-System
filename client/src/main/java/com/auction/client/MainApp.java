@@ -22,7 +22,11 @@ public class MainApp extends Application {
         URL cssUrl = getClass().getResource(
             "/com/auction/client/css/style.css"
         );
-        scene.getStylesheets().add(cssUrl.toExternalForm());
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.err.println("Warning: style.css not found");
+        }
         
         stage.setTitle("Auction Online System");
         stage.setResizable(false);

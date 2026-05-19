@@ -15,7 +15,8 @@ public class ClientConnectionHandler implements Runnable {
     private final ProtocolMapper mapper;
     private final RequestDispatcher dispatcher; // điều req đến server phù hợp
     private final SubscriptionRegistry subscriptionRegistry; // ngắt knoi client đến phiên
-    private PrintWriter out;
+    private volatile  PrintWriter out;
+    private final Object writeLock = new Object();
 
     public ClientConnectionHandler(Socket socket, RequestDispatcher dispatcher) {
         this.socket = socket;
@@ -63,7 +64,7 @@ public class ClientConnectionHandler implements Runnable {
     // gửi JSON lỗi về client
     private void sendRawError(String message) {
         if (out != null) {
-            synchronized (out) {
+            synchronized (writeLock) {
                 out.println("{\"error\":\"" + message + "\"}");
                 out.flush();
             }

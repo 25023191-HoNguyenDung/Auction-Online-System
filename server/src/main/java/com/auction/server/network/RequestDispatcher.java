@@ -27,6 +27,7 @@ public class RequestDispatcher {
     private final ProtocolMapper mapper;
     private final SubscriptionRegistry subscriptionRegistry; // qlý các client đag theo dõi auction
     private final AuctionEventPublisher publisher; // gửi event khi có thay đổi
+    private final Object writeLock = new Object();
 
     public RequestDispatcher() {
         this.auctionService = new AuctionServiceImpl();
@@ -111,7 +112,7 @@ public class RequestDispatcher {
 
     // Message->JSON r gửi
     private void send(PrintWriter out, MessageEnvelope envelope) {
-        synchronized (out) {
+        synchronized (writeLock) {
             out.println(mapper.toJson(envelope));
             out.flush();
         }

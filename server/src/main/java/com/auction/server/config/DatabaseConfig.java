@@ -11,7 +11,7 @@ import java.sql.SQLException;
 // qly knoi tới db
 public class DatabaseConfig {
 
-    private static DatabaseConfig instance; // Singleton
+    private static volatile DatabaseConfig instance; // Singleton
     private final HikariDataSource dataSource; // pool chứa các connection ss dùng
 
     private DatabaseConfig() {
