@@ -9,6 +9,7 @@ import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.User;
+import com.auction.server.observer.AuctionEvent;
 import com.auction.server.observer.AuctionEventPublisher;
 import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuctionServiceImpl;
@@ -89,6 +90,8 @@ public class RequestDispatcher {
 
     private void handlePlaceBid(MessageEnvelope envelope, String correlationId, PrintWriter out) throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
         PlaceBidReqPayload req = mapper.parsePayload(envelope, PlaceBidReqPayload.class); // đọc req
+        long auctionId = req.getAuctionId();
+        long bidderId  =req.getBidderId();
         // thực hiện đặt giá
         var bid = auctionService.placeBid(req.getAuctionId(), req.getBidderId(), req.getAmount());
         // tạo res đặt giá thành công
@@ -99,6 +102,11 @@ public class RequestDispatcher {
                 bid.getBidderId()
         );
         send(out, mapper.buildResponse(MessageType.PLACE_BID_RES, correlationId, res)); // gửi kq về client
+        // Broadcast event đến tất cả client đang xem phiên
+        publisher.publish(AuctionEvent.bidPlaced(auctionId, bid.getBidAmount(), bidderId));
+
+        // Kích hoạt auto-bid
+        autoBidService.processAutoBids(auctionId, bid.getBidAmount(), bidderId);
     }
 
     // Message->JSON r gửi
