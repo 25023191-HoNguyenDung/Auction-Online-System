@@ -120,7 +120,7 @@ public class AuctionServiceImpl implements AuctionService {
         } catch (AuctionMisMatchException | AuctionTimeException | AuctionConnectException | SQLException e) {
             throw new RuntimeException("Failed to place bid : ", e);
         } catch (InvalidBidException e) {
-            throw new InvalidBidException("Invalid bid amount.");
+            throw new RuntimeException("Invalid bid amount: ", e);
         }
         bidDao.save(bid);
         return bid;
@@ -191,17 +191,34 @@ public class AuctionServiceImpl implements AuctionService {
         clearCached(auctionId); // Dọn cache vì phiên đã CANCELLED
     }
 
+    @Override
+    public void openAuction(long auctionId) throws AuctionConnectException {
+        AuctionLogicManager manager = getManager(auctionId);
+        try {
+            manager.open(); 
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error during opening of auction "
+                    + auctionId + ": " + e.getMessage(), e);
+        } catch (AuctionTimeException e) {         
+            throw new RuntimeException("Cannot open auction: " + e.getMessage(), e);
+        }
+        Auction auction = getAuctionById(auctionId);
+        publisher.publish(AuctionEvent.auctionStarted(auctionId, auction.getStarting_price()));
+    }
+
+    @Override
     // Đóng phiên đấu giá bình thường → FINISHED, giữ winner
-    public void closeAuction(long auctionId) throws AuctionTimeException, AuctionConnectException {
+    public void closeAuction(long auctionId) throws AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
             manager.close();
-        } catch (AuctionTimeException e) {
-            throw new RuntimeException("Cannot close auction: " + e.getMessage(), e);
         } catch (SQLException e) {
             throw new RuntimeException("Database error during closing of auction "
                     + auctionId + ": " + e.getMessage(), e);
+        } catch (AuctionTimeException e) {
+            throw new RuntimeException("Cannot close auction: " + e.getMessage(), e);
         }
         clearCached(auctionId);
     }
+    
 }
