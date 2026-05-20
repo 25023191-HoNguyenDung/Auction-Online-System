@@ -27,11 +27,13 @@ public class AuctionServiceImpl implements AuctionService {
     private final BidDao bidDao; // Lưu trữ và truy xuất thông tin giao dịch đặt giá    
     private final UserDao userDao; // Lưu trữ và truy xuất thông tin người dùng
     private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>(); // Cache để lưu trữ các phiên đấu giá đang hoạt động
+    private final AutoBidService autoBidService; 
     
     public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao) {
         this.auctionDao = auctionDao;
         this.bidDao = bidDao;
         this.userDao = userDao;
+        this.autoBidService = new AutoBidService(this);
     }
     // Constructor mặc định sử dụng các DAO JDBC để kết nối với cơ sở dữ liệu
     public AuctionServiceImpl() {
@@ -89,9 +91,9 @@ public class AuctionServiceImpl implements AuctionService {
             throw new AuctionConnectException("Failed to update auction: " + e.getMessage());
         }
     }
-    // Đặt giá cho phiên đấu giá
-    @Override
-    public BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount) throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
+    @Override 
+    // Hàm đặt giá dùng bên trong hệ thống, chỉ lưu xuống DB - không gọi processAutoBids trong AutoBidService
+    public BidTransaction placeBidInternal(long auctionId, long bidderId, BigDecimal amount) throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
         User user = userDao.findById(bidderId).orElseThrow(() -> new RuntimeException("User not found: " + bidderId));
         if (!(user instanceof Bidder bidder)) {
             throw new RuntimeException("User is not a bidder: " + bidderId);
@@ -100,10 +102,19 @@ public class AuctionServiceImpl implements AuctionService {
         AuctionLogicManager manager = getManager(auctionId);
         try {
             manager.placeBid(bid);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to place bid: " + e.getMessage(), e);
+        } catch (AuctionMisMatchException | AuctionTimeException | AuctionConnectException | SQLException e) {
+            throw new RuntimeException("Failed to place bid : ", e);
+        } catch (InvalidBidException e) {
+            throw new InvalidBidException("Invalid bid amount.");
         }
         bidDao.save(bid);
+        return bid;
+    }
+    // Đặt giá cho phiên đấu giá - dùng cho client
+    @Override
+    public BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount) throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
+        BidTransaction bid = placeBidInternal(auctionId, bidderId, amount);
+        autoBidService.processAutoBids(auctionId, amount, bidderId);
         return bid;
     }
     @Override
