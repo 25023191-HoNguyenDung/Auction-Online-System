@@ -8,11 +8,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+//thao tác với bảng auto_bid_profiles
 public class JdbcAutoBidProfileDao implements AutoBidProfileDao {
 
     private final DatabaseConfig db = DatabaseConfig.getInstance();
-
+    // Chuyển một dòng dữ liệu trong ResultSet thành đối tượng AutoBidProfile.
     private AutoBidProfile mapRow(ResultSet rs) throws SQLException {
         AutoBidProfile profile = new AutoBidProfile();
         profile.setId(rs.getLong("id"));
@@ -26,11 +26,16 @@ public class JdbcAutoBidProfileDao implements AutoBidProfileDao {
 
     @Override
     public Optional<AutoBidProfile> findById(long id) {
+        // câu lệnh SQL
         String sql = "SELECT * FROM auto_bid_profiles WHERE id = ?";
+        // kết nối db
         try (Connection conn = db.getConnection();
+             // chuẩn bị câu SQL + chờ gắn dữ liệu vào
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
+            // chạy câu lệnh SQL và lấy kq trả về từ db
             ResultSet rs = ps.executeQuery();
+            // nếu có dlieu trả về thì chuyển thành obj
             if (rs.next()) return Optional.of(mapRow(rs));
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi findById auto_bid: " + id, e);

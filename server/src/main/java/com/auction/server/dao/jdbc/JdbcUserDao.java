@@ -93,7 +93,7 @@ public class JdbcUserDao implements UserDao {
     @Override
     public User save(User user) {
         // câu lệnh SQL
-        String sql = "INSERT INTO users (user_name, password, email, role) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (user_name, password, email, role,account_balance) VALUES (?, ?, ?, ?,?)";
         // thử knoi db
         try (Connection conn = db.getConnection();
              // lấy luôn id mà db tạo
