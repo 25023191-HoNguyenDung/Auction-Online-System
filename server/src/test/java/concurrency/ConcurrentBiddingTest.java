@@ -11,6 +11,7 @@ import com.auction.server.model.BidTransaction;
 import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuctionServiceImpl;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 // ktra xử lý đồng thời
+@Isolated
 class ConcurrentBiddingTest {
 
     private static AuctionService auctionService;

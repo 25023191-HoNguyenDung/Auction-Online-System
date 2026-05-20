@@ -14,32 +14,28 @@ import java.util.Optional;
 public class JdbcBidDao implements BidDao {
 
     private final DatabaseConfig db = DatabaseConfig.getInstance();
-
+    // biến dlieu trong db thành obj trong java
     private BidTransaction mapRow(ResultSet rs) throws SQLException {
         long id        = rs.getLong("bidId");
         long auctionId = rs.getLong("auctionId");
         long bidderId  = rs.getLong("bidder");
         java.math.BigDecimal amount = rs.getBigDecimal("amount");
         java.time.LocalDateTime bidTime = rs.getTimestamp("bid_time").toLocalDateTime();
-
-        Bidder bidder = new Bidder(
-                "",
-                bidderId,
-                "", "", "BIDDER",
-                BigDecimal.ZERO,
-                new ArrayList<>()
-        );
+        // tạo bidder
+        Bidder bidder = new Bidder("", bidderId, "", "", "BIDDER", BigDecimal.ZERO, new ArrayList<>());
         return new BidTransaction(id, auctionId, bidder, amount, bidTime);
     }
 
     @Override
     public Optional<BidTransaction> findById(long id) {
         String sql = "SELECT * FROM bids WHERE bidId = ?";   // bidId
+        // kết nối db
         try (Connection conn = db.getConnection();
+             // chuẩn bị câu SQL + chờ gắn dữ liệu vào
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return Optional.of(mapRow(rs));
+            ResultSet rs = ps.executeQuery(); // chạy câu lệnh SQL và lấy kq trả về từ db
+            if (rs.next()) return Optional.of(mapRow(rs)); // nếu có dlieu trả về thì chuyển thành obj
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi findById bid: " + id, e);
         }
