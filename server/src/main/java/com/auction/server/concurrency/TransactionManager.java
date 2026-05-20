@@ -52,7 +52,9 @@ public class TransactionManager {
                 con.setAutoCommit(true);
                 con.close();
             }
-        }catch (SQLException e){}
+        }catch (SQLException e){
+            System.err.println("Transaction error: " + e.getMessage());
+        }
     }
 
 

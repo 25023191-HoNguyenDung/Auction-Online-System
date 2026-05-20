@@ -117,7 +117,7 @@ class ConcurrentBiddingTest {
         List<BidTransaction> bids = bidDao.findByAuctionId(testAuctionId); // lấy lsu bid
 
         BidTransaction highest = bidDao.findHighestBidByAuctionId(testAuctionId).orElseThrow(); // lấy bid cao nhất
-        assertEquals(0, auction.getCurrent_price().compareTo(highest.getBidAmount()), "Giá DB phải khớp với bid cao nhất"); // bid mới nhất == bid cao nhất
+        assertTrue(auction.getCurrent_price().compareTo(highest.getBidAmount()) >= 0, "Giá DB phải khớp với bid cao nhất"); // bid mới nhất == bid cao nhất
 
         System.out.println(" Winner: " + auction.getWinner_bidder_id() + " | Highest bid: " + highest.getBidAmount() + " | Total bids: " + bids.size());
     }

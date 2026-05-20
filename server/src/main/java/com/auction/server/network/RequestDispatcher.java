@@ -24,23 +24,21 @@ import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.User;
 import com.auction.server.observer.AuctionEventPublisher;
-import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuctionServiceImpl;
 
 // điều hướng request đến server phù hợp
 public class RequestDispatcher {
-    private final AuctionService auctionService;
+    private final AuctionServiceImpl auctionService;
     private final UserDao userDao;
     private final ProtocolMapper mapper;
-    private final SubscriptionRegistry subscriptionRegistry; // qlý các client đag theo dõi auction
-    private final AuctionEventPublisher publisher; // gửi event khi có thay đổi
+
+    private final Object writeLock = new Object();
 
     public RequestDispatcher() {
         this.auctionService = new AuctionServiceImpl();
         this.userDao = new JdbcUserDao();
         this.mapper = new ProtocolMapper();
-        this.subscriptionRegistry = SubscriptionRegistry.getInstance();
-        this.publisher = AuctionEventPublisher.getInstance();
+
     }
 
 
@@ -84,7 +82,7 @@ public class RequestDispatcher {
     }
 
     // lấy ds phiên đgia gửi client
-    private void handleListAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out) throws AuctionConnectException {
+    private void handleListAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out){
         ListAuctionsReqPayload req = mapper.parsePayload(envelope, ListAuctionsReqPayload.class); // lấy dữ liệu từ req -> obj
         // lấy ds auctions( trống : lấy tất cả, ko thì lấy các auction có trạng thái)
         var auctions = (req.getStatusFilter() == null || req.getStatusFilter().isBlank()) ? auctionService.getAllAuctions() : auctionService.getAuctionsByStatus(AuctionStatus.valueOf(req.getStatusFilter()));
@@ -106,11 +104,12 @@ public class RequestDispatcher {
                 bid.getBidderId()
         );
         send(out, mapper.buildResponse(MessageType.PLACE_BID_RES, correlationId, res)); // gửi kq về client
+        // publisher.publish() và autoBidService.processAutoBids() đã được gọi trong AuctionServiceImpl.placeBid()
     }
 
     // Message->JSON r gửi
     private void send(PrintWriter out, MessageEnvelope envelope) {
-        synchronized (out) {
+        synchronized (writeLock) {
             out.println(mapper.toJson(envelope));
             out.flush();
         }

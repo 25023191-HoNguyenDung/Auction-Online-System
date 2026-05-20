@@ -120,4 +120,17 @@ public class AuctionLogicManager {
             rwLock.readLock().unlock();
         }
     }
+    public void close() throws AuctionTimeException, AuctionConnectException, SQLException {
+        rwLock.writeLock().lock();
+        try {
+            if (auction.getStatus() != AuctionStatus.OPEN && auction.getStatus() != AuctionStatus.RUNNING) {
+                throw new AuctionTimeException("Only OPEN or RUNNING auctions can be closed.");
+            }
+            auction.setStatus(AuctionStatus.FINISHED);
+            saveAuction("close");
+            System.out.println("Auction " + auction.getId() + " closed. Winner: " + auction.getWinner_bidder_id());
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
 }

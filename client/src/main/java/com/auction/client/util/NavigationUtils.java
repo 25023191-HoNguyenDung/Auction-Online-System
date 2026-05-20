@@ -20,9 +20,8 @@ public class NavigationUtils {
             Parent root = loader.load();
 
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(
-                NavigationUtils.class.getResource("/com/auction/client/css/style.css").toExternalForm()
-            );
+            var cssUrl = NavigationUtils.class.getResource("/com/auction/client/css/style.css");
+            if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
 
             Stage stage = getCurrentStage();
             if (stage != null) {
@@ -50,9 +49,8 @@ public class NavigationUtils {
             controller.setAuctionItem(item);
 
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(
-                NavigationUtils.class.getResource("/com/auction/client/css/style.css").toExternalForm()
-            );
+            var cssUrl = NavigationUtils.class.getResource("/com/auction/client/css/style.css");
+            if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
 
             Stage stage = getCurrentStage();
             if (stage != null) {
@@ -80,9 +78,8 @@ public class NavigationUtils {
             controller.setAuctionItem(item);
 
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(
-                NavigationUtils.class.getResource("/com/auction/client/css/style.css").toExternalForm()
-            );
+            var cssUrl = NavigationUtils.class.getResource("/com/auction/client/css/style.css");
+            if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
 
             Stage stage = getCurrentStage();
             if (stage != null) {

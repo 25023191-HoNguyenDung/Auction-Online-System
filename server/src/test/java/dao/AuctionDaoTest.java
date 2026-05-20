@@ -9,7 +9,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -17,8 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.*;
+
 // đảm bảo tất cả thao tác với db
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AuctionDaoTest {

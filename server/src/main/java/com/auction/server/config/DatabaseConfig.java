@@ -11,17 +11,21 @@ import java.sql.SQLException;
 // qly knoi tới db
 public class DatabaseConfig {
 
-    private static DatabaseConfig instance; // Singleton
+    private static volatile DatabaseConfig instance; // Singleton
     private final HikariDataSource dataSource; // pool chứa các connection ss dùng
 
     private DatabaseConfig() {
         HikariConfig config = new HikariConfig(); // cho Hikari biết cách kết nối database
 
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/auction_db");
-        config.setUsername("root");
-        config.setPassword("Pach2308@");
-        config.setMaximumPoolSize(10); // tđa 10 connection
-        config.setMinimumIdle(2); // tối thiểu 2
+        String url = System.getenv("DB_URL");
+        String username = System.getenv("DB_USERNAME");
+        String password = System.getenv("DB_PASSWORD");
+
+        config.setJdbcUrl(url != null ? url : "jdbc:mysql://localhost:3306/auction_db?useSSL=false&serverTimezone=UTC");
+        config.setUsername(username != null ? username : "root");
+        config.setPassword(password != null ? password : "Pach2308@");
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
         config.setPoolName("AuctionPool");
         // tạo nhóm connection
         this.dataSource = new HikariDataSource(config);

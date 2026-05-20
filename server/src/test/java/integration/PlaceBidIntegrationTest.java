@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 // ktra chức năng đặt đgia
 class PlaceBidIntegrationTest {
 
-    private static AuctionService auctionService; //Service chính cần test
+    private static AuctionServiceImpl auctionService; //Service chính cần test
     private static AuctionDao auctionDao;
     private static BidDao bidDao;
     private static AuctionEventPublisher publisher; // Quản lý observer/event
@@ -54,7 +54,7 @@ class PlaceBidIntegrationTest {
         auction.setStatus(AuctionStatus.RUNNING);
         auction.setStart_time(LocalDateTime.now().minusMinutes(5));
         auction.setEnd_time(LocalDateTime.now().plusHours(2));
-        auction.setWinner_bidder_id(0);
+        auction.setWinner_bidder_id(0L);
 
         testAuctionId = auctionDao.save(auction).getId(); // lấy id
     }
@@ -77,7 +77,7 @@ class PlaceBidIntegrationTest {
 
         Auction updated = auctionDao.findById(testAuctionId).orElseThrow(); // lấy auction trog db sau khi đặt xog
         assertEquals(0, new BigDecimal("6000000").compareTo(updated.getCurrent_price())); // current_price phải bằng giá vừa đặt
-        assertEquals("3", updated.getWinner_bidder_id()); // ktra người dẫn đầu
+        assertEquals(3L, updated.getWinner_bidder_id()); // ktra người dẫn đầu
     }
 
     @Test // đặt giá thấp hơn htai
@@ -98,7 +98,7 @@ class PlaceBidIntegrationTest {
 
         Auction updated = auctionDao.findById(testAuctionId).orElseThrow(); // lấy auction sau khi đặt xog
         assertEquals(0, new BigDecimal("7000000").compareTo(updated.getCurrent_price())); // current_price phải bằng giá vừa đặt
-        assertEquals("4", updated.getWinner_bidder_id()); // ktra người dẫn đầu
+        assertEquals(4L, updated.getWinner_bidder_id()); // ktra người dẫn đầu
     }
 
     @Test // ktra những lần đặt giá trc đc lưu vào db chưa
@@ -135,7 +135,8 @@ class PlaceBidIntegrationTest {
 
         Auction closed = auctionDao.findById(testAuctionId).orElseThrow(); // lấy dlieu
         assertEquals(AuctionStatus.FINISHED, closed.getStatus(), "Phiên phải chuyển sang FINISHED sau closeAuction"); // ktra status
-        assertNotNull(closed.getWinner_bidder_id(), "Phải có winner sau khi đóng phiên");
+
+        assertTrue(closed.getWinner_bidder_id() > 0, "Phải có winner sau khi đóng phiên");
     }
 
     @Test // sau khi kết thúc phiên thì ko ai đặt giá nữa

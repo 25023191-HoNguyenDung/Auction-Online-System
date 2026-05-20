@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import com.auction.server.service.AuctionServiceImpl;
 
 public class AuctionServer {
     private static final int defaultPort = 1337; //port mặc định
@@ -25,7 +26,7 @@ public class AuctionServer {
     public AuctionServer(int port){
         this.port = port;
         this.threadPool = Executors.newFixedThreadPool(threadPollSize); // threadPoll tối đa 50 thread
-        AuctionService auctionService = new AuctionServiceImpl();
+        AuctionServiceImpl  auctionService = new AuctionServiceImpl();
         this.dispatcher = new RequestDispatcher();
         this.closingService = new AuctionClosingService(auctionService);
     }

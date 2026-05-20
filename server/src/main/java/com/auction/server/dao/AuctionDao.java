@@ -16,4 +16,5 @@ public interface AuctionDao {
     Auction save(Auction auction) throws AuctionConnectException, SQLException;
     Auction update(Auction auction) throws AuctionConnectException, SQLException;
     boolean deleteById(long id);
+    List<Auction> findOpenReadyToStart();
 }

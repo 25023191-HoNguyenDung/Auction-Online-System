@@ -1,0 +1,74 @@
+# tự động ktra code các thành viên
+name: CI - Auction Online System
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      # Khởi động MySQL để chạy integration test
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: auction_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Cài JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Chạy schema.sql để tạo bảng
+      - name: Init database schema
+        run: |
+          mysql -h 127.0.0.1 -u root -proot auction_db \
+            < server/src/main/resources/db/schema.sql
+
+      # 4. Chạy seed.sql để có dữ liệu test
+      - name: Seed database
+        run: |
+          mysql -h 127.0.0.1 -u root -proot auction_db \
+            < server/src/main/resources/db/seed.sql
+
+      # 5. Build toàn bộ project
+      - name: Build with Maven
+        run: mvn clean compile -f pom.xml
+
+      # 6. Chạy Unit Test + Integration Test
+      - name: Run tests
+        run: mvn test -f pom.xml
+        env:
+          DB_URL: jdbc:mysql://127.0.0.1:3306/auction_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          DB_USERNAME: root
+          DB_PASSWORD: root
+
+      # 7. Upload test report nếu fail
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/target/surefire-reports/
+          retention-days: 7
