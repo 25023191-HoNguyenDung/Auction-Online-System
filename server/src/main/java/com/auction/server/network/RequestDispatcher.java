@@ -1,10 +1,24 @@
 package com.auction.server.network;
 
+import java.io.PrintWriter;
+import java.time.ZoneOffset;
+import java.util.Optional;
+
 import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
 import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
-import com.auction.common.protocol.*;
+import com.auction.common.protocol.AuctionSummaryItem;
+import com.auction.common.protocol.ErrorCode;
+import com.auction.common.protocol.ListAuctionsReqPayload;
+import com.auction.common.protocol.ListAuctionsResPayload;
+import com.auction.common.protocol.LoginReqPayload;
+import com.auction.common.protocol.LoginResPayload;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.PlaceBidReqPayload;
+import com.auction.common.protocol.PlaceBidResPayload;
+import com.auction.common.protocol.ProtocolMapper;
 import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
@@ -12,16 +26,10 @@ import com.auction.server.model.User;
 import com.auction.server.observer.AuctionEventPublisher;
 import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuctionServiceImpl;
-import com.auction.server.service.AutoBidService;
-
-import java.io.PrintWriter;
-import java.time.ZoneOffset;
-import java.util.Optional;
 
 // điều hướng request đến server phù hợp
 public class RequestDispatcher {
     private final AuctionService auctionService;
-    private final AutoBidService autoBidService;
     private final UserDao userDao;
     private final ProtocolMapper mapper;
     private final SubscriptionRegistry subscriptionRegistry; // qlý các client đag theo dõi auction
@@ -29,7 +37,6 @@ public class RequestDispatcher {
 
     public RequestDispatcher() {
         this.auctionService = new AuctionServiceImpl();
-        this.autoBidService = new AutoBidService(auctionService);
         this.userDao = new JdbcUserDao();
         this.mapper = new ProtocolMapper();
         this.subscriptionRegistry = SubscriptionRegistry.getInstance();
