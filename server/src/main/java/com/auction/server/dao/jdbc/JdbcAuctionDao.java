@@ -15,11 +15,11 @@ import com.auction.server.config.DatabaseConfig;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
-
+// làm việc trực tiếp với db
 public class JdbcAuctionDao implements AuctionDao {
-
+    // knoi tới db
     private final DatabaseConfig db = DatabaseConfig.getInstance();
-
+    // biến dlieu trong db thành obj trong java
     private Auction mapRow(ResultSet rs) throws SQLException {
         Auction auction = new Auction();
         auction.setId(rs.getLong("id"));
@@ -35,14 +35,15 @@ public class JdbcAuctionDao implements AuctionDao {
         return auction;
     }
 
-    @Override
+    @Override // tìm theo id
     public Optional<Auction> findById(long id) {
         String sql = "SELECT * FROM auctions WHERE id = ?";
         try (Connection conn = db.getConnection();
+             // chuẩn bị câu SQL + chờ gắn dữ liệu vào
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return Optional.of(mapRow(rs));
+            ResultSet rs = ps.executeQuery(); // chạy SQL và lấy kq trả về từ db
+            if (rs.next()) return Optional.of(mapRow(rs)); // nếu có dữ liệu thì chuyển về obj item
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi findById auction: " + id, e);
         }
@@ -54,10 +55,11 @@ public class JdbcAuctionDao implements AuctionDao {
         String sql = "SELECT * FROM auctions WHERE status = ? ORDER BY end_time ASC";
         List<Auction> list = new ArrayList<>();
         try (Connection conn = db.getConnection();
+             // chuẩn bị câu SQL + chờ gắn dữ liệu vào
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status.name());
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) list.add(mapRow(rs));
+            ResultSet rs = ps.executeQuery(); // chạy và lấy dlieu từ db về
+            while (rs.next()) list.add(mapRow(rs)); // nếu dlieu có thì thêm vào list
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi findByStatus: " + status, e);
         }
@@ -67,11 +69,11 @@ public class JdbcAuctionDao implements AuctionDao {
     @Override
     public List<Auction> findAll() {
         String sql = "SELECT * FROM auctions ORDER BY id ASC";
-        List<Auction> list = new ArrayList<>();
+        List<Auction> list = new ArrayList<>(); // ds đựng auction
         try (Connection conn = db.getConnection();
-             Statement stmt = conn.createStatement();
+             Statement stmt = conn.createStatement(); // ko có biến truyền vào lên dùng Statement th
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) list.add(mapRow(rs));
+            while (rs.next()) list.add(mapRow(rs)); // nếu có thì add vào list
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi findAll auctions", e);
         }
@@ -81,11 +83,11 @@ public class JdbcAuctionDao implements AuctionDao {
     @Override
     public List<Auction> findExpiredRunning() {
         String sql = "SELECT * FROM auctions WHERE status = 'RUNNING' AND end_time <= NOW()";
-        List<Auction> list = new ArrayList<>();
+        List<Auction> list = new ArrayList<>(); // ds đựng auction
         try (Connection conn = db.getConnection();
-             Statement stmt = conn.createStatement();
+             Statement stmt = conn.createStatement(); // ko có biến truyền vào lên dùng Statement th
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) list.add(mapRow(rs));
+            while (rs.next()) list.add(mapRow(rs)); // nếu có thì add vào list
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi findExpiredRunning", e);
         }
@@ -101,6 +103,7 @@ public class JdbcAuctionDao implements AuctionDao {
         """;
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            // thay vào ?
             ps.setLong(1, auction.getItem_id());
             ps.setLong(2, auction.getSeller_id());
             ps.setBigDecimal(3, auction.getStarting_price());
@@ -108,9 +111,9 @@ public class JdbcAuctionDao implements AuctionDao {
             ps.setString(5, auction.getStatus().name());
             ps.setTimestamp(6, Timestamp.valueOf(auction.getStart_time()));
             ps.setTimestamp(7, Timestamp.valueOf(auction.getEnd_time()));
-            ps.executeUpdate();
+            ps.executeUpdate(); // gửi câu lệnh SQL xuống db
             ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) auction.setId(keys.getLong(1));
+            if (keys.next()) auction.setId(keys.getLong(1)); // ktra xem có id ko, có thì gắn vào obj
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi save auction", e);
         }
@@ -125,6 +128,7 @@ public class JdbcAuctionDao implements AuctionDao {
             WHERE id = ?
         """;
         try (Connection conn = db.getConnection();
+             // tạo câu sql an toàn
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setBigDecimal(1, auction.getCurrent_price());
             ps.setString(2, auction.getStatus().name());
@@ -136,7 +140,7 @@ public class JdbcAuctionDao implements AuctionDao {
 
             }
             ps.setLong(5, auction.getId());
-            ps.executeUpdate();
+            ps.executeUpdate(); // gửi câu lệnh SQL xuống db
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi update auction id: " + auction.getId(), e);
         }
@@ -149,7 +153,7 @@ public class JdbcAuctionDao implements AuctionDao {
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
-            return ps.executeUpdate() > 0;
+            return ps.executeUpdate() > 0; //số dòng trong database bị thay đổi
         } catch (SQLException e) {
             throw new RuntimeException("Lỗi deleteById auction: " + id, e);
         }
