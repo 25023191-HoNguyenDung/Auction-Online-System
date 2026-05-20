@@ -9,30 +9,19 @@ import com.auction.common.exception.AuctionMisMatchException;
 import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
 import com.auction.server.dao.AutoBidProfileDao;
-import com.auction.server.dao.BidDao;
-import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcAutoBidProfileDao;
-import com.auction.server.dao.jdbc.JdbcBidDao;
-import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AutoBidProfile;
 public class AutoBidService {
     private final AutoBidProfileDao autoBidProfileDao;
-    private final BidDao bidDao;
-    private final UserDao userDao;
-    private final AuctionService auctionService;
+    private final AuctionServiceImpl auctionService;
 
-    public AutoBidService(AutoBidProfileDao autoBidProfileDao,
-                          BidDao bidDao,
-                          UserDao userDao,
-                          AuctionService auctionService) {
+    public AutoBidService(AutoBidProfileDao autoBidProfileDao, AuctionServiceImpl auctionService) {
         this.autoBidProfileDao = autoBidProfileDao;
-        this.bidDao            = bidDao;
-        this.userDao           = userDao;
-        this.auctionService    = auctionService;
+        this.auctionService = auctionService;
     }
 
-    public AutoBidService(AuctionService auctionService) {
-        this(new JdbcAutoBidProfileDao(), new JdbcBidDao(), new JdbcUserDao(), auctionService);
+    public AutoBidService(AuctionServiceImpl auctionService) {
+        this(new JdbcAutoBidProfileDao(), auctionService);
     }
 
     public AutoBidProfile registerAutoBid(long userId, long auctionId, BigDecimal maxBid, BigDecimal increment) throws AuctionConnectException {
@@ -78,7 +67,7 @@ public class AutoBidService {
     // Ham đặt giá tự động cho một phiên đấu giá dựa trên profile auto-bid của người dùng
     public boolean placeBidAutomatically(long auctionId, long userId, BigDecimal bidAmount) {
         try {
-            auctionService.placeBid(auctionId, userId, bidAmount);
+            auctionService.placeBidInternal(auctionId, userId, bidAmount);
             return true;
         } catch (AuctionTimeException e) {
             throw new RuntimeException("[AutoBid] Auction " + auctionId + " is not running.", e);
