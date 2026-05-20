@@ -25,11 +25,14 @@ public interface AuctionService {
     // lấy lịch sử bid 1 phiên theo thời gian
     List<BidTransaction> getBidHistory(long auctionId);
     BidTransaction getHighestBid(long auctionId);
+    // Mở phiên đấu giá
+    void openAuction(long auctionId) throws AuctionConnectException;
     // Cập nhật trạng thái phiên
     void checkStatus(long auctionId) throws AuctionConnectException;
     // Xử lí thanh toán sau khi kết thúc phiên đấu giá
     void processPayment(long auctionId) throws AuctionTimeException, AuctionConnectException;
     // Hủy phiên đấu giá 
     void cancelAuction(long auctionId) throws AuctionTimeException, AuctionConnectException;
-
+    // Đóng phiên đấu giá
+    void closeAuction(long auctionId) throws AuctionConnectException;
 }

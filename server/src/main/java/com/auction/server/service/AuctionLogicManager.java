@@ -50,23 +50,22 @@ public class AuctionLogicManager {
             LocalDateTime now = LocalDateTime.now();
             boolean isChanged = false;
             //Kiem tra trang thai: OPEN -> RUNNING
-            if (auction.getStatus() == AuctionStatus.OPEN && now.isAfter(auction.getStart_time())) {
+            if (auction.getStatus() == AuctionStatus.OPEN && !now.isBefore(auction.getStart_time())) {
                 auction.setStatus(AuctionStatus.RUNNING);
-                System.out.println("Auction started.");
+                System.out.println("[Scheduler] Auction " + auction.getId() + " opened -> RUNNING.");
                 isChanged = true;
             } 
             //RUNNING -> FINISHED
             else if (auction.getStatus() == AuctionStatus.RUNNING && now.isAfter(auction.getEnd_time())) {
                 auction.setStatus(AuctionStatus.FINISHED);
-                System.out.println("Auction finished.");
+                System.out.println("[Scheduler] Auction " + auction.getId() + " ended -> FINISHED.");
                 System.out.println("Winner bidder ID: " + auction.getWinner_bidder_id());
                 isChanged = true;
             }
             if (isChanged) {
                 saveAuction("updateAuctionStatus"); // Luu trang thai moi cua phien dau gia sau khi cap nhat
             }
-        } 
-        finally {
+        } finally {
             rwLock.writeLock().unlock();
         }
     }
@@ -75,16 +74,14 @@ public class AuctionLogicManager {
         rwLock.writeLock().lock();
         try {
             if (auction.getStatus() != AuctionStatus.FINISHED) {
-                throw new AuctionTimeException("Auction has not finished.");
+                throw new AuctionTimeException("Only FINISHED auctions can process payment. Current status: " + auction.getStatus());
             }
             long winnerId = auction.getWinner_bidder_id();
             if (winnerId == 0) {
-                System.out.println("No winner found. Auction finished.");
-                return;
+                System.out.println("[Payment] Auction " + auction.getId() + " has no winner — skipping payment.");
             }
             else {
-                long winner = auction.getWinner_bidder_id();
-                System.out.println("Processing payment for the winning bidder: " + winner);
+                System.out.println("[Payment] Processing payment for winner id: " + winnerId);
             }
         } finally {
             rwLock.writeLock().unlock();
@@ -94,11 +91,11 @@ public class AuctionLogicManager {
         rwLock.writeLock().lock();
         try {  
             if (auction.getStatus() != AuctionStatus.OPEN && auction.getStatus() != AuctionStatus.RUNNING) {
-                throw new AuctionTimeException("Only auctions in OPEN or RUNNING status can be cancelled.");
+                throw new AuctionTimeException("Only auctions in OPEN or RUNNING auctions can be cancelled. Current status: " + auction.getStatus());
             }
             auction.setStatus(AuctionStatus.CANCELLED);
             saveAuction("Cancelled");
-            System.out.println("Auction " + auction.getId() + " has been cancelled.");
+            System.out.println("[Cancel] Auction " + auction.getId() + " has been cancelled.");
         } finally {
             rwLock.writeLock().unlock();
         }
@@ -106,9 +103,9 @@ public class AuctionLogicManager {
     private void saveAuction(String action) throws AuctionConnectException, SQLException {
         try {
             auctionDao.update(auction);
-            System.out.println("Auction saved successfully after " + action + ".");
+            System.out.println("[AuctionLogicManager] DB save successful after action: " + action);
         } catch (SQLException e) {
-            throw new AuctionConnectException("Failed to save auction: " + e.getMessage());
+            throw new AuctionConnectException("Failed to save DB for auction id: " + auction.getId() + "after: " + e.getMessage());
         }
     }
     //Getters de ServiceImpl doc trang thai hien tai cua phien dau gia
@@ -120,15 +117,32 @@ public class AuctionLogicManager {
             rwLock.readLock().unlock();
         }
     }
+    public long getAuctionId() {
+        return auction.getId();
+    }
+
     public void close() throws AuctionTimeException, AuctionConnectException, SQLException {
         rwLock.writeLock().lock();
         try {
             if (auction.getStatus() != AuctionStatus.OPEN && auction.getStatus() != AuctionStatus.RUNNING) {
-                throw new AuctionTimeException("Only OPEN or RUNNING auctions can be closed.");
+                throw new AuctionTimeException("Only OPEN or RUNNING auctions can be closed. Current status: " + auction.getStatus());
             }
             auction.setStatus(AuctionStatus.FINISHED);
-            saveAuction("close");
-            System.out.println("Auction " + auction.getId() + " closed. Winner: " + auction.getWinner_bidder_id());
+            saveAuction("Close");
+            System.out.println("[Admin] Auction " + auction.getId() + " closed. Winner: " + auction.getWinner_bidder_id());
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+    public void open() throws AuctionTimeException, AuctionConnectException, SQLException {
+        rwLock.writeLock().lock();
+        try {
+            if (auction.getStatus() != AuctionStatus.OPEN) {
+                throw new AuctionTimeException("Only OPEN auctions can be started. Current status: " + auction.getStatus());
+            }
+            auction.setStatus(AuctionStatus.RUNNING);
+            saveAuction("Open");
+            System.out.println("[Admin] Auction " + auction.getId() + " is now RUNNING. Starting price: " + auction.getStarting_price());
         } finally {
             rwLock.writeLock().unlock();
         }
