@@ -18,8 +18,10 @@ public interface AuctionService {
     Auction updateAuction(Auction auction) throws AuctionConnectException;
     // Tạo phiên đấu giá mới
     Auction createAuction(Auction auction) throws AuctionConnectException; 
-    // đặt giá cho 1 phiên đấu giá
+    // Đặt giá cho 1 phiên đấu giá
     BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount) throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException;
+    // Đặt giá và lưu xuống DB - chỉ dùng cho AutoBidService, không kích hoạt vòng auto-bid mới
+    BidTransaction placeBidInternal(long auctionId, long BidderId, BigDecimal amout) throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException;
     // lấy lịch sử bid 1 phiên theo thời gian
     List<BidTransaction> getBidHistory(long auctionId);
     BidTransaction getHighestBid(long auctionId);
