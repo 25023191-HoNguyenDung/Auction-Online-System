@@ -31,13 +31,13 @@ public class JdbcAuctionDao implements AuctionDao {
         auction.setStart_time(rs.getTimestamp("start_time").toLocalDateTime());
         auction.setEnd_time(rs.getTimestamp("end_time").toLocalDateTime());
         long winnerId = rs.getLong("winner_bidder_id");
-        auction.setWinner_bidder_id(rs.getLong("winner_bidder_id"));
+        auction.setWinner_bidder_id(rs.wasNull() ? 0L : winnerId);
         return auction;
     }
 
     @Override
     public Optional<Auction> findById(long id) {
-        String sql = "SELECT * FROM auction_db.auctions WHERE id = ?";
+        String sql = "SELECT * FROM auctions WHERE id = ?";
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
@@ -95,7 +95,7 @@ public class JdbcAuctionDao implements AuctionDao {
     @Override
     public Auction save(Auction auction) throws AuctionConnectException {
         String sql = """
-            INSERT INTO auction_db.auctions
+            INSERT INTO auctions
                 (item_id, seller_id, starting_price, current_price, status, start_time, end_time)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
@@ -120,7 +120,7 @@ public class JdbcAuctionDao implements AuctionDao {
     @Override
     public Auction update(Auction auction) throws AuctionConnectException {
         String sql = """
-            UPDATE auction_db.auctions
+            UPDATE auctions
             SET current_price = ?, status = ?, end_time = ?, winner_bidder_id = ?
             WHERE id = ?
         """;
