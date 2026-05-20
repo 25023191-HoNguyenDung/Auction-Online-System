@@ -13,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 public class AuctionClosingService {
     private static final int check = 10; // ktra mỗi 10s
     private final AuctionDao auctionDao;
-    private final AuctionService auctionService;
+    private final AuctionServiceImpl auctionService;
     private final ScheduledExecutorService scheduler; // chạy tự động theo tg
 
-    public AuctionClosingService(AuctionDao auctionDao, AuctionService auctionService) {
+    public AuctionClosingService(AuctionDao auctionDao, AuctionServiceImpl auctionService) {
         this.auctionDao = auctionDao;
         this.auctionService = auctionService;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> { // scheduler có 1 thread duy nhất
@@ -26,7 +26,7 @@ public class AuctionClosingService {
         });
     }
 
-    public AuctionClosingService(AuctionService auctionService) {
+    public AuctionClosingService(AuctionServiceImpl auctionService) {
         this(new JdbcAuctionDao(), auctionService);
     }
 
@@ -60,7 +60,7 @@ public class AuctionClosingService {
 
             for (Auction auction : expired) {
                 try {
-                    auctionService.cancelAuction(auction.getId());
+                    auctionService.closeAuction(auction.getId()); // đóng bình thường → FINISHED, giữ winner
                     System.out.println("Đã đóng phiên id=" + auction.getId());
                 } catch (Exception e) {
                     System.err.println("Lỗi đóng phiên id=" + auction.getId() + ": " + e.getMessage());

@@ -22,25 +22,31 @@ import com.auction.server.model.Bidder;
 import com.auction.server.model.User;
 import com.auction.server.observer.AuctionEvent;
 import com.auction.server.observer.AuctionEventPublisher;
+
 // trung tâm xử lý nghiệp vụ đgia
 public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionDao auctionDao; // Lưu trữ và truy xuất thông tin phiên đấu giá
-    private final BidDao bidDao; // Lưu trữ và truy xuất thông tin giao dịch đặt giá    
+    private final BidDao bidDao; // Lưu trữ và truy xuất thông tin giao dịch đặt giá
     private final UserDao userDao; // Lưu trữ và truy xuất thông tin người dùng
     private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>(); // Cache để lưu trữ các phiên đấu giá đang hoạt động
+    private final AutoBidService autoBidService;
     private final AuctionEventPublisher publisher = AuctionEventPublisher.getInstance();
-    
+
     public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao) {
         this.auctionDao = auctionDao;
         this.bidDao = bidDao;
         this.userDao = userDao;
+        this.autoBidService = new AutoBidService(this);
     }
+
     // Constructor mặc định sử dụng các DAO JDBC để kết nối với cơ sở dữ liệu
     public AuctionServiceImpl() {
         this(new JdbcAuctionDao(), new JdbcBidDao(), new JdbcUserDao());
     }
+
     // Lấy bộ quản lý logic của phiên đấu giá từ cache hoặc tạo mới nếu chưa tồn tại
+    // dùng computeIfAbsent để đảm bảo thread-safe
     private AuctionLogicManager getManager(long auctionId) {
         return managerCache.computeIfAbsent(auctionId, id -> {
             Auction auction = auctionDao.findById(id)
@@ -48,32 +54,38 @@ public class AuctionServiceImpl implements AuctionService {
             return new AuctionLogicManager(auction, auctionDao);
         });
     }
+
     // Dọn cache khi phiên đấu giá kết thúc hoặc bị hủy
     private void clearCached(long auctionId) {
         AuctionLogicManager manager = managerCache.get(auctionId);
-        //Nếu phiên đấu không xuất hiện trong cache 
+        //Nếu phiên đấu không xuất hiện trong cache
         if (manager == null) return;
         AuctionStatus status = manager.getStatus();
-        //Nếu phiên đã kết thúc hoặc bị hủy thì xóa khỏi cache để giải phóng bộ nhớ 
+        //Nếu phiên đã kết thúc hoặc bị hủy thì xóa khỏi cache để giải phóng bộ nhớ
         if (status == AuctionStatus.FINISHED || status == AuctionStatus.CANCELLED) {
             managerCache.remove(auctionId);
         }
     }
+
     // Quản lý phiên đấu giá
-    @Override 
+    @Override
     public List<Auction> getAllAuctions() {
         return auctionDao.findAll();
     }
+
     @Override
     public List<Auction> getAuctionsByStatus(AuctionStatus status) {
         return auctionDao.findByStatus(status);
     }
+
     @Override
     public Auction getAuctionById(long auctionId) {
-        return auctionDao.findById(auctionId).orElseThrow(() -> new RuntimeException("Auction not found: " + auctionId));
+        return auctionDao.findById(auctionId)
+                .orElseThrow(() -> new RuntimeException("Auction not found: " + auctionId));
     }
-    @Override 
-    public Auction createAuction(Auction auction) throws AuctionConnectException{
+
+    @Override
+    public Auction createAuction(Auction auction) throws AuctionConnectException {
         try {
             auction.setStatus(AuctionStatus.OPEN);
             auction.setCurrent_price(auction.getStarting_price());
@@ -82,6 +94,7 @@ public class AuctionServiceImpl implements AuctionService {
             throw new AuctionConnectException("Failed to create auction: " + e.getMessage());
         }
     }
+
     @Override
     public Auction updateAuction(Auction auction) throws AuctionConnectException {
         try {
@@ -90,10 +103,13 @@ public class AuctionServiceImpl implements AuctionService {
             throw new AuctionConnectException("Failed to update auction: " + e.getMessage());
         }
     }
-    // Đặt giá cho phiên đấu giá
+
+    // Hàm đặt giá dùng bên trong hệ thống, chỉ lưu xuống DB - không gọi processAutoBids trong AutoBidService
     @Override
-    public BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount) throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
-        User user = userDao.findById(bidderId).orElseThrow(() -> new RuntimeException("User not found: " + bidderId));
+    public BidTransaction placeBidInternal(long auctionId, long bidderId, BigDecimal amount)
+            throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
+        User user = userDao.findById(bidderId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + bidderId));
         if (!(user instanceof Bidder bidder)) {
             throw new RuntimeException("User is not a bidder: " + bidderId);
         }
@@ -101,22 +117,38 @@ public class AuctionServiceImpl implements AuctionService {
         AuctionLogicManager manager = getManager(auctionId);
         try {
             manager.placeBid(bid);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to place bid: " + e.getMessage(), e);
+        } catch (AuctionMisMatchException | AuctionTimeException | AuctionConnectException | SQLException e) {
+            throw new RuntimeException("Failed to place bid : ", e);
+        } catch (InvalidBidException e) {
+            throw new InvalidBidException("Invalid bid amount.");
         }
         bidDao.save(bid);
-        Auction updated = auctionDao.findById(auctionId).orElseThrow();
-        publisher.publish(AuctionEvent.bidPlaced(auctionId, updated.getCurrent_price(), bid.getBidderId()));
         return bid;
     }
+
+    // Đặt giá cho phiên đấu giá - dùng cho client
+    @Override
+    public BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount)
+            throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
+        BidTransaction bid = placeBidInternal(auctionId, bidderId, amount);
+        // publish event cho observer
+        Auction updated = auctionDao.findById(auctionId).orElseThrow();
+        publisher.publish(AuctionEvent.bidPlaced(auctionId, updated.getCurrent_price(), bid.getBidderId()));
+        // kích hoạt auto-bid
+        autoBidService.processAutoBids(auctionId, amount, bidderId);
+        return bid;
+    }
+
     @Override
     public List<BidTransaction> getBidHistory(long auctionId) {
         return bidDao.findByAuctionId(auctionId);
     }
+
     @Override
-    public BidTransaction getHighestBid(long auctionId) {   
+    public BidTransaction getHighestBid(long auctionId) {
         return bidDao.findHighestBidByAuctionId(auctionId).orElse(null);
     }
+
     //Cập nhật trạng thái phiên đấu giá
     @Override
     public void checkStatus(long auctionId) throws AuctionConnectException {
@@ -124,11 +156,12 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             manager.updateAuctionStatus();
         } catch (SQLException e) {
-            throw new RuntimeException("Database error while checking status for auction " + auctionId + ": " + e.getMessage(), e);
+            throw new RuntimeException("Database error while checking status for auction "
+                    + auctionId + ": " + e.getMessage(), e);
         }
         clearCached(auctionId); // Dọn cache vì phiên đã FINISHED
-        
     }
+
     // Xử lí thanh toán sau khi kết thúc phiên đấu giá
     @Override
     public void processPayment(long auctionId) throws AuctionTimeException, AuctionConnectException {
@@ -138,9 +171,11 @@ public class AuctionServiceImpl implements AuctionService {
         } catch (AuctionTimeException e) {
             throw new RuntimeException("Cannot process payment. Auction time error: " + e.getMessage(), e);
         } catch (AuctionConnectException e) {
-            throw new RuntimeException("Database error during payment for auction " + auctionId + ": " + e.getMessage(), e);
+            throw new RuntimeException("Database error during payment for auction "
+                    + auctionId + ": " + e.getMessage(), e);
         }
     }
+
     // Hủy phiên đấu giá
     @Override
     public void cancelAuction(long auctionId) throws AuctionTimeException, AuctionConnectException {
@@ -150,10 +185,13 @@ public class AuctionServiceImpl implements AuctionService {
         } catch (AuctionTimeException e) {
             throw new RuntimeException("Cannot cancel auction. Auction time error: " + e.getMessage(), e);
         } catch (SQLException e) {
-            throw new RuntimeException("Database error during cancellation of auction " + auctionId + ": " + e.getMessage(), e);
+            throw new RuntimeException("Database error during cancellation of auction "
+                    + auctionId + ": " + e.getMessage(), e);
         }
         clearCached(auctionId); // Dọn cache vì phiên đã CANCELLED
     }
+
+    // Đóng phiên đấu giá bình thường → FINISHED, giữ winner
     public void closeAuction(long auctionId) throws AuctionTimeException, AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
@@ -161,7 +199,8 @@ public class AuctionServiceImpl implements AuctionService {
         } catch (AuctionTimeException e) {
             throw new RuntimeException("Cannot close auction: " + e.getMessage(), e);
         } catch (SQLException e) {
-            throw new RuntimeException("Database error during closing of auction " + auctionId + ": " + e.getMessage(), e);
+            throw new RuntimeException("Database error during closing of auction "
+                    + auctionId + ": " + e.getMessage(), e);
         }
         clearCached(auctionId);
     }

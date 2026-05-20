@@ -1,41 +1,44 @@
 package com.auction.server.network;
 
-import com.auction.common.exception.AuctionConnectException;
-import com.auction.common.exception.AuctionMisMatchException;
-import com.auction.common.exception.AuctionTimeException;
-import com.auction.common.exception.InvalidBidException;
-import com.auction.common.protocol.*;
-import com.auction.server.dao.UserDao;
-import com.auction.server.dao.jdbc.JdbcUserDao;
-import com.auction.server.model.AuctionStatus;
-import com.auction.server.model.User;
-import com.auction.server.observer.AuctionEvent;
-import com.auction.server.observer.AuctionEventPublisher;
-import com.auction.server.service.AuctionService;
-import com.auction.server.service.AuctionServiceImpl;
-import com.auction.server.service.AutoBidService;
-
 import java.io.PrintWriter;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
+import com.auction.common.exception.AuctionConnectException;
+import com.auction.common.exception.AuctionMisMatchException;
+import com.auction.common.exception.AuctionTimeException;
+import com.auction.common.exception.InvalidBidException;
+import com.auction.common.protocol.AuctionSummaryItem;
+import com.auction.common.protocol.ErrorCode;
+import com.auction.common.protocol.ListAuctionsReqPayload;
+import com.auction.common.protocol.ListAuctionsResPayload;
+import com.auction.common.protocol.LoginReqPayload;
+import com.auction.common.protocol.LoginResPayload;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.PlaceBidReqPayload;
+import com.auction.common.protocol.PlaceBidResPayload;
+import com.auction.common.protocol.ProtocolMapper;
+import com.auction.server.dao.UserDao;
+import com.auction.server.dao.jdbc.JdbcUserDao;
+import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.User;
+import com.auction.server.observer.AuctionEventPublisher;
+import com.auction.server.service.AuctionServiceImpl;
+
 // điều hướng request đến server phù hợp
 public class RequestDispatcher {
-    private final AuctionService auctionService;
-    private final AutoBidService autoBidService;
+    private final AuctionServiceImpl auctionService;
     private final UserDao userDao;
     private final ProtocolMapper mapper;
-    private final SubscriptionRegistry subscriptionRegistry; // qlý các client đag theo dõi auction
-    private final AuctionEventPublisher publisher; // gửi event khi có thay đổi
+
     private final Object writeLock = new Object();
 
     public RequestDispatcher() {
         this.auctionService = new AuctionServiceImpl();
-        this.autoBidService = new AutoBidService(auctionService);
         this.userDao = new JdbcUserDao();
         this.mapper = new ProtocolMapper();
-        this.subscriptionRegistry = SubscriptionRegistry.getInstance();
-        this.publisher = AuctionEventPublisher.getInstance();
+
     }
 
 
@@ -79,7 +82,7 @@ public class RequestDispatcher {
     }
 
     // lấy ds phiên đgia gửi client
-    private void handleListAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out) throws AuctionConnectException {
+    private void handleListAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out){
         ListAuctionsReqPayload req = mapper.parsePayload(envelope, ListAuctionsReqPayload.class); // lấy dữ liệu từ req -> obj
         // lấy ds auctions( trống : lấy tất cả, ko thì lấy các auction có trạng thái)
         var auctions = (req.getStatusFilter() == null || req.getStatusFilter().isBlank()) ? auctionService.getAllAuctions() : auctionService.getAuctionsByStatus(AuctionStatus.valueOf(req.getStatusFilter()));
@@ -91,8 +94,6 @@ public class RequestDispatcher {
 
     private void handlePlaceBid(MessageEnvelope envelope, String correlationId, PrintWriter out) throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
         PlaceBidReqPayload req = mapper.parsePayload(envelope, PlaceBidReqPayload.class); // đọc req
-        long auctionId = req.getAuctionId();
-        long bidderId  =req.getBidderId();
         // thực hiện đặt giá
         var bid = auctionService.placeBid(req.getAuctionId(), req.getBidderId(), req.getAmount());
         // tạo res đặt giá thành công
@@ -103,11 +104,7 @@ public class RequestDispatcher {
                 bid.getBidderId()
         );
         send(out, mapper.buildResponse(MessageType.PLACE_BID_RES, correlationId, res)); // gửi kq về client
-        // Broadcast event đến tất cả client đang xem phiên
-        publisher.publish(AuctionEvent.bidPlaced(auctionId, bid.getBidAmount(), bidderId));
-
-        // Kích hoạt auto-bid
-        autoBidService.processAutoBids(auctionId, bid.getBidAmount(), bidderId);
+        // publisher.publish() và autoBidService.processAutoBids() đã được gọi trong AuctionServiceImpl.placeBid()
     }
 
     // Message->JSON r gửi
