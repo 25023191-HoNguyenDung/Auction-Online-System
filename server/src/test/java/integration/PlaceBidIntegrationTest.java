@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 // ktra chức năng đặt đgia
 class PlaceBidIntegrationTest {
 
-    private static AuctionService auctionService; //Service chính cần test
+    private static AuctionServiceImpl auctionService; //Service chính cần test
     private static AuctionDao auctionDao;
     private static BidDao bidDao;
     private static AuctionEventPublisher publisher; // Quản lý observer/event

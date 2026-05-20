@@ -154,4 +154,18 @@ public class JdbcAuctionDao implements AuctionDao {
             throw new RuntimeException("Lỗi deleteById auction: " + id, e);
         }
     }
+
+    @Override
+    public List<Auction> findOpenReadyToStart() {
+        String sql = "SELECT * FROM auctions WHERE status = 'OPEN' AND start_time <= NOW()";
+        List<Auction> list = new ArrayList<>();
+        try (Connection conn = db.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) list.add(mapRow(rs));
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi findOpenReadyToStart", e);
+        }
+        return list;
+    }
 }
