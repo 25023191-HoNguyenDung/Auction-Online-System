@@ -32,15 +32,10 @@ public class AuctionLogicManager {
 
     //Dat gia
     public void placeBid(BidTransaction bid) throws AuctionMisMatchException,AuctionTimeException, InvalidBidException, AuctionConnectException, SQLException {
-        lockManager.lock(auction.getId());
-        try {
-            bidStrategy.validate(auction, bid); // Kiem tra tinh hop le cua giao dich dat gia
-            bidStrategy.updateAuctionAfterBid(auction, bid); // Cap nhat thong tin phien dau gia sau moi lan dat gia
-            bidStrategy.applyAntiSniping(auction); // Kiem tra va kich hoat anti-sniping neu can thiet
-            saveAuction("placeBid"); // Luu thong tin phien dau gia sau khi dat gia thanh cong
-        } finally {
-            lockManager.unlock(auction.getId());
-        }
+        bidStrategy.validate(auction, bid); // Kiem tra tinh hop le cua giao dich dat gia
+        bidStrategy.updateAuctionAfterBid(auction, bid); // Cap nhat thong tin phien dau gia sau moi lan dat gia
+        bidStrategy.applyAntiSniping(auction); // Kiem tra va kich hoat anti-sniping neu can thiet
+        saveAuction("placeBid"); // Luu thong tin phien dau gia sau khi dat gia thanh cong
     }
 
     //cap nhat trang thai
