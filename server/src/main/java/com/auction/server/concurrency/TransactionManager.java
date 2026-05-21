@@ -10,7 +10,7 @@ public class TransactionManager {
     private static TransactionManager instance;
     private final DatabaseConfig db = DatabaseConfig.getInstance();
 
-    public TransactionManager() {
+    private TransactionManager() {
     }
     // singleton
     public static synchronized TransactionManager getInstance(){

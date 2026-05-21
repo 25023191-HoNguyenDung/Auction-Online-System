@@ -38,7 +38,7 @@ CREATE TABLE `auctions` (
 `seller_id` bigint NOT NULL,
 `starting_price` decimal(15,2) NOT NULL,
 `current_price` decimal(15,2) NOT NULL,
-`status` enum('OPEN','RUNNING','FINISHED','PAID','CANCELED') NOT NULL DEFAULT 'OPEN',
+`status` enum('OPEN','RUNNING','FINISHED','PAID','CANCELLED') NOT NULL DEFAULT 'OPEN',
 `start_time` datetime NOT NULL,
 `end_time` datetime NOT NULL,
 `winner_bidder_id` bigint DEFAULT NULL,
