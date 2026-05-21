@@ -17,7 +17,7 @@ public class ClientMessageSender {
     // gửi yc đăng nhập
     public String sendLogin(String username, String password){
         LoginReqPayload payload = new LoginReqPayload(username,password); // tạo payload
-        MessageEnvelope envelope = mapper.buildRequest(MessageType.LIST_AUCTIONS_REQ,payload); // đóng thành message
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.LOGIN_REQ,payload); // đóng thành message
         send(envelope);
         return envelope.getMessageId(); // để ghép với res tương ứng
     }
@@ -45,5 +45,11 @@ public class ClientMessageSender {
             connection.getOut().flush(); // buộc gửi ngay
         }
     }
-    
+
+    public String sendRegister(String username, String email, String password, String role) {
+        RegisterReqPayload payload = new RegisterReqPayload(username, email, password, role);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.REGISTER_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
 }

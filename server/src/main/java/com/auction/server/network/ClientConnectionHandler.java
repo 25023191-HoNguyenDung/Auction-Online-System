@@ -48,6 +48,7 @@ public class ClientConnectionHandler implements Runnable {
             }
         } catch (Exception e) {
             System.err.println(" Lỗi kết nối client " + clientId + ": " + e.getMessage());
+            e.printStackTrace();
         } finally {
             cleanup();
         }

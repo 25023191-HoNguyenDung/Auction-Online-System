@@ -8,17 +8,7 @@ import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
 import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
-import com.auction.common.protocol.AuctionSummaryItem;
-import com.auction.common.protocol.ErrorCode;
-import com.auction.common.protocol.ListAuctionsReqPayload;
-import com.auction.common.protocol.ListAuctionsResPayload;
-import com.auction.common.protocol.LoginReqPayload;
-import com.auction.common.protocol.LoginResPayload;
-import com.auction.common.protocol.MessageEnvelope;
-import com.auction.common.protocol.MessageType;
-import com.auction.common.protocol.PlaceBidReqPayload;
-import com.auction.common.protocol.PlaceBidResPayload;
-import com.auction.common.protocol.ProtocolMapper;
+import com.auction.common.protocol.*;
 import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
@@ -59,6 +49,10 @@ public class RequestDispatcher {
                 }
                 case PLACE_BID_REQ: {
                     handlePlaceBid(envelope, correlationId, out);
+                    break;
+                }
+                case REGISTER_REQ: {
+                    handleRegister(envelope, correlationId, out);
                     break;
                 }
                 default: {
@@ -106,6 +100,32 @@ public class RequestDispatcher {
                 bid.getBidderId()
         );
         send(out, mapper.buildResponse(MessageType.PLACE_BID_RES, correlationId, res)); // gửi kq về client
+    }
+
+    private void handleRegister(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        RegisterReqPayload req = mapper.parsePayload(envelope, RegisterReqPayload.class);
+        try {
+            // Kiểm tra username đã tồn tại chưa
+            if (userDao.findByUsername(req.getUsername()).isPresent()) {
+                sendError(out, correlationId, ErrorCode.AUTH_INVALID_CREDENTIALS, "Username đã tồn tại.");
+                return;
+            }
+            // Tạo user mới
+            com.auction.server.model.User newUser;
+            switch (req.getRole().toUpperCase()) {
+                case "SELLER" -> newUser = new com.auction.server.model.Seller(
+                        req.getUsername(), 0, req.getEmail(), req.getPassword(), "SELLER",
+                        java.math.BigDecimal.ZERO, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+                default -> newUser = new com.auction.server.model.Bidder(
+                        req.getUsername(), 0, req.getEmail(), req.getPassword(), "BIDDER",
+                        java.math.BigDecimal.ZERO, new java.util.ArrayList<>());
+            }
+            userDao.save(newUser);
+            send(out, mapper.buildResponse(MessageType.REGISTER_RES, correlationId,
+                    new RegisterResPayload(true, "Đăng ký thành công!")));
+        } catch (Exception e) {
+            sendError(out, correlationId, ErrorCode.INTERNAL_ERROR, "Lỗi đăng ký: " + e.getMessage());
+        }
     }
 
     // Message->JSON r gửi

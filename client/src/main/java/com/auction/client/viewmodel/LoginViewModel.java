@@ -1,88 +1,68 @@
 package com.auction.client.viewmodel;
 
-import com.auction.client.model.User;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerConnection;
 import com.auction.client.sessions.UserSession;
+import com.auction.common.protocol.ErrorPayload;
+import com.auction.common.protocol.LoginResPayload;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.ProtocolMapper;
+import com.auction.client.model.User;
 
-/**
- * LoginViewModel
- * Owns all login business logic:
- *  - input validation
- *  - credential checking (mock — replace with server call later)
- *  - session management
- *
- * Controller only calls this and reacts to the result.
- */
 public class LoginViewModel {
 
-    // ── Result returned to controller ─────────────────────────
-    public enum LoginResult {
-        SUCCESS,
-        EMPTY_FIELDS,
-        INVALID_CREDENTIALS
-    }
+    public enum LoginResult { SUCCESS, EMPTY_FIELDS, INVALID_CREDENTIALS, SERVER_ERROR }
 
     private String errorMessage = "";
+    private final ClientMessageSender sender = new ClientMessageSender();
+    private final ProtocolMapper mapper = new ProtocolMapper();
 
-    // ── Main login method ─────────────────────────────────────
-    /**
-     * Attempt login with given credentials.
-     * Returns a LoginResult the controller can act on.
-     * When server is ready: replace the mock block with a network call.
-     */
-    public LoginResult login(String email, String password) {
-        // 1. Validate inputs
-        if (email == null || email.isBlank() ||
-            password == null || password.isBlank()) {
+    public LoginResult login(String username, String password) {
+        // 1. Validate
+        if (username == null || username.isBlank() ||
+                password == null || password.isBlank()) {
             errorMessage = "Please fill in all fields.";
             return LoginResult.EMPTY_FIELDS;
         }
 
-        // 2. Mock credential check
-        //    TODO: replace with ServerConnection.login(email, password)
-        User user = resolveMockUser(email.trim(), password);
-
-        if (user == null) {
-            errorMessage = "Invalid email or password.";
-            return LoginResult.INVALID_CREDENTIALS;
+        // 2. Kiểm tra kết nối
+        if (!ServerConnection.getInstance().isConnected()) {
+            errorMessage = "Chưa kết nối đến server.";
+            return LoginResult.SERVER_ERROR;
         }
 
-        // 3. Store in session
-        UserSession.getInstance().login(user);
-        errorMessage = "";
-        return LoginResult.SUCCESS;
+        try {
+            // 3. Gửi request lên server
+            sender.sendLogin(username.trim(), password);
+
+            // 4. Đọc response từ server
+            String responseJson = ServerConnection.getInstance().getIn().readLine();
+            System.out.println("SERVER RESPONSE: " + responseJson); // thêm dòng này
+            MessageEnvelope response = mapper.parseEnvelope(responseJson);
+            // 5. Xử lý response
+            if (response.getType() == MessageType.LOGIN_RES) {
+                LoginResPayload payload = mapper.parsePayload(response, LoginResPayload.class);
+                User user = new User(payload.getUserId(), payload.getUsername(), "", payload.getRole());
+                UserSession.getInstance().login(user);
+                errorMessage = "";
+                return LoginResult.SUCCESS;
+
+            } else if (response.getType() == MessageType.ERROR_RES) {
+                ErrorPayload error = mapper.parsePayload(response, ErrorPayload.class);
+                errorMessage = error.getMessage();
+                return LoginResult.INVALID_CREDENTIALS;
+
+            } else {
+                errorMessage = "Phản hồi không hợp lệ từ server.";
+                return LoginResult.SERVER_ERROR;
+            }
+
+        } catch (Exception e) {
+            errorMessage = "Lỗi kết nối server: " + e.getMessage();
+            return LoginResult.SERVER_ERROR;
+        }
     }
 
-    // ── Validation helpers ────────────────────────────────────
-    public boolean isEmailValid(String email) {
-        return email != null && !email.isBlank()
-            && email.contains("@") && email.contains(".");
-    }
-
-    public boolean isPasswordValid(String password) {
-        return password != null && password.length() >= 6;
-    }
-
-    // ── Error message ─────────────────────────────────────────
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-    // ── Mock credentials ──────────────────────────────────────
-    /**
-     * Returns a User for known mock credentials, null otherwise.
-     * Replace this entire method body with a server call when ready.
-     */
-    private User resolveMockUser(String email, String password) {
-        return switch (email.toLowerCase()) {
-            case "admin@auctionpro.com" ->
-                password.equals("admin123")
-                    ? new User(0L, "Administrator", email, "ADMIN") : null;
-            case "collector@aureate.com" ->
-                password.equals("password")
-                    ? new User(1L, "@collector_a", email, "BIDDER") : null;
-            case "seller@aureate.com" ->
-                password.equals("seller123")
-                    ? new User(2L, "@sterlinghouse", email, "SELLER") : null;
-            default -> null;
-        };
-    }
+    public String getErrorMessage() { return errorMessage; }
 }

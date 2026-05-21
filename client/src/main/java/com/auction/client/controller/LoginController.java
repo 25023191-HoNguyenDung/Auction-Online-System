@@ -39,17 +39,18 @@ public class LoginController {
     // ── Login ─────────────────────────────────────────────────
     @FXML
     private void handleLogin() {
-        String email    = emailField.getText().trim();
+        String username = emailField.getText().trim();
         String password = passwordField.getText();
 
         hideError();
 
-        LoginViewModel.LoginResult result = viewModel.login(email, password);
+        LoginViewModel.LoginResult result = viewModel.login(username, password);
 
         switch (result) {
             case SUCCESS             -> NavigationUtils.navigateToDashboard();
             case EMPTY_FIELDS,
-                 INVALID_CREDENTIALS -> showError(viewModel.getErrorMessage());
+                 INVALID_CREDENTIALS,
+                 SERVER_ERROR        -> showError(viewModel.getErrorMessage());
         }
     }
     // ── Navigation ────────────────────────────────────────────

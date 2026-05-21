@@ -10,4 +10,6 @@ public enum MessageType {
     LOGIN_RES, //server trả kq đăng nhập
     LIST_AUCTIONS_REQ, // client gửi yc lấy ds phiên
     LIST_AUCTIONS_RES, // server trả ds phiên
+    REGISTER_REQ,
+    REGISTER_RES,
 }
