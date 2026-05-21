@@ -69,7 +69,7 @@ public class ItemService {
 
     public Item getById(long itemId) {
         return itemDao.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item không tồn tại, id=" + itemId));
+                .orElseThrow(() -> new IllegalArgumentException("Item not found, id=" + itemId));
     }
 
     public Optional<Item> findById(long itemId) {

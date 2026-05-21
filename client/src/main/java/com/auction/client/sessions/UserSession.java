@@ -17,7 +17,7 @@ public class UserSession {
 
     public void login(User user) {
         this.currentUser = user;
-        System.out.println("Đăng nhập thành công: " + user.getFullName() + " (" + user.getRole() + ")");
+        System.out.println("Logged in: " + user.getFullName() + " (" + user.getRole() + ")");
     }
 
     public void logout() {

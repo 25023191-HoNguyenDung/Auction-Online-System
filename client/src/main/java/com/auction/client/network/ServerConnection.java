@@ -26,7 +26,7 @@ public class ServerConnection {
         out = new PrintWriter(socket.getOutputStream(), true); //gửi dlieu đến server
         in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // nhận dlieu từ server
         connected=true;
-        System.out.println("Đã kết nối đến " + host + ":" + port);
+        System.out.println("Connected to " + host + ":" + port);
     }
     // ngắt knoi server, đóng luồng/socket
     public void disconnect(){
@@ -36,17 +36,17 @@ public class ServerConnection {
             if(out!= null) out.close();
             if(socket!=null && !socket.isClosed()) socket.close();
         }catch (IOException e){
-            System.out.println("Đã ngắt kết nối");
+            System.out.println("Disconnected from server");
         }
     }
     // lấy luồng ghi dlieu
     public PrintWriter getOut() {
-        if (!connected) throw new IllegalStateException("Chưa kết nối đến server");
+        if (!connected) throw new IllegalStateException("Haven't connected to server");
         return out;
     }
     // lấy luồng nhận dlieu
     public BufferedReader getIn() {
-        if (!connected) throw new IllegalStateException("Chưa kết nối đến server");
+        if (!connected) throw new IllegalStateException("Haven't connected to server");
         return in;
     }
 

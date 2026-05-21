@@ -51,11 +51,11 @@ public class ServerEventListener implements Runnable {
                     MessageEnvelope envelope = mapper.parseEnvelope(line); // chuyển sag JSON
                     handleEnvelope(envelope);
                 } catch (Exception e) {
-                    System.err.println("Lỗi parse message: " + e.getMessage());
+                    System.err.println("Error parsing message: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
-            if (running) System.err.println(" Mất kết nối với server: " + e.getMessage());
+            if (running) System.err.println("Lost connection with server: " + e.getMessage());
         }
     }
 

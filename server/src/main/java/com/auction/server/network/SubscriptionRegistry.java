@@ -33,7 +33,7 @@ public class SubscriptionRegistry {
         observerMap.put(key,observer);
         clientSubscriptions.computeIfAbsent(clientId, id -> ConcurrentHashMap.newKeySet()).add(auctionId);
         publisher.subscribe(auctionId,observer); // lưu observer này vào phiên đgia
-        System.out.println("Client " + clientId + " đã subscribe phiên " + auctionId + ", tổng observer: " + publisher.getObserverCount(auctionId) + ")");
+        System.out.println("Client " + clientId + " subscribed to auction " + auctionId + ", total observers: " + publisher.getObserverCount(auctionId) + ")");
     }
 
     // client ngừng theo dõi 1 phiên
@@ -49,7 +49,7 @@ public class SubscriptionRegistry {
             }
         }
         System.out.println("Client " + clientId
-                + " đã unsubscribe phiên " + auctionId);
+                + " unsubscribed from auction " + auctionId);
     }
 
     //hủy tất cả theo dõi của 1 phiên
@@ -66,7 +66,7 @@ public class SubscriptionRegistry {
         }
 
         System.out.println("Client " + clientId
-                + " đã unsubscribe tất cả phiên (" + auctions.size() + " phiên).");
+                + " unsubscribed from all auctions (" + auctions.size() + " auctions).");
     }
 
     //ds phiên client đang theo dõi
