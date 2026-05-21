@@ -31,7 +31,6 @@ public class RegisterViewModel {
             errorMessage = "Chưa kết nối đến server.";
             return RegisterResult.SERVER_ERROR;
         }
-
         try {
             // 2. Gửi request lên server
             sender.sendRegister(username, email, password, role);
@@ -41,16 +40,26 @@ public class RegisterViewModel {
             MessageEnvelope response = mapper.parseEnvelope(responseJson);
 
             if (response.getType() == MessageType.REGISTER_RES) {
+                // Reset connection để login không bị lệch response
+                ServerConnection.getInstance().disconnect();
+                try {
+                    ServerConnection.getInstance().connect("localhost", 1337);
+                } catch (Exception ex) {
+                    // ignore
+                }
                 errorMessage = "";
                 return RegisterResult.SUCCESS;
+
             } else if (response.getType() == MessageType.ERROR_RES) {
                 ErrorPayload error = mapper.parsePayload(response, ErrorPayload.class);
                 errorMessage = error.getMessage();
                 return RegisterResult.SERVER_ERROR;
+
             } else {
                 errorMessage = "Phản hồi không hợp lệ.";
                 return RegisterResult.SERVER_ERROR;
             }
+
         } catch (Exception e) {
             errorMessage = "Lỗi kết nối server: " + e.getMessage();
             return RegisterResult.SERVER_ERROR;

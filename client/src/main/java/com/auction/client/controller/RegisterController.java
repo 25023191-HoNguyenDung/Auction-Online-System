@@ -1,5 +1,6 @@
 package com.auction.client.controller;
 
+import com.auction.client.network.ClientMessageSender;
 import com.auction.client.util.NavigationUtils;
 
 import javafx.application.Platform;
@@ -66,15 +67,22 @@ public class RegisterController {
             return;
         }
 
-        // TODO: replace with server registration call
-        System.out.println("✅ Register | Role: " + role + " | Email: " + email);
-        showMessage("Account created successfully as " + role + "!", true);
+        try {
+            ClientMessageSender sender = new ClientMessageSender();
+            sender.sendRegister(userName, pass, email, role);
 
-        // Navigate to login after 1.5s
-        new Thread(() -> {
-            try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
-            Platform.runLater(this::goToLogin);
-        }).start();
+            showMessage("Đang đăng ký tài khoản...", true);
+
+            // Tạm navigate sau 1.5s (sau này sẽ chờ response thật)
+            new Thread(() -> {
+                try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+                Platform.runLater(this::goToLogin);
+            }).start();
+
+        } catch (Exception e) {
+            showMessage("Lỗi kết nối server: " + e.getMessage(), false);
+            e.printStackTrace();
+        }
     }
 
     private void goToLogin() {
