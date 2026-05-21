@@ -131,7 +131,7 @@ class PlaceBidIntegrationTest {
     @Test // khi đóng phiên giá thì phải chuyển thành FINISHED
     @Order(6)
     void testCloseAuction() throws AuctionConnectException, AuctionTimeException {
-        auctionService.cancelAuction(testAuctionId); // kết thúc phiên
+        auctionService.closeAuction(testAuctionId); // kết thúc phiên
 
         Auction closed = auctionDao.findById(testAuctionId).orElseThrow(); // lấy dlieu
         assertEquals(AuctionStatus.FINISHED, closed.getStatus(), "Phiên phải chuyển sang FINISHED sau closeAuction"); // ktra status

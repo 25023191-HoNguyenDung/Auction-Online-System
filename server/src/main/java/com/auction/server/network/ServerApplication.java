@@ -1,7 +1,5 @@
 package com.auction.server.network;
 
-import java.io.IOException;
-
 public class ServerApplication {
     public static void main(String[] args) {
         int port = 1337;
