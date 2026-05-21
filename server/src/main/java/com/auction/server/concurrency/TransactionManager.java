@@ -53,7 +53,7 @@ public class TransactionManager {
     //Đóng và giải phóng kết nối, khôi phục cài đặt gốc
     public void close(Connection con){
         try{
-            if(!con.isClosed() && con != null){
+            if (con != null && !con.isClosed()){
                 con.setAutoCommit(true);    //reset trước khi trả về pool
                 con.close();
             }
