@@ -60,7 +60,7 @@ public class RequestDispatcher {
                     break;
                 }
                 default: {
-                    sendError(out, correlationId, ErrorCode.UNSUPPORTED_PROTOCOL, "MessageType không được hỗ trợ: " + envelope.getType());
+                    sendError(out, correlationId, ErrorCode.UNSUPPORTED_PROTOCOL, "MessageType is not supported: " + envelope.getType());
                 }
             }
         } catch (Exception e) {
@@ -73,7 +73,7 @@ public class RequestDispatcher {
         LoginReqPayload req = mapper.parsePayload(envelope,LoginReqPayload.class); // lấy dữ liệu từ payload -> obj LoginReqPayload
         Optional<User> userOpt = userDao.findByUsername(req.getUsername()); // tìm username trong db
         if(userOpt.isEmpty() || !userOpt.get().check_password(req.getPassword())){ // nếu ko thấy username hoặc sai password
-            sendError(out,correlationId,ErrorCode.AUTH_INVALID_CREDENTIALS,"sai username hoặc password");
+            sendError(out,correlationId,ErrorCode.AUTH_INVALID_CREDENTIALS,"Invalid username or password");
             return;
         }
         User user = userOpt.get();

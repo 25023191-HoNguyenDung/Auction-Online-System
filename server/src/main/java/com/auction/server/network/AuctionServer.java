@@ -40,7 +40,7 @@ public class AuctionServer {
         serverSocket = new ServerSocket(port); // mở cổng
         running = true;
         closingService.start(); // start thread nền ktra thread hết hạn
-        System.out.println("Auction Server đang chạy");
+        System.out.println("Auction Server is running");
         System.out.println("Port: " + port + " ");
         while (running){
             try{
@@ -49,7 +49,7 @@ public class AuctionServer {
                 threadPool.submit(handler); // gửi vào threadPool
             }catch (IOException e){
                 if(running){
-                    System.err.println("Lỗi chấp nhận kết nối: " + e.getMessage());
+                    System.err.println("Accept error: " + e.getMessage());
                 }
             }
         }
@@ -70,7 +70,7 @@ public class AuctionServer {
             threadPool.shutdownNow();
             Thread.currentThread().interrupt(); // đánh dấu là thread đã bị yc dừng
         }
-        System.out.println("Server đã dừng");
+        System.out.println("Server is stopped");
     }
 
     public boolean isRunning(){
