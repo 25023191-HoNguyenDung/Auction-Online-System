@@ -9,6 +9,7 @@ import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
 import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
+import com.auction.server.concurrency.AuctionLockManager;
 import com.auction.server.concurrency.TransactionManager;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.BidDao;
@@ -119,6 +120,9 @@ public class AuctionServiceImpl implements AuctionService {
         }
         BidTransaction bid = new BidTransaction(auctionId, bidder, amount);
         AuctionLogicManager manager = getManager(auctionId);
+        // Gọi LockManager để lấy khóa
+        AuctionLockManager lockManager = AuctionLockManager.getInstance();
+        lockManager.lock(auctionId);
         try {
             transManager.executeInTransaction(conn -> {;
                 try {
@@ -131,6 +135,8 @@ public class AuctionServiceImpl implements AuctionService {
             });
         } catch (Exception e) {
             throw new RuntimeException("Failed to place bid: " + e.getMessage(), e);
+        } finally {
+            lockManager.unlock(auctionId);
         }
         return bid;
     }
