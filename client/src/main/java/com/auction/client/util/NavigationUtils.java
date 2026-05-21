@@ -60,7 +60,7 @@ public class NavigationUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("❌ Navigation to AuctionDetail failed");
+            System.err.println("Navigation to AuctionDetail failed");
         }
     }
 
@@ -89,7 +89,7 @@ public class NavigationUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("❌ Navigation to BidScreen failed");
+            System.err.println("Navigation to BidScreen failed");
         }
     }
 

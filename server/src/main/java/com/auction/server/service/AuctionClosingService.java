@@ -37,7 +37,7 @@ public class AuctionClosingService {
             processReadyToOpenAuctions();   //quét và mở các phiên đến giờ
             processExpiredAuctions();       //quét và đóng các phiên hết giờ
     }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS); // chạy method 10s 1 lần
-        System.out.println("Đã khởi động, kiểm tra mỗi " + CHECK_INTERVAL_SECONDS + "giây");
+        System.out.println("Scheduler started, checking every " + CHECK_INTERVAL_SECONDS + " second(s)");
     }
 
     // tắt scheduler
@@ -51,7 +51,7 @@ public class AuctionClosingService {
             scheduler.shutdownNow();            //quá trình chờ tắt bị gián đoạn -> ép buộc dừng
             Thread.currentThread().interrupt();
         }
-        System.out.println("[AuctionScheduler] Đã dừng.");
+        System.out.println("[AuctionScheduler] Scheduler stopped.");
     }
 
     //Logic tự động mở phiên
@@ -61,18 +61,18 @@ public class AuctionClosingService {
             List<Auction> opening = auctionDao.findOpenReadyToStart();
             //không có phiên nào cần mở -> thoát
             if (opening.isEmpty()) return;
-            System.out.println("[AuctionScheduler] Tìm thấy " + opening.size() + " phiên đến giờ cần mở.");
+            System.out.println("[AuctionScheduler] Found " + opening.size() + " auctions ready to open.");
             for (Auction auction : opening) {
                 try {
                     auctionService.openAuction(auction.getId());
-                    System.out.println("[AuctionScheduler] Đã mở phiên id = " + auction.getId());
+                    System.out.println("[AuctionScheduler] Found " + opening.size() + " auctions ready to open.");
                 } catch (Exception e) {
-                    System.err.println("[AuctionScheduler] Lỗi mở phiên id = " + auction.getId() + ": " + e.getMessage());
+                    System.err.println("[AuctionScheduler] Error opening auction id = " + auction.getId() + ": " + e.getMessage());
                 }
             } 
         }
         catch (Exception e) {
-            System.err.println("[AuctonSchehduler] Lỗi kiểm tra phiên cần mở: " + e.getMessage());
+            System.err.println("[AuctonSchehduler] Error checking auctions ready to open: " + e.getMessage());
         }
     }
 
@@ -83,17 +83,17 @@ public class AuctionClosingService {
             List<Auction> expired = auctionDao.findExpiredRunning();
             //Không có phiên nào đang chạy -> thoát
             if (expired.isEmpty()) return;
-            System.out.println("[AuctionScheduler] Tìm thấy " + expired.size() + " phiên hết giờ cần đóng.");
+            System.out.println("[AuctionScheduler] Found " + expired.size() + " expired auctions.");
             for (Auction auction : expired) {
                 try {
                     auctionService.closeAuction(auction.getId());
-                    System.out.println("[AuctionScheduler] Đã đóng phiên id =" + auction.getId());
+                    System.out.println("[AuctionScheduler] Closed auction id =" + auction.getId());
                 } catch (Exception e) {
-                    System.err.println("[AuctionScheduler] Lỗi đóng phiên id =" + auction.getId() + ": " + e.getMessage());
+                    System.err.println("[AuctionScheduler] Error closing auction id =" + auction.getId() + ": " + e.getMessage());
                 }
             }
         } catch (Exception e) {
-            System.err.println("[AuctionScheduler] Lỗi kiểm tra phiên cần đóng: " + e.getMessage());
+            System.err.println("[AuctionScheduler] Error checking expired auctions: " + e.getMessage());
         }
     }
 }

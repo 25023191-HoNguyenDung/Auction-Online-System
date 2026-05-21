@@ -29,7 +29,7 @@ public class ClientConnectionHandler implements Runnable {
     // xly giao tiếp giữa server và 1 client
     @Override
     public void run() {
-        System.out.println("Client kết nối: " + clientId);
+        System.out.println("Client connected: " + clientId);
         try (
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // đọc dlieu client gửi
                 PrintWriter writer = new PrintWriter(socket.getOutputStream(), true) // gửi dlieu về client
@@ -43,12 +43,12 @@ public class ClientConnectionHandler implements Runnable {
                     MessageEnvelope envelope = mapper.parseEnvelope(line); // chuyển JSON -> obj
                     dispatcher.dispatch(envelope, clientId, out); // gửi req đến đúng nơi xly
                 } catch (ProtocolMappingException e) {
-                    System.err.println("JSON không hợp lệ từ " + clientId + ": " + e.getMessage());
+                    System.err.println("JSON is invalid from " + clientId + ": " + e.getMessage());
                     sendRawError("INVALID_MESSAGE: " + e.getMessage()); // gửi lỗi về client
                 }
             }
         } catch (Exception e) {
-            System.err.println(" Lỗi kết nối client " + clientId + ": " + e.getMessage());
+            System.err.println("Error occurred while handling client connection " + clientId + ": " + e.getMessage());
         } finally {
             cleanup();
         }
@@ -59,7 +59,7 @@ public class ClientConnectionHandler implements Runnable {
         try {
             if (!socket.isClosed()) socket.close();
         } catch (Exception ignored) {}
-        System.out.println(" Client ngắt kết nối: " + clientId);
+        System.out.println("Client disconnected: " + clientId);
     }
     // gửi JSON lỗi về client
     private void sendRawError(String message) {

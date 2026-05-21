@@ -31,7 +31,7 @@ public class ClientAuctionObserver implements AuctionObserver {
                 socketOut.flush(); // gửi lập tức
             }
         } catch (Exception e) {
-            System.err.println("[ClientAuctionObserver] Lỗi gửi event đến client "
+            System.err.println("[ClientAuctionObserver] Error sending event to client "
                     + clientId + ": " + e.getMessage());
         }
     }
