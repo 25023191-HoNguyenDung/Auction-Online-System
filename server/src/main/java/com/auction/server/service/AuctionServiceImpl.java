@@ -9,6 +9,7 @@ import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
 import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
+import com.auction.server.concurrency.TransactionManager;
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.BidDao;
 import com.auction.server.dao.UserDao;
@@ -29,9 +30,12 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionDao auctionDao; // Lưu trữ và truy xuất thông tin phiên đấu giá
     private final BidDao bidDao; // Lưu trữ và truy xuất thông tin giao dịch đặt giá
     private final UserDao userDao; // Lưu trữ và truy xuất thông tin người dùng
+    // Cache xử lí các nghiệp vụ đấu giá
     private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>(); // Cache để lưu trữ các phiên đấu giá đang hoạt động
     private final AutoBidService autoBidService;
     private final AuctionEventPublisher publisher = AuctionEventPublisher.getInstance();
+    //Quản lý transaction thông qua cơ chế Lambda
+    private final TransactionManager transManager = TransactionManager.getInstance();
 
     public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao) {
         this.auctionDao = auctionDao;
@@ -104,7 +108,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
     }
 
-    // Hàm đặt giá dùng bên trong hệ thống, chỉ lưu xuống DB - không gọi processAutoBids trong AutoBidService
+    // Hàm đặt giá nội bộ dùng bên trong hệ thống, chỉ lưu xuống DB - không gọi processAutoBids trong AutoBidService
     @Override
     public BidTransaction placeBidInternal(long auctionId, long bidderId, BigDecimal amount)
             throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
@@ -116,13 +120,18 @@ public class AuctionServiceImpl implements AuctionService {
         BidTransaction bid = new BidTransaction(auctionId, bidder, amount);
         AuctionLogicManager manager = getManager(auctionId);
         try {
-            manager.placeBid(bid);
-        } catch (AuctionMisMatchException | AuctionTimeException | AuctionConnectException | SQLException e) {
-            throw new RuntimeException("Failed to place bid : ", e);
-        } catch (InvalidBidException e) {
-            throw new RuntimeException("Invalid bid amount: ", e);
+            transManager.executeInTransaction(conn -> {;
+                try {
+                    manager.placeBid(bid);  //Thực thi luật đặt giá
+                    userDao.update(bidder); //Cập nhật thông tin số dư người dùng
+                    bidDao.save(bid);       //Lưu giao dịch đặt giá vào DB
+                } catch (AuctionMisMatchException | AuctionTimeException | InvalidBidException | AuctionConnectException e) {
+                    throw new RuntimeException("Failed to place bid); " + e.getMessage(), e);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to place bid: " + e.getMessage(), e);
         }
-        bidDao.save(bid);
         return bid;
     }
 
@@ -130,14 +139,16 @@ public class AuctionServiceImpl implements AuctionService {
     @Override
     public BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount)
             throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
+        //Thực hiện đặt giá và lưu DB thông qua hàm nội bộ
         BidTransaction bid = placeBidInternal(auctionId, bidderId, amount);
-        // publish event cho observer
+        //Sau khi ddawtj giá thành công, đọc lại DB để lấy thông tin phiên đấu giá mới nhất
         Auction updated = auctionDao.findById(auctionId).orElseThrow();
+        //Thông báo cho các client khác về việc đặt giá mới thông qua cơ chế Observer
         publisher.publish(AuctionEvent.bidPlaced(auctionId, updated.getCurrent_price(), bid.getBidderId()));
         // kích hoạt auto-bid
         autoBidService.processAutoBids(auctionId, amount, bidderId);
         return bid;
-    }
+    }   
 
     @Override
     public List<BidTransaction> getBidHistory(long auctionId) {
