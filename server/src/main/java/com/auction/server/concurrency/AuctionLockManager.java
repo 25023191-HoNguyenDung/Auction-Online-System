@@ -8,7 +8,7 @@ public class AuctionLockManager {
     //  ConcurrentHashMap:nhiều thread truy cập vào dữ liệu chung 1 cách an toàn
     private final ConcurrentHashMap<Long, ReentrantLock> lockMap = new ConcurrentHashMap<>(); // ReentrantLock -> chỉ 1 thread xử lý 1 auction tại 1 thời điểm
 
-    public AuctionLockManager() {
+    private AuctionLockManager() {
     }
     //singleton
     public static synchronized AuctionLockManager getInstance(){
