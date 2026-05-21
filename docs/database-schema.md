@@ -50,22 +50,22 @@ Lưu thông tin sản phẩm đấu giá.
 
 Lưu thông tin phiên đấu giá.
 
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
-| `id` | BIGINT | PK, AUTO_INCREMENT | ID phiên |
-| `item_id` | BIGINT | FK → items.id | Sản phẩm |
-| `seller_id` | BIGINT | FK → users.id | Người bán |
-| `starting_price` | DECIMAL(15,2) | NOT NULL | Giá khởi điểm |
-| `current_price` | DECIMAL(15,2) | NOT NULL | Giá hiện tại |
-| `status` | ENUM | NOT NULL | OPEN / RUNNING / FINISHED / PAID / CANCELED |
-| `start_time` | DATETIME | NOT NULL | Thời gian bắt đầu |
-| `end_time` | DATETIME | NOT NULL | Thời gian kết thúc |
-| `winner_bidder_id` | BIGINT | FK → users.id, NULL | Người thắng |
+| Cột | Kiểu | Ràng buộc | Mô tả                                        |
+|-----|------|-----------|----------------------------------------------|
+| `id` | BIGINT | PK, AUTO_INCREMENT | ID phiên                                     |
+| `item_id` | BIGINT | FK → items.id | Sản phẩm                                     |
+| `seller_id` | BIGINT | FK → users.id | Người bán                                    |
+| `starting_price` | DECIMAL(15,2) | NOT NULL | Giá khởi điểm                                |
+| `current_price` | DECIMAL(15,2) | NOT NULL | Giá hiện tại                                 |
+| `status` | ENUM | NOT NULL | OPEN / RUNNING / FINISHED / PAID / CANCELLED |
+| `start_time` | DATETIME | NOT NULL | Thời gian bắt đầu                            |
+| `end_time` | DATETIME | NOT NULL | Thời gian kết thúc                           |
+| `winner_bidder_id` | BIGINT | FK → users.id, NULL | Người thắng                                  |
 
 **Luồng trạng thái:**
 ```
 OPEN → RUNNING → FINISHED → PAID
-                          → CANCELED
+                          → CANCELLED
 ```
 
 ---
