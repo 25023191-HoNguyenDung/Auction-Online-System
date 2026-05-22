@@ -124,6 +124,7 @@ public class RequestDispatcher {
             send(out, mapper.buildResponse(MessageType.REGISTER_RES, correlationId,
                     new RegisterResPayload(true, "Đăng ký thành công!")));
         } catch (Exception e) {
+            e.printStackTrace();
             sendError(out, correlationId, ErrorCode.INTERNAL_ERROR, "Lỗi đăng ký: " + e.getMessage());
         }
     }

@@ -122,7 +122,7 @@ public class JdbcUserDao implements UserDao {
     @Override
     public User update(User user) {
         // câu lệnh SQL
-        String sql = "UPDATE users SET email = ?, password = ? WHERE id = ?";
+        String sql = "UPDATE users SET email = ?, password = ?,  account_balance = ? WHERE id = ?";
         // thử knoi db
         try (Connection conn = db.getConnection();
              // tạo câu sql an toàn

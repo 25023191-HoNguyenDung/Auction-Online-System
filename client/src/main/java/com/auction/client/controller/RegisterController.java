@@ -69,7 +69,7 @@ public class RegisterController {
 
         try {
             ClientMessageSender sender = new ClientMessageSender();
-            sender.sendRegister(userName, pass, email, role);
+            sender.sendRegister(userName, email, pass, role);
 
             showMessage("Đang đăng ký tài khoản...", true);
 
