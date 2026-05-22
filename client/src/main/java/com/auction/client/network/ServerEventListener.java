@@ -10,6 +10,14 @@ import java.util.function.Consumer;
 
 // đọc message từ server và gọi hàm xử lý tương ứng
 public class ServerEventListener implements Runnable {
+    // ── BIẾN STATIC THÊM VÀO ĐỂ QUẢN LÝ LISTENER ĐANG CHẠY ─────────────────────
+    private static volatile ServerEventListener activeInstance;
+
+    public static ServerEventListener getActiveInstance() {
+        return activeInstance;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     private final ServerConnection connection; // knoi tới server
     private final ProtocolMapper mapper;
     //lưu callback chờ res
@@ -29,6 +37,7 @@ public class ServerEventListener implements Runnable {
     // chạy ServerEventListener
     public void start() {
         running = true;
+        activeInstance = this; // GÁN INSTANCE ĐANG CHẠY VÀO BIẾN STATIC
         Thread thread = new Thread(this, "server_event_listener"); // tạo thread chạy đtg htai
         thread.setDaemon(true); // thread nền
         thread.start();

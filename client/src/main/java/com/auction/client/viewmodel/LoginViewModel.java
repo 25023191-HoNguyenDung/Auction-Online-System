@@ -24,32 +24,58 @@ public class LoginViewModel {
     private String errorMessage = "";
 
     // ── Main login method ─────────────────────────────────────
-    /**
-     * Attempt login with given credentials.
-     * Returns a LoginResult the controller can act on.
-     * When server is ready: replace the mock block with a network call.
-     */
-    public LoginResult login(String email, String password) {
+    public LoginResult login(String emailOrUsername, String password) {
         // 1. Validate inputs
-        if (email == null || email.isBlank() ||
+        if (emailOrUsername == null || emailOrUsername.isBlank() ||
             password == null || password.isBlank()) {
             errorMessage = "Please fill in all fields.";
             return LoginResult.EMPTY_FIELDS;
         }
 
-        // 2. Mock credential check
-        //    TODO: replace with ServerConnection.login(email, password)
-        User user = resolveMockUser(email.trim(), password);
-
-        if (user == null) {
-            errorMessage = "Invalid email or password.";
+        // 2. Kiểm tra trạng thái mạng
+        com.auction.client.network.ServerConnection connection = com.auction.client.network.ServerConnection.getInstance();
+        if (!connection.isConnected()) {
+            errorMessage = "No server connection. Please start Server first!";
             return LoginResult.INVALID_CREDENTIALS;
         }
 
-        // 3. Store in session
-        UserSession.getInstance().login(user);
-        errorMessage = "";
-        return LoginResult.SUCCESS;
+        try {
+            // Sử dụng CompletableFuture để đồng bộ hóa tạm thời kết quả trả về bất đồng bộ từ socket
+            java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+            com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+            
+            // Gửi yêu cầu đăng nhập
+            String messageId = sender.sendLogin(emailOrUsername.trim(), password);
+
+            // Đăng ký callback chờ server phản hồi
+            com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+
+            // Đợi tối đa 5 giây
+            com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+            // Kiểm tra gói phản hồi là lỗi hay thành công
+            if (resEnvelope.getType() == com.auction.common.protocol.MessageType.ERROR_RES) {
+                com.auction.common.protocol.ErrorPayload err = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ErrorPayload.class);
+                errorMessage = err.getMessage();
+                return LoginResult.INVALID_CREDENTIALS;
+            }
+
+            com.auction.common.protocol.LoginResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.LoginResPayload.class);
+            if (res.isSuccess()) {
+                // Tạo đối tượng User thật trả về từ DB
+                User user = new User(res.getUserId(), res.getUsername(), emailOrUsername, res.getRole());
+                com.auction.client.sessions.UserSession.getInstance().login(user);
+                errorMessage = "";
+                return LoginResult.SUCCESS;
+            } else {
+                errorMessage = "Invalid username or password.";
+                return LoginResult.INVALID_CREDENTIALS;
+            }
+
+        } catch (Exception e) {
+            errorMessage = "Connection timeout or error: " + e.getMessage();
+            return LoginResult.INVALID_CREDENTIALS;
+        }
     }
 
     // ── Validation helpers ────────────────────────────────────
