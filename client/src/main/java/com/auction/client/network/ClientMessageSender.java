@@ -46,4 +46,10 @@ public class ClientMessageSender {
         }
     }
     
+    public String sendRegister(String username, String email, String password, String role) {
+        RegisterReqPayload payload = new RegisterReqPayload(username, email, password, role);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.REGISTER_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
 }

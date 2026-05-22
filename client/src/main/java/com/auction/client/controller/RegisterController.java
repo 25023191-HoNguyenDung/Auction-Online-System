@@ -42,7 +42,7 @@ public class RegisterController {
         }
     }
 
-    @FXML
+   @FXML
     private void handleRegister() {
         String role    = roleComboBox.getValue();
         String userName= userNameField.getText().trim();
@@ -52,6 +52,7 @@ public class RegisterController {
 
         errorLabel.setVisible(false);
 
+        // Validate phía client
         if (role == null || userName.isEmpty() || email.isEmpty()
                 || pass.isEmpty() || confirm.isEmpty()) {
             showMessage("Please fill in all fields.", false);
@@ -66,15 +67,59 @@ public class RegisterController {
             return;
         }
 
-        // TODO: replace with server registration call
-        System.out.println("✅ Register | Role: " + role + " | Email: " + email);
-        showMessage("Account created successfully as " + role + "!", true);
+        // Kiểm tra kết nối server
+        com.auction.client.network.ServerConnection conn =
+            com.auction.client.network.ServerConnection.getInstance();
+        if (!conn.isConnected()) {
+            showMessage("No server connection. Please start the server first!", false);
+            return;
+        }
 
-        // Navigate to login after 1.5s
-        new Thread(() -> {
-            try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
-            Platform.runLater(this::goToLogin);
-        }).start();
+        // Gửi request lên server
+        try {
+            java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> future =
+                new java.util.concurrent.CompletableFuture<>();
+
+            com.auction.client.network.ClientMessageSender sender =
+                new com.auction.client.network.ClientMessageSender();
+
+            String messageId = sender.sendRegister(userName, email, pass, role);
+
+            com.auction.client.network.ServerEventListener.getActiveInstance()
+                .onResponse(messageId, future::complete);
+
+            // Đợi tối đa 5 giây (chạy trên background thread để không block UI)
+            new Thread(() -> {
+                try {
+                    com.auction.common.protocol.MessageEnvelope res =
+                        future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+                    Platform.runLater(() -> {
+                        if (res.getType() == com.auction.common.protocol.MessageType.ERROR_RES) {
+                            com.auction.common.protocol.ErrorPayload err =
+                                new com.auction.common.protocol.ProtocolMapper()
+                                    .parsePayload(res, com.auction.common.protocol.ErrorPayload.class);
+                            showMessage(err.getMessage(), false);
+                        } else {
+                            showMessage("Account created successfully as " + role + "!", true);
+                            // Chuyển về Login sau 1.5s
+                            new Thread(() -> {
+                                try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
+                                Platform.runLater(this::goToLogin);
+                            }).start();
+                        }
+                    });
+
+                } catch (java.util.concurrent.TimeoutException e) {
+                    Platform.runLater(() -> showMessage("Server timeout. Please try again.", false));
+                } catch (Exception e) {
+                    Platform.runLater(() -> showMessage("Error: " + e.getMessage(), false));
+                }
+            }).start();
+
+        } catch (Exception e) {
+            showMessage("Failed to send request: " + e.getMessage(), false);
+        }
     }
 
     private void goToLogin() {
