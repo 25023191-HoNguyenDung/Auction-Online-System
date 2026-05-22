@@ -17,8 +17,8 @@ import com.auction.client.model.AuctionItem;
  * - Khi server xong: thay loadData() bằng gọi network
  */
 public class AuctionListViewModel {
-    private final List<AuctionItem> allItems      = new ArrayList<>();
-    private final List<AuctionItem> filteredItems = new ArrayList<>();
+    private static final List<AuctionItem> allItems      = new ArrayList<>();
+    private final List<AuctionItem> filteredItems        = new ArrayList<>();
 
     private String filterStatus        = "ALL";
     private Set<String> filterCategories = new HashSet<>(); // empty = ALL
@@ -37,6 +37,10 @@ public class AuctionListViewModel {
      *   allItems.addAll(items);
      */
     public void loadData() {
+        if (!allItems.isEmpty()) {
+            applyFilters();
+            return;
+        }
         allItems.clear();
         LocalDateTime now = LocalDateTime.now();
 
@@ -49,7 +53,7 @@ public class AuctionListViewModel {
             "Pioneer Zenith Hybrid", "LIMITED PRODUCTION 1 OF 50",
             "Vehicles", "RUNNING",
             180000, 245000,
-            now.minusHours(2), now.plusSeconds(7685),
+            now.minusMinutes(2), now.plusSeconds(7685),
             null, 47));
 
         allItems.add(new AuctionItem(
@@ -57,7 +61,7 @@ public class AuctionListViewModel {
             "Vanguard Tourbillon", "ROSE GOLD SKELETON EDITION",
             "Watches", "RUNNING",
             70000, 82400,
-            now.minusHours(5), now.plusSeconds(704),
+            now.minusMinutes(5), now.plusSeconds(704),
             null, 31));
 
         allItems.add(new AuctionItem(
@@ -65,7 +69,7 @@ public class AuctionListViewModel {
             "Ethereal Horizon", "MIXED MEDIA ON CANVAS (2024)",
             "Art", "RUNNING",
             12000, 18900,
-            now.minusHours(1), now.plusSeconds(31332),
+            now.minusMinutes(1), now.plusSeconds(31332),
             null, 12));
 
         allItems.add(new AuctionItem(
@@ -73,7 +77,7 @@ public class AuctionListViewModel {
             "Wraith Stealth Tender", "CUSTOM CARBON SERIES",
             "Vehicles", "RUNNING",
             400000, 512000,
-            now.minusHours(3), now.plusDays(1).plusHours(4),
+            now.minusMinutes(3), now.plusDays(1).plusMinutes(4),
             null, 28));
 
         allItems.add(new AuctionItem(
@@ -81,7 +85,7 @@ public class AuctionListViewModel {
             "Neon Phantom", "DIGITAL ART 1/1 EDITION",
             "Art", "RUNNING",
             6000, 9500,
-            now.minusHours(1), now.plusSeconds(5400),
+            now.minusMinutes(1), now.plusSeconds(5400),
             null, 15));
 
         allItems.add(new AuctionItem(
@@ -89,7 +93,7 @@ public class AuctionListViewModel {
             "Quantum X Laptop", "TITANIUM EDITION 2024",
             "Electronics", "RUNNING",
             3000, 4200,
-            now.minusHours(4), now.plusSeconds(500),
+            now.minusMinutes(0), now.plusSeconds(60),
             null, 8));
 
         allItems.add(new AuctionItem(
@@ -188,4 +192,9 @@ public class AuctionListViewModel {
     public List<AuctionItem> getAllItems()       { return new ArrayList<>(allItems); }
     public int getTotalCount()                  { return allItems.size(); }
     public int getFilteredCount()               { return filteredItems.size(); }
+
+    // Allows resetting the mock data on logout
+    public static void clearData() {
+        allItems.clear();
+    }
 }

@@ -3,6 +3,7 @@ package com.auction.client.controller;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 import com.auction.client.model.AuctionItem;
 import com.auction.client.sessions.UserSession;
@@ -13,6 +14,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -45,6 +47,12 @@ public class AuctionListController {
     @FXML private Button    statusEndingSoon;
     @FXML private Button    applyFilterBtn;
 
+    // ── Wallet widget ─────────────────────────────────────────
+    @FXML private Label     walletBalanceLabel;
+    @FXML private TextField depositAmountField;
+    @FXML private Button    btnDeposit;
+    @FXML private Button    btnDeposit1;   // this is the WITHDRAW button in the FXML
+
     // ── Main Content ──────────────────────────────────────────
     @FXML private Label            countLabel;
     @FXML private ComboBox<String> sortCombo;
@@ -52,10 +60,14 @@ public class AuctionListController {
 
     private Timer clockTimer;
 
+    // Balance listener reference (kept so we can remove it on cleanup)
+    private Consumer<Double> balanceListener;
+
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
         loadUserInfo();
+        setupWallet();
         setupSearch();
         setupSortCombo();
         setupStatusButtons();
@@ -77,17 +89,117 @@ public class AuctionListController {
         }
     }
 
+    // ── Wallet ────────────────────────────────────────────────
+    private void setupWallet() {
+        // Show current balance immediately
+        refreshWalletLabel();
+
+        // Subscribe to balance changes from ANY screen (BidScreen, etc.)
+        balanceListener = newBalance -> Platform.runLater(this::refreshWalletLabel);
+        UserSession.getInstance().addBalanceListener(balanceListener);
+
+        // Wire WITHDRAW button (fx:id="btnDeposit1" in FXML)
+        if (btnDeposit1 != null) {
+            btnDeposit1.setOnAction(e -> handleWithdrawSimulation());
+        }
+    }
+
+    private void refreshWalletLabel() {
+        if (walletBalanceLabel != null) {
+            double bal = UserSession.getInstance().getBalance();
+            walletBalanceLabel.setText(String.format("$%,.0f", bal));
+            // Green when healthy, amber when low, red when very low
+            if (bal >= 10_000) {
+                walletBalanceLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 32px; -fx-font-weight: bold;");
+            } else if (bal >= 1_000) {
+                walletBalanceLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 32px; -fx-font-weight: bold;");
+            } else {
+                walletBalanceLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 32px; -fx-font-weight: bold;");
+            }
+        }
+    }
+
+    /** Called by FXML button fx:id="btnDeposit" */
+    @FXML
+    private void handleDepositSimulation() {
+        String raw = depositAmountField != null ? depositAmountField.getText().trim().replace(",", "") : "";
+        if (raw.isEmpty()) {
+            showAlert("Please enter an amount.", false);
+            return;
+        }
+        double amount;
+        try {
+            amount = Double.parseDouble(raw);
+        } catch (NumberFormatException ex) {
+            showAlert("Invalid amount — numbers only.", false);
+            return;
+        }
+        if (amount <= 0) {
+            showAlert("Amount must be greater than zero.", false);
+            return;
+        }
+        try {
+            UserSession.getInstance().deposit(amount);
+            if (depositAmountField != null) depositAmountField.clear();
+            showAlert(String.format("$%,.0f deposited successfully.", amount), true);
+        } catch (Exception ex) {
+            showAlert(ex.getMessage(), false);
+        }
+    }
+
+    /** Called by the WITHDRAW button (fx:id="btnDeposit1") */
+    private void handleWithdrawSimulation() {
+        String raw = depositAmountField != null ? depositAmountField.getText().trim().replace(",", "") : "";
+        if (raw.isEmpty()) {
+            showAlert("Please enter an amount.", false);
+            return;
+        }
+        double amount;
+        try {
+            amount = Double.parseDouble(raw);
+        } catch (NumberFormatException ex) {
+            showAlert("Invalid amount — numbers only.", false);
+            return;
+        }
+        if (amount <= 0) {
+            showAlert("Amount must be greater than zero.", false);
+            return;
+        }
+        try {
+            UserSession.getInstance().withdraw(amount);
+            if (depositAmountField != null) depositAmountField.clear();
+            showAlert(String.format("$%,.0f withdrawn successfully.", amount), true);
+        } catch (IllegalStateException ex) {
+            showAlert("Insufficient balance.", false);
+        } catch (Exception ex) {
+            showAlert(ex.getMessage(), false);
+        }
+    }
+
+    private void showAlert(String message, boolean success) {
+        // Inline feedback — show in a small alert or reuse the deposit field's prompt
+        if (walletBalanceLabel == null) return;
+        // Use a temporary label trick: just print to console and rely on balance label update
+        // For a richer UX, show a JavaFX alert
+        Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING);
+        alert.setTitle(success ? "Success" : "Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.getDialogPane().setStyle("-fx-background-color:#161410; -fx-border-color:#2e2a1e;");
+        alert.showAndWait();
+    }
+
     // ── Logout ────────────────────────────────────────────────
     @FXML
     private void handleLogout() {
-        if (clockTimer != null) clockTimer.cancel();
+        cleanup();
         NavigationUtils.logout();
     }
 
     // ── History navigation ────────────────────────────────────
     @FXML
     private void handleNavHistory() {
-        if (clockTimer != null) clockTimer.cancel();
+        cleanup();
         NavigationUtils.navigateToBidHistory();
     }
 
@@ -271,6 +383,7 @@ public class AuctionListController {
         clockTimer.scheduleAtFixedRate(new TimerTask() {
             @Override public void run() {
                 Platform.runLater(() -> {
+                    boolean anyEnded = false;
                     for (AuctionItem item : viewModel.getFilteredItems()) {
                         Label lbl = (Label) cardsGrid.lookup("#timer_" + item.getAuctionId());
                         if (lbl != null) {
@@ -278,11 +391,53 @@ public class AuctionListController {
                             lbl.setText(formatTime(remaining));
                             if (remaining < 900)
                                 lbl.getStyleClass().setAll("al-timer-ending");
+                            
+                            // Phát hiện phiên kết thúc và đang trạng thái RUNNING
+                            if (remaining <= 0 && item.isRunning()) {
+                                anyEnded = true;
+
+                                // Lấy giao dịch đặt giá gần nhất của người dùng cho phiên này
+                                com.auction.client.sessions.UserSession.Transaction userBid = null;
+                                for (com.auction.client.sessions.UserSession.Transaction t : com.auction.client.sessions.UserSession.getInstance().getTransactions()) {
+                                    if (t.kind == com.auction.client.sessions.UserSession.Transaction.Kind.BID 
+                                            && "BID".equals(t.status) 
+                                            && t.itemName.equals(item.getItemName())) {
+                                        userBid = t;
+                                        break;
+                                    }
+                                }
+
+                                if (userBid != null) {
+                                    if (item.getCurrentPrice() > userBid.amount) {
+                                        // Thua cuộc: Giải phóng số tiền bị giữ (Bước 4 trong ví dụ của bạn)
+                                        com.auction.client.sessions.UserSession.getInstance().refundOutbid(item.getItemName(), userBid.amount);
+                                        System.out.println("❌ You lost the auction for " + item.getItemName() + ". Released hold: $" + userBid.amount);
+                                    } else {
+                                        // Thắng cuộc: Trừ tiền thật vào tổng số dư và giải phóng hold
+                                        com.auction.client.sessions.UserSession.getInstance().deductWinnerBalance(item.getItemName(), userBid.amount);
+                                        System.out.println("🏆 You won the auction for " + item.getItemName() + "! Deducted: $" + userBid.amount);
+                                    }
+                                }
+
+                                // Đóng phiên để tránh xử lý lặp lại
+                                item.setStatus("CLOSED");
+                            }
                         }
+                    }
+                    if (anyEnded) {
+                        // Ẩn sản phẩm đã kết thúc khỏi màn hình Live Auctions
+                        refreshCards();
                     }
                 });
             }
         }, 1000, 1000);
+    }
+
+    // ── Cleanup ───────────────────────────────────────────────
+    private void cleanup() {
+        if (clockTimer != null) clockTimer.cancel();
+        if (balanceListener != null)
+            UserSession.getInstance().removeBalanceListener(balanceListener);
     }
 
     // ── Utilities ─────────────────────────────────────────────
