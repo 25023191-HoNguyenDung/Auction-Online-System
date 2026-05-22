@@ -1,9 +1,9 @@
 package com.auction.client.controller;
 
-import com.auction.client.model.AuctionItem;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -11,34 +11,55 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
+/**
+ * Shows the full transaction log (bids + deposits + withdrawals) from
+ * UserSession.  The list updates in real-time whenever any screen
+ * triggers a balance change.
+ */
 public class BidHistoryController {
 
-    // ── FXML ────────────────────────────────────────────────────
-    @FXML private ListView<BidEntry> activityListView;
+    @FXML private ListView<UserSession.Transaction> activityListView;
 
-    // ── Data ─────────────────────────────────────────────────────
-    private static final double MOCK_BALANCE = 50_000.0;
+    private Consumer<UserSession.Transaction> transactionListener;
 
-    private static final DateTimeFormatter FMT =
-            DateTimeFormatter.ofPattern("MMM dd, yyyy  HH:mm");
-
-    // ── Lifecycle ─────────────────────────────────────────────────
+    // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
         setupListView();
-        loadMockData();
+        loadFromSession();
+
+        transactionListener = t -> Platform.runLater(() -> upsertTransaction(t));
+        UserSession.getInstance().addTransactionListener(transactionListener);
     }
 
-    // ── ListView cell factory ─────────────────────────────────────
+    // ── Load existing transactions ────────────────────────────
+    private void loadFromSession() {
+        activityListView.getItems().clear();
+        List<UserSession.Transaction> all = UserSession.getInstance().getTransactions();
+        activityListView.getItems().addAll(all);
+    }
+
+    private void upsertTransaction(UserSession.Transaction updated) {
+        for (int i = 0; i < activityListView.getItems().size(); i++) {
+            UserSession.Transaction current = activityListView.getItems().get(i);
+            if (current.kind == updated.kind
+                    && current.itemName.equals(updated.itemName)
+                    && current.time.equals(updated.time)) {
+                activityListView.getItems().set(i, updated);
+                return;
+            }
+        }
+        activityListView.getItems().add(0, updated);
+    }
+
+    // ── ListView cell factory ─────────────────────────────────
     private void setupListView() {
         activityListView.setCellFactory(lv -> new ListCell<>() {
             @Override
-            protected void updateItem(BidEntry entry, boolean empty) {
+            protected void updateItem(UserSession.Transaction entry, boolean empty) {
                 super.updateItem(entry, empty);
                 if (empty || entry == null) {
                     setGraphic(null);
@@ -51,19 +72,38 @@ public class BidHistoryController {
                 badge.setStyle(badgeStyle(entry.status));
                 badge.setMinWidth(90);
 
-                // Item name
-                Label item = new Label(entry.itemName);
+                // Display name
+                String displayName = switch (entry.kind) {
+                    case DEPOSIT  -> "Deposit";
+                    case WITHDRAW -> "Withdrawal";
+                    case BID      -> entry.itemName;
+                };
+                Label item = new Label(displayName);
                 item.setStyle("-fx-text-fill: #f5f0e6; -fx-font-size: 13px;" +
                               " -fx-font-weight: bold; -fx-font-family: 'Arial';");
                 item.setMaxWidth(300);
 
-                // Amount
-                Label amount = new Label(String.format("$%,.0f", entry.amount));
-                amount.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 13px;" +
+                // Amount — green for incoming money, gold for bids, red for withdrawals
+                double displayAmount = entry.kind == UserSession.Transaction.Kind.BID
+                        ? Math.abs(entry.amount)
+                        : entry.amount;
+                String amountStr = String.format("$%,.0f", displayAmount);
+                if (entry.kind == UserSession.Transaction.Kind.DEPOSIT) {
+                    amountStr = "+ " + amountStr;
+                } else if (entry.kind == UserSession.Transaction.Kind.WITHDRAW) {
+                    amountStr = "- " + amountStr;
+                }
+                Label amount = new Label(amountStr);
+                String amountColor = switch (entry.kind) {
+                    case DEPOSIT  -> "#4ade80";
+                    case WITHDRAW -> "#ef4444";
+                    case BID      -> "WON".equals(entry.status) ? "#4ade80" : "#f0b429";
+                };
+                amount.setStyle("-fx-text-fill: " + amountColor + "; -fx-font-size: 13px;" +
                                 " -fx-font-weight: bold; -fx-font-family: 'Arial';");
 
                 // Timestamp
-                Label time = new Label(entry.time.format(FMT));
+                Label time = new Label(entry.getFormattedTime());
                 time.setStyle("-fx-text-fill: #5a5444; -fx-font-size: 11px;" +
                               " -fx-font-family: 'Arial';");
 
@@ -83,70 +123,45 @@ public class BidHistoryController {
         });
     }
 
-    // ── Mock data ────────────────────────────────────────────────
-    private void loadMockData() {
-        List<BidEntry> entries = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-
-        String bidder = UserSession.getInstance().isLoggedIn()
-                ? UserSession.getInstance().getCurrentUser().getUsername()
-                : "@collector_a";
-
-        entries.add(new BidEntry("Pioneer Zenith Hybrid",  245_000, "WINNING",  now.minusMinutes(3)));
-        entries.add(new BidEntry("Ethereal Horizon",         18_900, "WINNING",  now.minusMinutes(28)));
-        entries.add(new BidEntry("Vanguard Tourbillon",      82_400, "OUTBID",   now.minusHours(1)));
-        entries.add(new BidEntry("Neon Phantom",              9_500, "OUTBID",   now.minusHours(2)));
-        entries.add(new BidEntry("Wraith Stealth Tender",   512_000, "WINNING",  now.minusHours(3)));
-        entries.add(new BidEntry("Quantum X Laptop",          4_200, "OUTBID",   now.minusHours(5)));
-        entries.add(new BidEntry("Sapphire Ring 3ct",        10_000, "PENDING",  now.minusHours(8)));
-        entries.add(new BidEntry("Rolex Daytona 2024",       25_000, "PENDING",  now.minusDays(1)));
-
-        activityListView.getItems().setAll(entries);
-    }
-
-    // ── Badge style helper ────────────────────────────────────────
+    // ── Badge style ───────────────────────────────────────────
     private String badgeStyle(String status) {
         String bg, fg;
         switch (status) {
-            case "WINNING" -> { bg = "rgba(74,222,128,0.15)";  fg = "#4ade80"; }
-            case "OUTBID"  -> { bg = "rgba(239,68,68,0.15)";   fg = "#ef4444"; }
-            default        -> { bg = "rgba(245,158,11,0.15)";  fg = "#f59e0b"; }
+            case "WON"      -> { bg = "rgba(74,222,128,0.15)";  fg = "#4ade80"; }
+            case "WINNING"  -> { bg = "rgba(74,222,128,0.15)";  fg = "#4ade80"; }
+            case "BID"      -> { bg = "rgba(245,158,11,0.15)";  fg = "#f59e0b"; }
+            case "OUTBID"   -> { bg = "rgba(239,68,68,0.15)";   fg = "#ef4444"; }
+            case "DEPOSIT"  -> { bg = "rgba(96,165,250,0.15)";  fg = "#60a5fa"; }
+            case "WITHDRAW" -> { bg = "rgba(239,68,68,0.10)";   fg = "#f87171"; }
+            default         -> { bg = "rgba(245,158,11,0.15)";  fg = "#f59e0b"; }
         }
         return "-fx-background-color:" + bg + "; -fx-text-fill:" + fg + ";" +
                " -fx-font-size:10px; -fx-font-weight:bold; -fx-font-family:'Arial';" +
                " -fx-background-radius:20; -fx-padding:3 10; -fx-alignment:center;";
     }
 
-    // ── Navigation handlers ───────────────────────────────────────
+    // ── Navigation ────────────────────────────────────────────
     @FXML
     private void handleNavAuctions() {
+        detach();
         NavigationUtils.navigateTo(
                 "/com/auction/client/view/AuctionList.fxml", "Live Auctions");
     }
 
     @FXML
     private void handleNavHistory() {
-        // Already here — no-op
+        // Already on this screen — no-op
     }
 
     @FXML
     private void handleLogout() {
+        detach();
         NavigationUtils.logout();
     }
 
-    // ── Inner model ───────────────────────────────────────────────
-    public static class BidEntry {
-        public final String        itemName;
-        public final double        amount;
-        public final String        status;   // WINNING | OUTBID | PENDING
-        public final LocalDateTime time;
-
-        public BidEntry(String itemName, double amount,
-                        String status, LocalDateTime time) {
-            this.itemName = itemName;
-            this.amount   = amount;
-            this.status   = status;
-            this.time     = time;
-        }
+    // ── Cleanup ───────────────────────────────────────────────
+    private void detach() {
+        if (transactionListener != null)
+            UserSession.getInstance().removeTransactionListener(transactionListener);
     }
 }

@@ -2,8 +2,10 @@ package com.auction.client.controller;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionDetailViewModel;
 
@@ -28,19 +30,33 @@ public class AuctionDetailController {
     @FXML private LineChart<String, Number> priceChart;
     @FXML private TextField bidAmountField;
 
-    private final AuctionDetailViewModel viewModel = new AuctionDetailViewModel();
-    private Timer countdownTimer;
+    /**
+     * Optional balance label that can be added to AuctionDetail.fxml.
+     * If the label is absent from the FXML it is simply ignored.
+     * Add:  <Label fx:id="balanceLabel" .../>  anywhere in the detail panel
+     * to surface the live balance here too.
+     */
+    @FXML private Label balanceLabel;
+
+    private final AuctionDetailViewModel viewModel      = new AuctionDetailViewModel();
+    private Timer                        countdownTimer;
+    private Consumer<Double>             balanceListener;
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
         if (btnBack != null) {
             btnBack.setOnAction(e -> {
-                stopTimer();
+                cleanup();
                 NavigationUtils.navigateTo(
                     "/com/auction/client/view/AuctionList.fxml", "Live Auctions");
             });
         }
+
+        // Subscribe to balance changes so the label stays in sync
+        balanceListener = newBal -> Platform.runLater(this::refreshBalanceLabel);
+        UserSession.getInstance().addBalanceListener(balanceListener);
+        refreshBalanceLabel();
     }
 
     public void setAuctionItem(AuctionItem item) {
@@ -51,8 +67,19 @@ public class AuctionDetailController {
         if (currentBidLabel    != null) currentBidLabel.setText(viewModel.getDisplayPrice());
         if (timeRemainingLabel != null) timeRemainingLabel.setText(viewModel.getDisplayTimeRemaining());
 
+        refreshBalanceLabel();
         setupChart();
         startCountdownTimer();
+    }
+
+    // ── Balance label ─────────────────────────────────────────
+    private void refreshBalanceLabel() {
+        if (balanceLabel == null) return;
+        double bal = UserSession.getInstance().getBalance();
+        balanceLabel.setText(String.format("$%,.0f", bal));
+        String color = bal >= 10_000 ? "#4ade80" : bal >= 1_000 ? "#f0b429" : "#ef4444";
+        balanceLabel.setStyle("-fx-text-fill:" + color +
+                "; -fx-font-size:14px; -fx-font-weight:bold; -fx-font-family:'Arial';");
     }
 
     // ── Handlers ──────────────────────────────────────────────
@@ -60,15 +87,14 @@ public class AuctionDetailController {
     private void handlePlaceBid() {
         AuctionItem item = viewModel.getItem();
         if (item != null) {
-            stopTimer();
+            cleanup();
             NavigationUtils.navigateToBidScreen(item);
         }
     }
 
-    /** Navigates to the Bid History page. */
     @FXML
     private void handleNavHistory(MouseEvent event) {
-        stopTimer();
+        cleanup();
         NavigationUtils.navigateToBidHistory();
     }
 
@@ -118,6 +144,13 @@ public class AuctionDetailController {
         }
 
         priceChart.getData().add(series);
+    }
+
+    // ── Cleanup ───────────────────────────────────────────────
+    private void cleanup() {
+        stopTimer();
+        if (balanceListener != null)
+            UserSession.getInstance().removeBalanceListener(balanceListener);
     }
 
     // ── Utilities ─────────────────────────────────────────────
