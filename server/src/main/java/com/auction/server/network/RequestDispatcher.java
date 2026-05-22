@@ -118,6 +118,10 @@ public class RequestDispatcher {
                 sendError(out, correlationId, ErrorCode.AUTH_INVALID_CREDENTIALS, "Username đã tồn tại.");
                 return;
             }
+            if (userDao.findByEmail(req.getEmail()).isPresent()) {
+                sendError(out, correlationId, ErrorCode.AUTH_INVALID_CREDENTIALS, "Email đã tồn tại.");
+                return;
+            }
             // Tạo user mới
             com.auction.server.model.User newUser;
             switch (req.getRole().toUpperCase()) {

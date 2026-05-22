@@ -159,4 +159,18 @@ public class JdbcUserDao implements UserDao {
             throw new RuntimeException("Lỗi deleteById user: " + id, e);
         }
     }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return Optional.of(mapRow(rs));
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi findByEmail: " + email, e);
+        }
+        return Optional.empty();
+    }
 }
