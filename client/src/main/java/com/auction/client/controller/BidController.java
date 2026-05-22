@@ -14,10 +14,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 public class BidController {
+
     @FXML private Button btnBack;
 
     @FXML private Label itemEmojiLabel;
@@ -64,7 +66,7 @@ public class BidController {
         setupBidHistoryList();
     }
 
-    // ── Called from NavigationUtils after FXML load ───────────
+    // ── Item injection (called by NavigationUtils) ────────────
     public void setAuctionItem(AuctionItem item) {
         this.currentItem = item;
         this.currentBid  = item.getCurrentPrice();
@@ -95,6 +97,14 @@ public class BidController {
 
         seedMockHistory(item);
         startCountdownTimer();
+    }
+
+    // ── History navigation ────────────────────────────────────
+    /** Called by the HISTORY nav label in BidScreen.fxml. */
+    @FXML
+    private void handleNavHistory(MouseEvent event) {
+        stopTimer();
+        NavigationUtils.navigateToBidHistory();
     }
 
     // ── Countdown timer ───────────────────────────────────────
@@ -203,15 +213,16 @@ public class BidController {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-                Label amount = new Label(parts.length > 1 ? parts[1] : "");
-                amount.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 13px; -fx-font-weight: bold; -fx-font-family: 'Arial';");
+                Label amountLbl = new Label(parts.length > 1 ? parts[1] : "");
+                amountLbl.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 13px;" +
+                                   " -fx-font-weight: bold; -fx-font-family: 'Arial';");
 
                 if (getIndex() == 0) {
                     bidder.setStyle(bidder.getStyle() + " -fx-text-fill: #f5f0e6;");
-                    amount.setStyle(amount.getStyle() + " -fx-text-fill: #4ade80;");
+                    amountLbl.setStyle(amountLbl.getStyle() + " -fx-text-fill: #4ade80;");
                 }
 
-                row.getChildren().addAll(bidder, spacer, amount);
+                row.getChildren().addAll(bidder, spacer, amountLbl);
                 setGraphic(row);
                 setText(null);
                 setStyle("-fx-background-color: transparent;");

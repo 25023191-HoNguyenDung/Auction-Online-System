@@ -14,22 +14,24 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 
 public class AuctionDetailController {
 
     @FXML private TextField searchField;
-    @FXML private Label    currentBidLabel;
-    @FXML private Label    timeRemainingLabel;
-    @FXML private Label    titleLabel;
-    @FXML private Label    subtitleLabel;
-    @FXML private Button   placeBidButton;
-    @FXML private Button   btnBack;
+    @FXML private Label     currentBidLabel;
+    @FXML private Label     timeRemainingLabel;
+    @FXML private Label     titleLabel;
+    @FXML private Label     subtitleLabel;
+    @FXML private Button    placeBidButton;
+    @FXML private Button    btnBack;
     @FXML private LineChart<String, Number> priceChart;
     @FXML private TextField bidAmountField;
 
     private final AuctionDetailViewModel viewModel = new AuctionDetailViewModel();
     private Timer countdownTimer;
 
+    // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
         if (btnBack != null) {
@@ -44,15 +46,16 @@ public class AuctionDetailController {
     public void setAuctionItem(AuctionItem item) {
         viewModel.setItem(item);
 
-        if (titleLabel != null)         titleLabel.setText(viewModel.getDisplayTitle());
-        if (subtitleLabel != null)      subtitleLabel.setText(viewModel.getDisplaySubtitle());
-        if (currentBidLabel != null)    currentBidLabel.setText(viewModel.getDisplayPrice());
+        if (titleLabel         != null) titleLabel.setText(viewModel.getDisplayTitle());
+        if (subtitleLabel      != null) subtitleLabel.setText(viewModel.getDisplaySubtitle());
+        if (currentBidLabel    != null) currentBidLabel.setText(viewModel.getDisplayPrice());
         if (timeRemainingLabel != null) timeRemainingLabel.setText(viewModel.getDisplayTimeRemaining());
 
         setupChart();
         startCountdownTimer();
     }
 
+    // ── Handlers ──────────────────────────────────────────────
     @FXML
     private void handlePlaceBid() {
         AuctionItem item = viewModel.getItem();
@@ -62,8 +65,16 @@ public class AuctionDetailController {
         }
     }
 
+    /** Navigates to the Bid History page. */
+    @FXML
+    private void handleNavHistory(MouseEvent event) {
+        stopTimer();
+        NavigationUtils.navigateToBidHistory();
+    }
+
+    // ── Countdown timer ───────────────────────────────────────
     private void startCountdownTimer() {
-        stopTimer(); // cancel any existing timer first
+        stopTimer();
         countdownTimer = new Timer(true);
         countdownTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -75,14 +86,12 @@ public class AuctionDetailController {
                     int seconds = item.secondsLeft();
                     timeRemainingLabel.setText(formatTime(seconds));
 
-                    // Switch to red style when ending soon
                     if (seconds < 900) {
                         timeRemainingLabel.getStyleClass().setAll("ad-timer-ending");
                     } else {
                         timeRemainingLabel.getStyleClass().setAll("ad-timer-value");
                     }
 
-                    // Stop ticking when auction ends
                     if (seconds <= 0) stopTimer();
                 });
             }
@@ -96,6 +105,7 @@ public class AuctionDetailController {
         }
     }
 
+    // ── Chart ─────────────────────────────────────────────────
     private void setupChart() {
         if (priceChart == null) return;
         priceChart.getData().clear();
@@ -109,6 +119,8 @@ public class AuctionDetailController {
 
         priceChart.getData().add(series);
     }
+
+    // ── Utilities ─────────────────────────────────────────────
     private String formatTime(int seconds) {
         if (seconds <= 0) return "00:00:00";
         return String.format("%02d:%02d:%02d",

@@ -34,9 +34,8 @@ public class NavigationUtils {
             System.err.println("❌ Navigation failed: " + fxmlPath);
         }
     }
-    /**
-     * Navigate to AuctionDetail and pass the selected item to its controller.
-     */
+
+    /** Navigate to AuctionDetail and pass the selected item to its controller. */
     public static void navigateToAuctionDetail(AuctionItem item) {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -44,7 +43,6 @@ public class NavigationUtils {
             );
             Parent root = loader.load();
 
-            // Get the controller and inject the item AFTER load
             AuctionDetailController controller = loader.getController();
             controller.setAuctionItem(item);
 
@@ -60,13 +58,11 @@ public class NavigationUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Navigation to AuctionDetail failed");
+            System.err.println("❌ Navigation to AuctionDetail failed");
         }
     }
 
-    /**
-     * Navigate to BidScreen and pass the selected item to its controller.
-     */
+    /** Navigate to BidScreen and pass the selected item to its controller. */
     public static void navigateToBidScreen(AuctionItem item) {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -89,8 +85,13 @@ public class NavigationUtils {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Navigation to BidScreen failed");
+            System.err.println("❌ Navigation to BidScreen failed");
         }
+    }
+
+    /** Navigate to the Bid History page. */
+    public static void navigateToBidHistory() {
+        navigateTo("/com/auction/client/view/BidHistory.fxml", "Bid History");
     }
 
     private static Stage getCurrentStage() {
@@ -104,7 +105,7 @@ public class NavigationUtils {
 
     public static void navigateToDashboard() {
         UserSession session = UserSession.getInstance();
-        
+
         if (!session.isLoggedIn()) {
             navigateTo("/com/auction/client/view/Login.fxml", "Login");
             return;
@@ -112,9 +113,9 @@ public class NavigationUtils {
 
         String role = session.getCurrentUser().getRole().toUpperCase();
         switch (role) {
-            case "ADMIN"  -> navigateTo("/com/auction/client/view/AdminDashboard.fxml", "Admin Dashboard");
+            case "ADMIN"  -> navigateTo("/com/auction/client/view/AdminDashboard.fxml",  "Admin Dashboard");
             case "SELLER" -> navigateTo("/com/auction/client/view/SellerDashboard.fxml", "Seller Dashboard");
-            default       -> navigateTo("/com/auction/client/view/AuctionList.fxml", "Live Auctions");
+            default       -> navigateTo("/com/auction/client/view/AuctionList.fxml",     "Live Auctions");
         }
     }
 
