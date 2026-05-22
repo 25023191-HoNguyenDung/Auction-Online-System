@@ -241,16 +241,8 @@
                                                        styleClass="sd-form-field"/>
                                         </VBox>
 
-                                        <!-- Reserve Price -->
-                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="6">
-                                            <Label text="RESERVE PRICE (\$)" styleClass="sd-form-label"/>
-                                            <TextField fx:id="formReservePrice"
-                                                       promptText="e.g. 8000"
-                                                       styleClass="sd-form-field"/>
-                                        </VBox>
-
                                         <!-- Duration -->
-                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" spacing="6">
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="6">
                                             <Label text="DURATION" styleClass="sd-form-label"/>
                                             <ComboBox fx:id="formDuration"
                                                       styleClass="sd-form-combo"
@@ -258,7 +250,7 @@
                                         </VBox>
 
                                         <!-- Condition -->
-                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="2" spacing="6">
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" spacing="6">
                                             <Label text="CONDITION" styleClass="sd-form-label"/>
                                             <ComboBox fx:id="formCondition"
                                                       styleClass="sd-form-combo"
@@ -320,11 +312,6 @@
                                                    style="-fx-font-weight:bold;" text="\$—"/>
                                         </HBox>
                                         <HBox>
-                                            <Label text="Reserve Price" styleClass="ad-meta-label"/>
-                                            <Region HBox.hgrow="ALWAYS"/>
-                                            <Label fx:id="previewReserve" styleClass="ad-meta-value" text="\$—"/>
-                                        </HBox>
-                                        <HBox>
                                             <Label text="Duration" styleClass="ad-meta-label"/>
                                             <Region HBox.hgrow="ALWAYS"/>
                                             <Label fx:id="previewDuration" styleClass="ad-meta-value" text="—"/>
@@ -351,6 +338,21 @@
                                     <TableColumn fx:id="colBidAmount"  text="Amount"      prefWidth="130"/>
                                     <TableColumn fx:id="colBidTime"    text="Time"        prefWidth="160"/>
                                     <TableColumn fx:id="colBidStatus"  text="Status"      prefWidth="110"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+                    </Tab>
+
+                    <!-- Tab: History -->
+                    <Tab text="History" closable="false">
+                        <VBox spacing="14" style="-fx-padding:16 0 0 0;">
+                            <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="sd-table">
+                                <columns>
+                                    <TableColumn fx:id="colHistoryItem"   text="Item"   prefWidth="220"/>
+                                    <TableColumn fx:id="colHistoryAction" text="Action" prefWidth="180"/>
+                                    <TableColumn fx:id="colHistoryAmount" text="Amount" prefWidth="130"/>
+                                    <TableColumn fx:id="colHistoryTime"   text="Time"   prefWidth="160"/>
+                                    <TableColumn fx:id="colHistoryStatus" text="Status" prefWidth="130"/>
                                 </columns>
                             </TableView>
                         </VBox>

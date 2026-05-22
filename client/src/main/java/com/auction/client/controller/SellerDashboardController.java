@@ -59,7 +59,6 @@ public class SellerDashboardController {
     @FXML private TextField        formItemName;
     @FXML private ComboBox<String> formCategory;
     @FXML private TextField        formStartPrice;
-    @FXML private TextField        formReservePrice;
     @FXML private ComboBox<String> formDuration;
     @FXML private ComboBox<String> formCondition;
     @FXML private TextArea         formDescription;
@@ -69,7 +68,6 @@ public class SellerDashboardController {
     @FXML private Label previewTitle;
     @FXML private Label previewCategory;
     @FXML private Label previewPrice;
-    @FXML private Label previewReserve;
     @FXML private Label previewDuration;
     @FXML private Label previewEmoji;
 
@@ -81,9 +79,18 @@ public class SellerDashboardController {
     @FXML private TableColumn<String[], String>    colBidTime;
     @FXML private TableColumn<String[], String>    colBidStatus;
 
+    // History tab
+    @FXML private TableView<String[]>              historyTable;
+    @FXML private TableColumn<String[], String>    colHistoryItem;
+    @FXML private TableColumn<String[], String>    colHistoryAction;
+    @FXML private TableColumn<String[], String>    colHistoryAmount;
+    @FXML private TableColumn<String[], String>    colHistoryTime;
+    @FXML private TableColumn<String[], String>    colHistoryStatus;
+
     // ── Mock data ─────────────────────────────────────────────
     private final ObservableList<AuctionItem> myAuctions = FXCollections.observableArrayList();
     private final ObservableList<String[]>    bidsData   = FXCollections.observableArrayList();
+    private final ObservableList<String[]>    historyData = FXCollections.observableArrayList();
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
@@ -93,6 +100,7 @@ public class SellerDashboardController {
         setupMyAuctionsTab();
         setupCreateListingTab();
         setupBidsTab();
+        setupHistoryTab();
         loadMockData();
     }
 
@@ -114,7 +122,7 @@ public class SellerDashboardController {
         sideMyAuctions.setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideMyAuctions); });
         sideCreate    .setOnAction(e -> { tabPane.getSelectionModel().select(1); setActive(sideCreate);     });
         sideBids      .setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideBids);       });
-        sideHistory   .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideHistory);    });
+        sideHistory   .setOnAction(e -> { tabPane.getSelectionModel().select(3); setActive(sideHistory);    });
     }
 
     private void setActive(Button active) {
@@ -190,8 +198,11 @@ public class SellerDashboardController {
 
     // ── Create Listing tab ────────────────────────────────────
     private void setupCreateListingTab() {
-        formCategory.getItems().addAll("Vehicles", "Watches", "Art", "Jewellery", "Electronics", "Other");
-        formDuration.getItems().addAll("1 Day", "3 Days", "7 Days", "14 Days", "30 Days");
+        formCategory.getItems().addAll("Vehicles", "Watches", "Art", "Electronics", "Other");
+        formDuration.getItems().addAll(
+            "1 Hour", "3 Hours", "6 Hours", "12 Hours",
+            "1 Day", "3 Days", "7 Days", "14 Days", "30 Days"
+        );
         formCondition.getItems().addAll("New", "Like New", "Excellent", "Good", "Fair");
 
         formCategory.getSelectionModel().selectFirst();
@@ -207,8 +218,6 @@ public class SellerDashboardController {
         });
         formStartPrice.textProperty().addListener((o, old, v) ->
             previewPrice.setText(v.isEmpty() ? "$—" : "$" + v));
-        formReservePrice.textProperty().addListener((o, old, v) ->
-            previewReserve.setText(v.isEmpty() ? "$—" : "$" + v));
         formDuration.setOnAction(e -> {
             String dur = formDuration.getValue();
             previewDuration.setText(dur != null ? dur : "—");
@@ -250,6 +259,7 @@ public class SellerDashboardController {
             null, 0
         );
         myAuctions.add(newItem);
+        addHistory(name, "Created listing", String.format("$%,.0f", startPrice), "Pending Review");
         updateStatCards();
         updateSidebarStats();
 
@@ -262,7 +272,6 @@ public class SellerDashboardController {
     private void handleClearForm() {
         formItemName.clear();
         formStartPrice.clear();
-        formReservePrice.clear();
         formDescription.clear();
         formCategory.getSelectionModel().selectFirst();
         formDuration.getSelectionModel().selectFirst();
@@ -270,7 +279,6 @@ public class SellerDashboardController {
         previewTitle.setText("Item Name");
         previewCategory.setText("Category");
         previewPrice.setText("$—");
-        previewReserve.setText("$—");
         previewDuration.setText("—");
         previewEmoji.setText("⭐");
     }
@@ -290,6 +298,7 @@ public class SellerDashboardController {
         alert.showAndWait().ifPresent(btn -> {
             if (btn == javafx.scene.control.ButtonType.OK) {
                 myAuctions.remove(item);
+                addHistory(item.getItemName(), "Ended auction", String.format("$%,.0f", item.getCurrentPrice()), "Closed");
                 updateStatCards();
                 updateSidebarStats();
                 System.out.println("🔨 Ended: " + item.getItemName());
@@ -340,6 +349,25 @@ public class SellerDashboardController {
         bidsReceivedTable.setItems(bidsData);
     }
 
+    private void setupHistoryTab() {
+        colHistoryItem  .setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[0]));
+        colHistoryAction.setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[1]));
+        colHistoryAmount.setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[2]));
+        colHistoryTime  .setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[3]));
+        colHistoryStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[4]));
+        historyTable.setItems(historyData);
+    }
+
+    private void addHistory(String item, String action, String amount, String status) {
+        historyData.add(0, new String[]{
+            item,
+            action,
+            amount,
+            java.time.LocalTime.now().withNano(0).toString(),
+            status
+        });
+    }
+
     // ── Mock data ─────────────────────────────────────────────
     private void loadMockData() {
         LocalDateTime now = LocalDateTime.now();
@@ -372,6 +400,12 @@ public class SellerDashboardController {
             new String[]{"Pioneer Zenith Hybrid", "@luxcollector", "$240,000", "14:28:44", "Outbid"},
             new String[]{"Ethereal Horizon",      "@marcus_g",     "$18,900",  "13:55:12", "Winning"},
             new String[]{"Ethereal Horizon",      "@artlover22",   "$17,500",  "13:40:08", "Outbid"}
+        ));
+
+        historyData.addAll(List.of(
+            new String[]{"Pioneer Zenith Hybrid", "Listing approved", "$180,000", "09:15:22", "Live"},
+            new String[]{"Ethereal Horizon", "Listing approved", "$12,000", "10:02:11", "Live"},
+            new String[]{"Sapphire Ring 3ct", "Submitted for review", "$10,000", "11:28:47", "Pending"}
         ));
 
         updateStatCards();

@@ -79,27 +79,8 @@
                 <Button fx:id="sideUsers"      text="👥  Users"           styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
                 <Button fx:id="sideAuctions"   text="🔨  Auctions"        styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
                 <Button fx:id="sideApprovals"  text="✅  Approvals"       styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideReports"    text="📈  Reports"         styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideSettings"   text="⚙  System Settings" styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="24"/></VBox.margin></Button>
 
                 <Separator style="-fx-background-color:rgba(201,168,76,0.1);"><VBox.margin><Insets bottom="20"/></VBox.margin></Separator>
-
-                <Label text="SYSTEM STATUS" styleClass="al-section-label"><VBox.margin><Insets bottom="14"/></VBox.margin></Label>
-
-                <VBox spacing="12">
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Circle radius="5" style="-fx-fill:#4ade80;"/>
-                        <Label text="Server Online" style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';"/>
-                    </HBox>
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Circle radius="5" style="-fx-fill:#4ade80;"/>
-                        <Label text="DB Connected" style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';"/>
-                    </HBox>
-                    <HBox alignment="CENTER_LEFT" spacing="8">
-                        <Circle radius="5" fx:id="dotBidEngine" style="-fx-fill:#4ade80;"/>
-                        <Label text="Bid Engine" style="-fx-text-fill:#9aa0b4; -fx-font-size:12px; -fx-font-family:'Arial';"/>
-                    </HBox>
-                </VBox>
 
                 <VBox VBox.vgrow="ALWAYS"/>
 
@@ -120,7 +101,7 @@
                 <HBox alignment="CENTER_LEFT">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label text="Admin Dashboard" styleClass="al-page-title"/>
-                        <Label text="System overview — users, auctions, revenue and approvals."
+                        <Label text="Admin overview — users, auctions, revenue and approvals."
                                styleClass="al-page-subtitle"/>
                     </VBox>
                     <Label fx:id="serverTimeLabel"
@@ -247,3 +228,4 @@
         </HBox>
     </center>
 </BorderPane>
+

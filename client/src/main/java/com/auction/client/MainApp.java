@@ -13,10 +13,10 @@ public class MainApp extends Application {
     public void start(Stage stage) throws Exception {
         // ── TỰ ĐỘNG KẾT NỐI TỚI SERVER CỔNG 1337 KHI MỞ CLIENT ─────────────────
         try {
-            com.auction.client.network.ServerConnection.getInstance().connect("localhost", 1337);
+            com.auction.client.network.ServerConnection.getInstance().connect("10.11.220.83", 1337);
             com.auction.client.network.ServerEventListener listener = new com.auction.client.network.ServerEventListener();
             listener.start();
-            System.out.println(">>> Đã kết nối và lắng nghe server thành công tại localhost:1337!");
+            System.out.println(">>> Đã kết nối và lắng nghe server thành công tại 10.11.220.83:1337!");
         } catch (Exception e) {
             System.err.println(">>> Không thể kết nối tới Server: " + e.getMessage() + ". Vui lòng bật ServerApplication trước!");
         }
