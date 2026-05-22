@@ -9,10 +9,10 @@ DELETE FROM users;
 
 -- 1. Users
 INSERT INTO users (id, user_name, password, email, role,account_balance) VALUES
-(1, 'admin', 'admin2308', 'admin@gmail.com', 'ADMIN',NULL),
-(2, 'seller1', 'seller12308', 'ducanh@gmail.com', 'SELLER',4000000.0000),
-(3, 'bidder1', 'bidder12308', 'dung@gmail.com',  'BIDDER',5000000.0000),
-(4, 'bidder2', 'bidder22308', 'khanh@gmail.com',  'BIDDER',3000000.0000);
+(1, 'admin', '84acb98c6f06cfe0a314ddb2f3350f7aecfccf060ae8b1e5e434555f80844579', 'admin@gmail.com', 'ADMIN',NULL),
+(2, 'seller1', '1b20b0d6f803116d508571867aaa197e1d3569f7010bddf4ff4ae607c4c27011', 'ducanh@gmail.com', 'SELLER',4000000.0000),
+(3, 'bidder1', 'e110381de23b574ba7c8c1452fdb2838da7959ba83cdfc5adf0391e57f44b510', 'dung@gmail.com',  'BIDDER',5000000.0000),
+(4, 'bidder2', 'd93094701724dd141c2f6f81f67dff9883da420f72faa970a7e62fcf1b6d028f', 'khanh@gmail.com',  'BIDDER',3000000.0000);
 
 -- 2. Items
 INSERT INTO items (id, seller_id, name, description, category, starting_price, current_price, image_url) VALUES
