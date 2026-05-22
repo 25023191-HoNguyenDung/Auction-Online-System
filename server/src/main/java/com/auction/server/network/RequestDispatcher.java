@@ -19,6 +19,7 @@ import com.auction.common.protocol.MessageType;
 import com.auction.common.protocol.PlaceBidReqPayload;
 import com.auction.common.protocol.PlaceBidResPayload;
 import com.auction.common.protocol.ProtocolMapper;
+import com.auction.common.protocol.RegisterReqPayload;
 import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
@@ -51,6 +52,10 @@ public class RequestDispatcher {
                     handleLogin(envelope, correlationId, out);
                     break;
                 }
+                case REGISTER_REQ: {
+                    handleRegister(envelope, correlationId, out);
+                    break;
+                }
                 case LIST_AUCTIONS_REQ: {
                     handleListAuctions(envelope, correlationId, out);
                     break;
@@ -79,6 +84,32 @@ public class RequestDispatcher {
         User user = userOpt.get();
         LoginResPayload res = new LoginResPayload(true, user.get_ID(), user.get_user_name(), user.getRole()); // tạo payload phản hồi
         send(out, mapper.buildResponse(MessageType.LOGIN_RES,correlationId,res)); // gửi dưới dạng JSON
+    }
+
+    private void handleRegister(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        RegisterReqPayload req = mapper.parsePayload(envelope, RegisterReqPayload.class);
+
+        // Dùng lại AuthController đã có
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("username", req.getUsername());
+        payload.put("email",    req.getEmail());
+        payload.put("password", req.getPassword());
+        payload.put("role",     req.getRole());
+
+        com.auction.server.controller.AuthController authController =
+            new com.auction.server.controller.AuthController(userDao instanceof com.auction.server.dao.jdbc.JdbcUserDao
+                ? new com.auction.server.service.AuthService((com.auction.server.dao.UserDao) userDao)
+                : new com.auction.server.service.AuthService(new com.auction.server.dao.jdbc.JdbcUserDao()));
+
+        java.util.Map<String, Object> result = authController.handleRegister(payload);
+
+        boolean success = Boolean.TRUE.equals(result.get("success"));
+        if (success) {
+            LoginResPayload res = new LoginResPayload(true, 0, req.getUsername(), req.getRole());
+            send(out, mapper.buildResponse(MessageType.REGISTER_RES, correlationId, res));
+        } else {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, (String) result.get("message"));
+        }
     }
 
     // lấy ds phiên đgia gửi client
