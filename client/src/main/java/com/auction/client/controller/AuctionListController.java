@@ -84,6 +84,13 @@ public class AuctionListController {
         NavigationUtils.logout();
     }
 
+    // ── History navigation ────────────────────────────────────
+    @FXML
+    private void handleNavHistory() {
+        if (clockTimer != null) clockTimer.cancel();
+        NavigationUtils.navigateToBidHistory();
+    }
+
     // ── Search ────────────────────────────────────────────────
     private void setupSearch() {
         if (searchField != null) {
@@ -115,9 +122,9 @@ public class AuctionListController {
 
     // ── Status buttons ────────────────────────────────────────
     private void setupStatusButtons() {
-        if (statusLive      != null) statusLive.setOnAction(e -> setActiveStatus(statusLive));
-        if (statusUpcoming  != null) statusUpcoming.setOnAction(e -> setActiveStatus(statusUpcoming));
-        if (statusEndingSoon!= null) statusEndingSoon.setOnAction(e -> setActiveStatus(statusEndingSoon));
+        if (statusLive       != null) statusLive.setOnAction(e -> setActiveStatus(statusLive));
+        if (statusUpcoming   != null) statusUpcoming.setOnAction(e -> setActiveStatus(statusUpcoming));
+        if (statusEndingSoon != null) statusEndingSoon.setOnAction(e -> setActiveStatus(statusEndingSoon));
     }
 
     private void setActiveStatus(Button activeBtn) {
@@ -132,8 +139,8 @@ public class AuctionListController {
         } else {
             activeBtn.getStyleClass().add("active");
             if      (activeBtn == statusLive)        viewModel.setFilterStatus("LIVE");
-            else if (activeBtn == statusUpcoming)     viewModel.setFilterStatus("PENDING");
-            else if (activeBtn == statusEndingSoon)   viewModel.setFilterStatus("ENDING_SOON");
+            else if (activeBtn == statusUpcoming)    viewModel.setFilterStatus("PENDING");
+            else if (activeBtn == statusEndingSoon)  viewModel.setFilterStatus("ENDING_SOON");
         }
         refreshCards();
     }
@@ -250,7 +257,6 @@ public class AuctionListController {
         body.getChildren().addAll(title, subtitle, bidRow, bidButton);
         card.getChildren().addAll(imagePane, body);
 
-        // Click card body to open detail
         card.setOnMouseClicked(e -> {
             if (!(e.getTarget() instanceof Button))
                 NavigationUtils.navigateToAuctionDetail(item);
@@ -278,6 +284,7 @@ public class AuctionListController {
             }
         }, 1000, 1000);
     }
+
     // ── Utilities ─────────────────────────────────────────────
     private String emojiFor(String category) {
         if (category == null) return "⭐";
@@ -290,6 +297,7 @@ public class AuctionListController {
             default                    -> "⭐";
         };
     }
+
     private String formatTime(int seconds) {
         if (seconds <= 0) return "00:00:00";
         return String.format("%02d:%02d:%02d",
