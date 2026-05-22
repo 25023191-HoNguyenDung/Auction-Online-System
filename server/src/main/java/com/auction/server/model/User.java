@@ -24,9 +24,33 @@ public abstract class User {
     //abstract method:
     public abstract void set_role();
 
-    //Checking password:
+    //Checking password (băm SHA-256 trước khi so sánh với mật khẩu DB):
     public boolean check_password(String input_password) {
-        return input_password.equals(password);
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(input_password.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder(2 * hash.length);
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            String calculatedHash = hexString.toString();
+
+            // ── THÊM ĐOẠN LOG ĐỂ KIỂM TRA LỆCH Ở ĐÂU ──────────────────────────
+            System.out.println("\n====== [DEBUG ĐĂNG NHẬP] ======");
+            System.out.println("Tài khoản nhập: " + get_user_name());
+            System.out.println("Mật khẩu thô nhận được: [" + input_password + "]");
+            System.out.println("Mã băm tính toán được:   [" + calculatedHash + "]");
+            System.out.println("Mã băm thực tế trong DB: [" + password + "]");
+            System.out.println("Kết quả so sánh khớp:    " + calculatedHash.equals(password));
+            System.out.println("================================\n");
+            // ─────────────────────────────────────────────────────────────────
+
+            return calculatedHash.equals(password);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return false;
+        }
     }
     
     //Getters and Setters:
