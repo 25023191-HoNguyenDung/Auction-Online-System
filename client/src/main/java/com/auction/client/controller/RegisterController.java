@@ -3,6 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.network.ClientMessageSender;
 import com.auction.client.util.NavigationUtils;
 
+import com.auction.client.viewmodel.RegisterViewModel;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -42,7 +43,7 @@ public class RegisterController {
             roleComboBox.getSelectionModel().selectFirst();
         }
     }
-
+    private final RegisterViewModel viewModel = new RegisterViewModel();
     @FXML
     private void handleRegister() {
         String role    = roleComboBox.getValue();
@@ -53,35 +54,17 @@ public class RegisterController {
 
         errorLabel.setVisible(false);
 
-        if (role == null || userName.isEmpty() || email.isEmpty()
-                || pass.isEmpty() || confirm.isEmpty()) {
-            showMessage("Please fill in all fields.", false);
-            return;
-        }
-        if (!pass.equals(confirm)) {
-            showMessage("Passwords do not match.", false);
-            return;
-        }
         if (!termsCheckBox.isSelected()) {
             showMessage("You must agree to the Terms of Service.", false);
             return;
         }
 
-        try {
-            ClientMessageSender sender = new ClientMessageSender();
-            sender.sendRegister(userName, email, pass, role);
+        RegisterViewModel.RegisterResult result = viewModel.register(userName, email, pass, confirm, role);
 
-            showMessage("Đang đăng ký tài khoản...", true);
-
-            // Tạm navigate sau 1.5s (sau này sẽ chờ response thật)
-            new Thread(() -> {
-                try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
-                Platform.runLater(this::goToLogin);
-            }).start();
-
-        } catch (Exception e) {
-            showMessage("Lỗi kết nối server: " + e.getMessage(), false);
-            e.printStackTrace();
+        switch (result) {
+            case SUCCESS -> Platform.runLater(this::goToLogin);
+            case EMPTY_FIELDS, PASSWORD_MISMATCH, SERVER_ERROR ->
+                    showMessage(viewModel.getErrorMessage(), false);
         }
     }
 

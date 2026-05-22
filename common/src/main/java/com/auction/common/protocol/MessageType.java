@@ -12,4 +12,8 @@ public enum MessageType {
     LIST_AUCTIONS_RES, // server trả ds phiên
     REGISTER_REQ,
     REGISTER_RES,
+    LIST_USERS_REQ,
+    LIST_USERS_RES,
+    LIST_MY_AUCTIONS_REQ,
+    LIST_MY_AUCTIONS_RES,
 }

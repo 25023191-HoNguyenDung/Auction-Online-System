@@ -44,6 +44,19 @@ public class AuctionItem {
 
     // Helper methods
     public boolean isRunning() { return "RUNNING".equals(status); }
+
+    public void setTotalBids(int totalBids) {
+        this.totalBids = totalBids;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setCurrentPrice(double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
     public boolean isPending() { return "PENDING".equals(status); }
     public boolean isClosed()  { return "CLOSED".equals(status); }
     public boolean isEndingSoon() {

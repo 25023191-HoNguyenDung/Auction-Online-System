@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.auction.client.network.ServerConnection;
+import com.auction.client.network.ServerEventListener;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -19,6 +20,7 @@ public class MainApp extends Application {
 
         try {
             ServerConnection.getInstance().connect(HOST, PORT);
+            ServerEventListener.getInstance().start();
         } catch (IOException e) {
             System.err.println("Không thể kết nối server: " + e.getMessage());
         }

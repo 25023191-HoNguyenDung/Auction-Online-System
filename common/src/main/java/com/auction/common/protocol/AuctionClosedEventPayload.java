@@ -1,5 +1,8 @@
 package com.auction.common.protocol;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 // thông báo khi phiên đấu giá kết thúc
@@ -10,7 +13,13 @@ public class AuctionClosedEventPayload {
     private final String status; // trạng thái
     private final Instant closedAt; // thời gian đóng
 
-    public AuctionClosedEventPayload(long auctionId, BigDecimal finalPrice, long winnerBidderId, String status, Instant closedAt) {
+    @JsonCreator
+    public AuctionClosedEventPayload(
+            @JsonProperty("auctionId")      long auctionId,
+            @JsonProperty("finalPrice")     BigDecimal finalPrice,
+            @JsonProperty("winnerBidderId") long winnerBidderId,
+            @JsonProperty("status")         String status,
+            @JsonProperty("closedAt")       Instant closedAt) {
         this.auctionId = auctionId;
         this.finalPrice = finalPrice;
         this.winnerBidderId = winnerBidderId;

@@ -1,14 +1,21 @@
 package com.auction.client.viewmodel;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerConnection;
+import com.auction.client.network.ServerEventListener;
+import com.auction.common.protocol.*;
 
 /**
  * AuctionListViewModel
@@ -19,6 +26,8 @@ import com.auction.client.model.AuctionItem;
 public class AuctionListViewModel {
     private final List<AuctionItem> allItems      = new ArrayList<>();
     private final List<AuctionItem> filteredItems = new ArrayList<>();
+    private final ClientMessageSender sender      = new ClientMessageSender();
+    private final ProtocolMapper mapper           = new ProtocolMapper();
 
     private String filterStatus        = "ALL";
     private Set<String> filterCategories = new HashSet<>(); // empty = ALL
@@ -38,67 +47,33 @@ public class AuctionListViewModel {
      */
     public void loadData() {
         allItems.clear();
-        LocalDateTime now = LocalDateTime.now();
+        if (!ServerConnection.getInstance().isConnected()) return;
 
-        // auctionId, itemId, sellerId, sellerName,
-        // itemName, description, category, status,
-        // startingPrice, currentPrice,
-        // startTime, endTime, imageUrl, totalBids
-        allItems.add(new AuctionItem(
-            1L, 101L, 2L, "Sterling House",
-            "Pioneer Zenith Hybrid", "LIMITED PRODUCTION 1 OF 50",
-            "Vehicles", "RUNNING",
-            180000, 245000,
-            now.minusHours(2), now.plusSeconds(7685),
-            null, 47));
+        try {
+            CompletableFuture<MessageEnvelope> future = new CompletableFuture<>();
+            String messageId = sender.sendListAuctions(0, 0, 100, "");
+            ServerEventListener.getInstance().onResponse(messageId, future::complete);
 
-        allItems.add(new AuctionItem(
-            2L, 102L, 4L, "Marcus Gold",
-            "Vanguard Tourbillon", "ROSE GOLD SKELETON EDITION",
-            "Watches", "RUNNING",
-            70000, 82400,
-            now.minusHours(5), now.plusSeconds(704),
-            null, 31));
+            MessageEnvelope response = future.get(5, TimeUnit.SECONDS);
 
-        allItems.add(new AuctionItem(
-            3L, 103L, 2L, "Sterling House",
-            "Ethereal Horizon", "MIXED MEDIA ON CANVAS (2024)",
-            "Art", "RUNNING",
-            12000, 18900,
-            now.minusHours(1), now.plusSeconds(31332),
-            null, 12));
-
-        allItems.add(new AuctionItem(
-            4L, 104L, 4L, "Marcus Gold",
-            "Wraith Stealth Tender", "CUSTOM CARBON SERIES",
-            "Vehicles", "RUNNING",
-            400000, 512000,
-            now.minusHours(3), now.plusDays(1).plusHours(4),
-            null, 28));
-
-        allItems.add(new AuctionItem(
-            5L, 105L, 2L, "Sterling House",
-            "Neon Phantom", "DIGITAL ART 1/1 EDITION",
-            "Art", "RUNNING",
-            6000, 9500,
-            now.minusHours(1), now.plusSeconds(5400),
-            null, 15));
-
-        allItems.add(new AuctionItem(
-            6L, 106L, 4L, "Marcus Gold",
-            "Quantum X Laptop", "TITANIUM EDITION 2024",
-            "Electronics", "RUNNING",
-            3000, 4200,
-            now.minusHours(4), now.plusSeconds(500),
-            null, 8));
-
-        allItems.add(new AuctionItem(
-            7L, 107L, 2L, "Sterling House",
-            "Sapphire Ring 3ct", "VVS1 CERTIFIED",
-            "Jewellery", "PENDING",
-            10000, 10000,
-            now.plusDays(1), now.plusDays(8),
-            null, 0));
+            if (response.getType() == MessageType.LIST_AUCTIONS_RES) {
+                ListAuctionsResPayload payload = mapper.parsePayload(response, ListAuctionsResPayload.class);
+                for (AuctionSummaryItem s : payload.getAuctions()) {
+                    LocalDateTime endTime = LocalDateTime.ofInstant(s.getEndTime(), ZoneOffset.UTC);
+                    allItems.add(new AuctionItem(
+                            s.getAuctionId(),
+                            0L, 0L, "",
+                            s.getItemName(), "",
+                            "", s.getStatus(),
+                            0, s.getCurrentHighestBid().doubleValue(),
+                            LocalDateTime.now(), endTime,
+                            null, 0
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi load auctions: " + e.getMessage());
+        }
 
         applyFilters();
     }

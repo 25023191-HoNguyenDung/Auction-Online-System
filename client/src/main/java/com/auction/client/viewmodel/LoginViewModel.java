@@ -9,6 +9,7 @@ import com.auction.common.protocol.MessageEnvelope;
 import com.auction.common.protocol.MessageType;
 import com.auction.common.protocol.ProtocolMapper;
 import com.auction.client.model.User;
+import com.auction.client.network.ServerEventListener;
 
 public class LoginViewModel {
 
@@ -33,14 +34,19 @@ public class LoginViewModel {
         }
 
         try {
-            // 3. Gửi request lên server
-            sender.sendLogin(username.trim(), password);
+            // Dùng CompletableFuture để chờ response
+            java.util.concurrent.CompletableFuture<MessageEnvelope> future =
+                    new java.util.concurrent.CompletableFuture<>();
 
-            // 4. Đọc response từ server
-            String responseJson = ServerConnection.getInstance().getIn().readLine();
-            System.out.println("SERVER RESPONSE: " + responseJson); // thêm dòng này
-            MessageEnvelope response = mapper.parseEnvelope(responseJson);
-            // 5. Xử lý response
+            // Gửi request
+            String messageId = sender.sendLogin(username.trim(), password);
+
+            // Đăng ký callback theo messageId
+            ServerEventListener.getInstance().onResponse(messageId, future::complete);
+
+            // Chờ response tối đa 5 giây
+            MessageEnvelope response = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
             if (response.getType() == MessageType.LOGIN_RES) {
                 LoginResPayload payload = mapper.parsePayload(response, LoginResPayload.class);
                 User user = new User(payload.getUserId(), payload.getUsername(), "", payload.getRole());
@@ -57,6 +63,10 @@ public class LoginViewModel {
                 errorMessage = "Phản hồi không hợp lệ từ server.";
                 return LoginResult.SERVER_ERROR;
             }
+
+        } catch (java.util.concurrent.TimeoutException e) {
+            errorMessage = "Server không phản hồi.";
+            return LoginResult.SERVER_ERROR;
 
         } catch (Exception e) {
             errorMessage = "Lỗi kết nối server: " + e.getMessage();

@@ -2,11 +2,19 @@ package com.auction.client.controller;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerConnection;
+import com.auction.client.network.ServerEventListener;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.ProtocolMapper;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -44,7 +52,8 @@ public class BidController {
 
     private AuctionItem currentItem;
     private double currentBid = 0;
-    private static final double MOCK_BALANCE = 50_000.0;
+    private final ClientMessageSender sender = new ClientMessageSender();
+    private final ProtocolMapper mapper = new ProtocolMapper();
     private Timer countdownTimer;
 
     // ── Lifecycle ─────────────────────────────────────────────
@@ -90,10 +99,11 @@ public class BidController {
 
         double minBid = currentBid + 1;
         minBidLabel.setText(fmt(minBid));
-        balanceLabel.setText(fmt(MOCK_BALANCE));
+        balanceLabel.setText("N/A"); // TODO: lấy balance từ server sau
         bidAmountField.setPromptText(fmt(minBid));
 
-        seedMockHistory(item);
+        bidHistoryList.getItems().clear(); // xóa mock history
+        bidCountLabel.setText("0 bids");
         startCountdownTimer();
     }
 
@@ -165,24 +175,37 @@ public class BidController {
             showError("Your bid must be higher than the current bid of " + fmt(currentBid) + ".");
             return;
         }
-        if (amount > MOCK_BALANCE) {
-            showError("Insufficient balance. Your balance is " + fmt(MOCK_BALANCE) + ".");
+        if (!ServerConnection.getInstance().isConnected()) {
+            showError("Chưa kết nối server.");
             return;
         }
 
-        currentBid = amount;
-        currentBidLabel.setText(fmt(currentBid));
-        minBidLabel.setText(fmt(currentBid + 1));
-        bidAmountField.clear();
+        try {
+            CompletableFuture<MessageEnvelope> future = new CompletableFuture<>();
+            long userId = UserSession.getInstance().getCurrentUser().getId();
+            String messageId = sender.sendPlaceBid(
+                    currentItem.getAuctionId(), userId, java.math.BigDecimal.valueOf(amount));
+            ServerEventListener.getInstance().onResponse(messageId, future::complete);
 
-        String bidder = UserSession.getInstance().isLoggedIn()
-            ? UserSession.getInstance().getCurrentUser().getUsername()
-            : "You";
+            MessageEnvelope response = future.get(5, TimeUnit.SECONDS);
 
-        bidHistoryList.getItems().add(0, bidder + "  →  " + fmt(amount));
-        bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
-        showSuccess("Bid of " + fmt(amount) + " placed successfully!");
-        System.out.println("✅ Bid placed: " + fmt(amount) + " on " + currentItem.getItemName());
+            if (response.getType() == MessageType.PLACE_BID_RES) {
+                currentBid = amount;
+                currentBidLabel.setText(fmt(currentBid));
+                minBidLabel.setText(fmt(currentBid + 1));
+                bidAmountField.clear();
+                String bidder = UserSession.getInstance().getCurrentUser().getUsername();
+                bidHistoryList.getItems().add(0, bidder + "  →  " + fmt(amount));
+                bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
+                showSuccess("Bid of " + fmt(amount) + " placed successfully!");
+            } else {
+                com.auction.common.protocol.ErrorPayload error =
+                        mapper.parsePayload(response, com.auction.common.protocol.ErrorPayload.class);
+                showError(error.getMessage());
+            }
+        } catch (Exception e) {
+            showError("Lỗi kết nối: " + e.getMessage());
+        }
     }
 
     // ── Bid history list ──────────────────────────────────────
@@ -219,18 +242,6 @@ public class BidController {
         });
     }
 
-    private void seedMockHistory(AuctionItem item) {
-        bidHistoryList.getItems().clear();
-        double price = item.getCurrentPrice();
-        String[][] mocks = {
-            {"Sterling House", fmt(price)},
-            {"@bidder_99",     fmt(price * 0.97)},
-            {"@luxcollector",  fmt(price * 0.94)},
-            {"@marcus_g",      fmt(price * 0.90)},
-        };
-        for (String[] m : mocks) bidHistoryList.getItems().add(m[0] + "  →  " + m[1]);
-        bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
-    }
 
     // ── Utilities ─────────────────────────────────────────────
     private void showError(String msg) {

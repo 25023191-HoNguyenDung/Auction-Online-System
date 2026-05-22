@@ -6,11 +6,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.auction.client.model.AuctionItem;
 import com.auction.client.model.User;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerConnection;
+import com.auction.client.network.ServerEventListener;
 import com.auction.client.util.NavigationUtils;
 
+import com.auction.common.protocol.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -86,6 +92,8 @@ public class AdminDashboardController {
     private final ObservableList<User>        allUsers     = FXCollections.observableArrayList();
     private final ObservableList<AuctionItem> allAuctions  = FXCollections.observableArrayList();
     private final ObservableList<AuctionItem> pendingItems = FXCollections.observableArrayList();
+    private final ClientMessageSender sender = new ClientMessageSender();
+    private final ProtocolMapper mapper = new ProtocolMapper();
     private Timer clockTimer;
 
     private static final DateTimeFormatter UTC_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -93,7 +101,7 @@ public class AdminDashboardController {
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
-        loadMockData();
+        loadData();
         setupSidebar();
         setupUsersTab();
         setupAuctionsTab();
@@ -376,30 +384,43 @@ public class AdminDashboardController {
     }
 
     // ── Mock data ─────────────────────────────────────────────
-    private void loadMockData() {
-        LocalDateTime now = LocalDateTime.now();
-        allUsers.addAll(List.of(
-            new User(1L,  "@collector_a",   "collector@aureate.com", "BIDDER"),
-            new User(2L,  "@sterlinghouse", "sterling@aureate.com",  "SELLER"),
-            new User(3L,  "@marcus_gold",   "marcus@aureate.com",    "SELLER"),
-            new User(4L,  "@bidder_99",     "bidder99@gmail.com",    "BIDDER"),
-            new User(5L,  "@luxcollector",  "lux@gmail.com",         "BIDDER"),
-            new User(6L,  "@artlover22",    "artlover@gmail.com",    "BIDDER"),
-            new User(99L, "admin",          "admin@auctionpro.com",  "ADMIN")
-        ));
-        allAuctions.addAll(List.of(
-            new AuctionItem(1L,101L,2L,"@sterlinghouse","Pioneer Zenith Hybrid","LIMITED PRODUCTION 1 OF 50","Vehicles","RUNNING",180000,245000,now.minusHours(2),now.plusSeconds(7685),null,47),
-            new AuctionItem(2L,102L,3L,"@marcus_gold","Vanguard Tourbillon","ROSE GOLD SKELETON EDITION","Watches","RUNNING",70000,82400,now.minusHours(5),now.plusSeconds(704),null,31),
-            new AuctionItem(3L,103L,2L,"@sterlinghouse","Ethereal Horizon","MIXED MEDIA ON CANVAS (2024)","Art","RUNNING",12000,18900,now.minusHours(1),now.plusSeconds(31332),null,12),
-            new AuctionItem(4L,104L,3L,"@marcus_gold","Wraith Stealth Tender","CUSTOM CARBON SERIES","Vehicles","RUNNING",400000,512000,now.minusHours(3),now.plusDays(1),null,28),
-            new AuctionItem(5L,105L,2L,"@sterlinghouse","Neon Phantom","DIGITAL ART 1/1 EDITION","Art","RUNNING",6000,9500,now.minusHours(1),now.plusSeconds(5400),null,15),
-            new AuctionItem(6L,106L,3L,"@marcus_gold","Quantum X Laptop","TITANIUM EDITION 2024","Electronics","RUNNING",3000,4200,now.minusHours(4),now.plusSeconds(500),null,8)
-        ));
-        pendingItems.addAll(List.of(
-            new AuctionItem(7L,107L,2L,"@sterlinghouse","Sapphire Ring 3ct","VVS1 CERTIFIED","Jewellery","PENDING",10000,10000,now.plusDays(1),now.plusDays(8),null,0),
-            new AuctionItem(8L,108L,3L,"@marcus_gold","Rolex Daytona 2024","STAINLESS STEEL OYSTERFLEX","Watches","PENDING",25000,25000,now.plusDays(2),now.plusDays(9),null,0),
-            new AuctionItem(9L,109L,2L,"@sterlinghouse","Ferrari 488 Spider","2019 LOW MILEAGE","Vehicles","PENDING",280000,280000,now.plusDays(1),now.plusDays(7),null,0)
-        ));
+    private void loadData() {
+        if (!ServerConnection.getInstance().isConnected()) return;
+        try {
+            // Load users
+            CompletableFuture<MessageEnvelope> future = new CompletableFuture<>();
+            String msgId = sender.sendListUsers();
+            ServerEventListener.getInstance().onResponse(msgId, future::complete);
+            MessageEnvelope response = future.get(5, TimeUnit.SECONDS);
+
+            if (response.getType() == MessageType.LIST_USERS_RES) {
+                ListUsersResPayload payload = mapper.parsePayload(response, ListUsersResPayload.class);
+                for (UserSummaryItem u : payload.getUsers()) {
+                    allUsers.add(new User(u.getId(), u.getUsername(), u.getEmail(), u.getRole()));
+                }
+            }
+
+            // Load auctions
+            CompletableFuture<MessageEnvelope> future2 = new CompletableFuture<>();
+            String msgId2 = sender.sendListAuctions(0, 0, 100, "");
+            ServerEventListener.getInstance().onResponse(msgId2, future2::complete);
+            MessageEnvelope response2 = future2.get(5, TimeUnit.SECONDS);
+
+            if (response2.getType() == MessageType.LIST_AUCTIONS_RES) {
+                ListAuctionsResPayload payload2 = mapper.parsePayload(response2, ListAuctionsResPayload.class);
+                for (AuctionSummaryItem a : payload2.getAuctions()) {
+                    LocalDateTime endTime = LocalDateTime.ofInstant(a.getEndTime(), ZoneOffset.UTC);
+                    allAuctions.add(new AuctionItem(
+                            a.getAuctionId(), 0L, 0L, "",
+                            a.getItemName(), "", "", a.getStatus(),
+                            0, a.getCurrentHighestBid().doubleValue(),
+                            LocalDateTime.now(), endTime, null, 0));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi load admin data: " + e.getMessage());
+        }
+        updateStatCards();
     }
     // ── UI helpers ────────────────────────────────────────────
     private Button makeBtn(String text, String textColor, String bgColor) {

@@ -52,4 +52,16 @@ public class ClientMessageSender {
         send(envelope);
         return envelope.getMessageId();
     }
+    public String sendListUsers() {
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.LIST_USERS_REQ, new Object());
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendListMyAuctions(long sellerId) {
+        ListMyAuctionsReqPayload payload = new ListMyAuctionsReqPayload(sellerId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.LIST_MY_AUCTIONS_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
 }

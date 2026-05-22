@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.client.model.AuctionItem;
+import javafx.application.Platform;
+import com.auction.client.network.ServerEventListener;
+
 /**
  * ViewModel for AuctionDetail screen.
  * Holds the currently displayed item and prepares chart/meta data for the controller.
@@ -11,6 +14,8 @@ import com.auction.client.model.AuctionItem;
 public class AuctionDetailViewModel {
 
     private AuctionItem currentItem;
+    private Runnable onPriceUpdated;
+    private Runnable onAuctionClosed;
 
     // ── Bind item ─────────────────────────────────────────────
     public void setItem(AuctionItem item) {
@@ -20,6 +25,41 @@ public class AuctionDetailViewModel {
     public AuctionItem getItem() {
         return currentItem;
     }
+
+    public void startListening() {
+        if (currentItem == null) return;
+        long auctionId = currentItem.getAuctionId();
+
+        ServerEventListener listener = ServerEventListener.getInstance();
+
+        listener.setOnBidUpdated(payload -> {
+            if (payload.getAuctionId() == auctionId) {
+                currentItem.setCurrentPrice(payload.getNewHighestBid().doubleValue());
+                currentItem.setTotalBids(currentItem.getTotalBids() + 1);
+                Platform.runLater(() -> {
+                    if (onPriceUpdated != null) onPriceUpdated.run();
+                });
+            }
+        });
+
+        listener.setOnAuctionClosed(payload -> {
+            if (payload.getAuctionId() == auctionId) {
+                currentItem.setStatus("CLOSED");
+                Platform.runLater(() -> {
+                    if (onAuctionClosed != null) onAuctionClosed.run();
+                });
+            }
+        });
+    }
+    public void stopListening() {
+        ServerEventListener listener = ServerEventListener.getInstance();
+        listener.setOnBidUpdated(null);
+        listener.setOnAuctionClosed(null);
+    }
+
+
+    public void setOnPriceUpdated(Runnable callback) { this.onPriceUpdated = callback; }
+    public void setOnAuctionClosed(Runnable callback) { this.onAuctionClosed = callback; }
 
     // ── Derived display values ────────────────────────────────
     public String getDisplayPrice() {

@@ -55,6 +55,14 @@ public class RequestDispatcher {
                     handleRegister(envelope, correlationId, out);
                     break;
                 }
+                case LIST_USERS_REQ: {
+                    handleListUsers(correlationId, out);
+                    break;
+                }
+                case LIST_MY_AUCTIONS_REQ: {
+                    handleListMyAuctions(envelope, correlationId, out);
+                    break;
+                }
                 default: {
                     sendError(out, correlationId, ErrorCode.UNSUPPORTED_PROTOCOL, "MessageType không được hỗ trợ: " + envelope.getType());
                 }
@@ -116,6 +124,7 @@ public class RequestDispatcher {
                 case "SELLER" -> newUser = new com.auction.server.model.Seller(
                         req.getUsername(), 0, req.getEmail(), req.getPassword(), "SELLER",
                         java.math.BigDecimal.ZERO, new java.util.ArrayList<>(), new java.util.ArrayList<>());
+
                 default -> newUser = new com.auction.server.model.Bidder(
                         req.getUsername(), 0, req.getEmail(), req.getPassword(), "BIDDER",
                         java.math.BigDecimal.ZERO, new java.util.ArrayList<>());
@@ -127,6 +136,29 @@ public class RequestDispatcher {
             e.printStackTrace();
             sendError(out, correlationId, ErrorCode.INTERNAL_ERROR, "Lỗi đăng ký: " + e.getMessage());
         }
+    }
+    private void handleListUsers(String correlationId, PrintWriter out) {
+        var users = userDao.findAll();
+        var summaries = users.stream()
+                .map(u -> new UserSummaryItem(u.get_ID(), u.get_user_name(), u.get_email(), u.getRole()))
+                .toList();
+        send(out, mapper.buildResponse(MessageType.LIST_USERS_RES, correlationId,
+                new ListUsersResPayload(summaries, summaries.size())));
+    }
+
+    private void handleListMyAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out) throws AuctionConnectException {
+        ListMyAuctionsReqPayload req = mapper.parsePayload(envelope, ListMyAuctionsReqPayload.class);
+        var auctions = auctionService.getAllAuctions().stream()
+                .filter(a -> a.getSeller_id() == req.getSellerId())
+                .toList();
+        var summaries = auctions.stream()
+                .map(a -> new AuctionSummaryItem(
+                        a.getId(), String.valueOf(a.getItem_id()),
+                        a.getCurrent_price(), a.getStatus().name(),
+                        a.getEnd_time().toInstant(ZoneOffset.UTC)))
+                .toList();
+        send(out, mapper.buildResponse(MessageType.LIST_MY_AUCTIONS_RES, correlationId,
+                new ListAuctionsResPayload(summaries, summaries.size())));
     }
 
     // Message->JSON r gửi

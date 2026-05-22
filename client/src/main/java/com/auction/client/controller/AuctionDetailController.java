@@ -51,7 +51,21 @@ public class AuctionDetailController {
 
         setupChart();
         startCountdownTimer();
+
+        viewModel.setOnPriceUpdated(() -> {
+            if (currentBidLabel != null)
+                currentBidLabel.setText(viewModel.getDisplayPrice());
+        });
+
+        viewModel.setOnAuctionClosed(() -> {
+            stopTimer();
+            if (timeRemainingLabel != null)
+                timeRemainingLabel.setText("CLOSED");
+        });
+
+        viewModel.startListening();
     }
+
 
     @FXML
     private void handlePlaceBid() {
@@ -94,6 +108,7 @@ public class AuctionDetailController {
             countdownTimer.cancel();
             countdownTimer = null;
         }
+        viewModel.stopListening();
     }
 
     private void setupChart() {

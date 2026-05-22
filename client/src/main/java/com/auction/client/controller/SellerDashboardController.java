@@ -1,12 +1,18 @@
 package com.auction.client.controller;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.ZoneOffset;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerConnection;
+import com.auction.client.network.ServerEventListener;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
+import com.auction.common.protocol.*;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -84,6 +90,8 @@ public class SellerDashboardController {
     // ── Mock data ─────────────────────────────────────────────
     private final ObservableList<AuctionItem> myAuctions = FXCollections.observableArrayList();
     private final ObservableList<String[]>    bidsData   = FXCollections.observableArrayList();
+    private final ClientMessageSender sender = new ClientMessageSender();
+    private final ProtocolMapper mapper = new ProtocolMapper();
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
@@ -93,7 +101,7 @@ public class SellerDashboardController {
         setupMyAuctionsTab();
         setupCreateListingTab();
         setupBidsTab();
-        loadMockData();
+        loadData();
     }
 
     // ── Seller info ───────────────────────────────────────────
@@ -341,39 +349,33 @@ public class SellerDashboardController {
     }
 
     // ── Mock data ─────────────────────────────────────────────
-    private void loadMockData() {
-        LocalDateTime now = LocalDateTime.now();
-        myAuctions.addAll(List.of(
-            new AuctionItem(1L, 101L,
-                UserSession.getInstance().isLoggedIn() ? UserSession.getInstance().getCurrentUser().getId() : 2L,
-                "Seller Test",
-                "Pioneer Zenith Hybrid", "LIMITED PRODUCTION 1 OF 50",
-                "Vehicles", "RUNNING",
-                180000, 245000,
-                now.minusHours(2), now.plusSeconds(7685), null, 47),
-            new AuctionItem(3L, 103L,
-                UserSession.getInstance().isLoggedIn() ? UserSession.getInstance().getCurrentUser().getId() : 2L,
-                "Seller Test",
-                "Ethereal Horizon", "MIXED MEDIA ON CANVAS (2024)",
-                "Art", "RUNNING",
-                12000, 18900,
-                now.minusHours(1), now.plusSeconds(31332), null, 12),
-            new AuctionItem(7L, 107L,
-                UserSession.getInstance().isLoggedIn() ? UserSession.getInstance().getCurrentUser().getId() : 2L,
-                "Seller Test",
-                "Sapphire Ring 3ct", "VVS1 CERTIFIED",
-                "Jewellery", "PENDING",
-                10000, 10000,
-                now.plusDays(1), now.plusDays(8), null, 0)
-        ));
+    private void loadData() {
+        if (!ServerConnection.getInstance().isConnected()) return;
+        if (!UserSession.getInstance().isLoggedIn()) return;
 
-        bidsData.addAll(List.of(
-            new String[]{"Pioneer Zenith Hybrid", "@bidder_99",    "$245,000", "14:32:01", "Winning"},
-            new String[]{"Pioneer Zenith Hybrid", "@luxcollector", "$240,000", "14:28:44", "Outbid"},
-            new String[]{"Ethereal Horizon",      "@marcus_g",     "$18,900",  "13:55:12", "Winning"},
-            new String[]{"Ethereal Horizon",      "@artlover22",   "$17,500",  "13:40:08", "Outbid"}
-        ));
+        long sellerId = UserSession.getInstance().getCurrentUser().getId();
 
+        try {
+            CompletableFuture<MessageEnvelope> future = new CompletableFuture<>();
+            String msgId = sender.sendListMyAuctions(sellerId);
+            ServerEventListener.getInstance().onResponse(msgId, future::complete);
+            MessageEnvelope response = future.get(5, TimeUnit.SECONDS);
+
+            if (response.getType() == MessageType.LIST_MY_AUCTIONS_RES) {
+                ListAuctionsResPayload payload = mapper.parsePayload(response, ListAuctionsResPayload.class);
+                for (AuctionSummaryItem a : payload.getAuctions()) {
+                    LocalDateTime endTime = LocalDateTime.ofInstant(a.getEndTime(), ZoneOffset.UTC);
+                    myAuctions.add(new AuctionItem(
+                            a.getAuctionId(), 0L, sellerId,
+                            UserSession.getInstance().getCurrentUser().getUsername(),
+                            a.getItemName(), "", "", a.getStatus(),
+                            0, a.getCurrentHighestBid().doubleValue(),
+                            LocalDateTime.now(), endTime, null, 0));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi load seller data: " + e.getMessage());
+        }
         updateStatCards();
         updateSidebarStats();
     }

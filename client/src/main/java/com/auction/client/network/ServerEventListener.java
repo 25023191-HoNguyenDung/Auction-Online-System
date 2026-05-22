@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 
 // đọc message từ server và gọi hàm xử lý tương ứng
 public class ServerEventListener implements Runnable {
+    private static ServerEventListener instance;
     private final ServerConnection connection; // knoi tới server
     private final ProtocolMapper mapper;
     //lưu callback chờ res
@@ -19,11 +20,16 @@ public class ServerEventListener implements Runnable {
     private Consumer<AuctionClosedEventPayload> onAuctionClosed;
     private Consumer<ErrorPayload> onError;
 
-    private volatile boolean running = false; // check verser có đag chạy không
+    private volatile boolean running = false;
 
-    public ServerEventListener() {
+    private ServerEventListener() { // thêm private
         this.connection = ServerConnection.getInstance();
         this.mapper = new ProtocolMapper();
+    }
+
+    public static synchronized ServerEventListener getInstance() {
+        if (instance == null) instance = new ServerEventListener();
+        return instance;
     }
 
     // chạy ServerEventListener
