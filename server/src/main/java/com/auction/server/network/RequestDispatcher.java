@@ -8,23 +8,11 @@ import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
 import com.auction.common.exception.AuctionTimeException;
 import com.auction.common.exception.InvalidBidException;
-import com.auction.common.protocol.AuctionSummaryItem;
-import com.auction.common.protocol.ErrorCode;
-import com.auction.common.protocol.ListAuctionsReqPayload;
-import com.auction.common.protocol.ListAuctionsResPayload;
-import com.auction.common.protocol.LoginReqPayload;
-import com.auction.common.protocol.LoginResPayload;
-import com.auction.common.protocol.MessageEnvelope;
-import com.auction.common.protocol.MessageType;
-import com.auction.common.protocol.PlaceBidReqPayload;
-import com.auction.common.protocol.PlaceBidResPayload;
-import com.auction.common.protocol.ProtocolMapper;
-import com.auction.common.protocol.RegisterReqPayload;
+import com.auction.common.protocol.*;
 import com.auction.server.dao.UserDao;
 import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.User;
-import com.auction.server.observer.AuctionEventPublisher;
 import com.auction.server.service.AuctionServiceImpl;
 
 // điều hướng request đến server phù hợp
@@ -62,6 +50,16 @@ public class RequestDispatcher {
                 }
                 case PLACE_BID_REQ: {
                     handlePlaceBid(envelope, correlationId, out);
+                    break;
+                }
+                case SUBSCRIBE_REQ: {
+                    long auctionId = mapper.parsePayload(envelope, SubscriptionReqPayload.class).getAuctionId();
+                    SubscriptionRegistry.getInstance().subscribe(clientId, auctionId, out);
+                    break;
+                }
+                case UNSUBSCRIBE_REQ: {
+                    long auctionId = mapper.parsePayload(envelope, SubscriptionReqPayload.class).getAuctionId();
+                    SubscriptionRegistry.getInstance().unsubscribe(clientId, auctionId);
                     break;
                 }
                 default: {
@@ -151,5 +149,6 @@ public class RequestDispatcher {
                            ErrorCode code, String message) {
         send(out, mapper.buildErrorResponse(correlationId, code, message));
     }
+
 
 }
