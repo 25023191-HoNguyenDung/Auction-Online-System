@@ -34,15 +34,27 @@ public class AuctionServiceImpl implements AuctionService {
     // Cache xử lí các nghiệp vụ đấu giá
     private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>(); // Cache để lưu trữ các phiên đấu giá đang hoạt động
     private final AutoBidService autoBidService;
-    private final AuctionEventPublisher publisher = AuctionEventPublisher.getInstance();
+    private final AuctionEventPublisher publisher;
     //Quản lý transaction thông qua cơ chế Lambda
-    private final TransactionManager transManager = TransactionManager.getInstance();
+    private final TransactionManager transManager;
 
     public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao) {
         this.auctionDao = auctionDao;
         this.bidDao = bidDao;
         this.userDao = userDao;
         this.autoBidService = new AutoBidService(this);
+        this.publisher = AuctionEventPublisher.getInstance();   // Khởi tạo mặc định an toàn
+        this.transManager = TransactionManager.getInstance();   // Khởi tạo mặc định an toàn
+    }
+
+    //Constructor đầy đủ tham số dùng cho test
+    public AuctionServiceImpl(AuctionDao auctionDao, BidDao bidDao, UserDao userDao, AutoBidService autoBidService, AuctionEventPublisher publisher, TransactionManager transManager) {
+        this.auctionDao = auctionDao;
+        this.bidDao = bidDao;
+        this.userDao = userDao;
+        this.autoBidService = autoBidService;
+        this.publisher = publisher;
+        this.transManager = transManager;
     }
 
     // Constructor mặc định sử dụng các DAO JDBC để kết nối với cơ sở dữ liệu
@@ -124,7 +136,7 @@ public class AuctionServiceImpl implements AuctionService {
         AuctionLockManager lockManager = AuctionLockManager.getInstance();
         lockManager.lock(auctionId);
         try {
-            transManager.executeInTransaction(conn -> {;
+            transManager.executeInTransaction(conn -> {
                 try {
                     manager.placeBid(bid);  //Thực thi luật đặt giá
                     userDao.update(bidder); //Cập nhật thông tin số dư người dùng
