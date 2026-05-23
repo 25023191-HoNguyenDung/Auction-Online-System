@@ -27,6 +27,10 @@ public void register(User newUser, String rawPassword) {
     if (UserDao.findByUsername(newUser.get_user_name()).isPresent())
         throw new ValidRegisterException("Username already exists!");
 
+    // Check trùng email
+    if (UserDao.findByEmail(newUser.get_email()).isPresent())
+        throw new ValidRegisterException("Email already exists!");
+
     // Hash password rồi set lại
     newUser.set_password(hashPassword(rawPassword));
 
