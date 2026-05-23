@@ -2,6 +2,7 @@ package com.auction.client.controller;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 import com.auction.client.model.AuctionItem;
 import com.auction.client.sessions.UserSession;
@@ -14,10 +15,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 public class BidController {
+
     @FXML private Button btnBack;
 
     @FXML private Label itemEmojiLabel;
@@ -43,16 +46,20 @@ public class BidController {
     @FXML private Label            bidCountLabel;
 
     private AuctionItem currentItem;
-    private double currentBid = 0;
-    private static final double MOCK_BALANCE = 50_000.0;
-    private Timer countdownTimer;
+    private double      currentBid   = 0;
+    private double      prevWinBid   = 0;   // last accepted bid so we can refund on outbid
+    private Timer       countdownTimer;
+
+    // Listener refs — held so we can unregister on cleanup
+    private Consumer<Double>                          balanceListener;
+    private Consumer<UserSession.Transaction>         transactionListener;
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
         if (btnBack != null) {
             btnBack.setOnAction(e -> {
-                stopTimer();
+                cleanup();
                 if (currentItem != null) {
                     NavigationUtils.navigateToAuctionDetail(currentItem);
                 } else {
@@ -62,12 +69,21 @@ public class BidController {
             });
         }
         setupBidHistoryList();
+
+        // Keep balance label live whenever another screen changes the balance
+        balanceListener = newBal -> Platform.runLater(this::refreshBalanceLabel);
+        UserSession.getInstance().addBalanceListener(balanceListener);
+
+        // Keep bid history in sync with new transactions from this session
+        transactionListener = t -> Platform.runLater(() -> prependTransaction(t));
+        UserSession.getInstance().addTransactionListener(transactionListener);
     }
 
-    // ── Called from NavigationUtils after FXML load ───────────
+    // ── Item injection (called by NavigationUtils) ────────────
     public void setAuctionItem(AuctionItem item) {
         this.currentItem = item;
         this.currentBid  = item.getCurrentPrice();
+        this.prevWinBid  = 0;
 
         itemEmojiLabel.setText(emojiFor(item.getCategory()));
         itemTitleLabel.setText(item.getItemName());
@@ -90,11 +106,33 @@ public class BidController {
 
         double minBid = currentBid + 1;
         minBidLabel.setText(fmt(minBid));
-        balanceLabel.setText(fmt(MOCK_BALANCE));
         bidAmountField.setPromptText(fmt(minBid));
 
+        refreshBalanceLabel();
         seedMockHistory(item);
         startCountdownTimer();
+    }
+
+    // ── Balance label ─────────────────────────────────────────
+    private void refreshBalanceLabel() {
+        if (balanceLabel != null) {
+            double bal = UserSession.getInstance().getBalance();
+            balanceLabel.setText(fmt(bal));
+            if (bal >= 10_000) {
+                balanceLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 16px; -fx-font-weight: bold;");
+            } else if (bal >= 1_000) {
+                balanceLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 16px; -fx-font-weight: bold;");
+            } else {
+                balanceLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 16px; -fx-font-weight: bold;");
+            }
+        }
+    }
+
+    // ── History navigation ────────────────────────────────────
+    @FXML
+    private void handleNavHistory(MouseEvent event) {
+        cleanup();
+        NavigationUtils.navigateToBidHistory();
     }
 
     // ── Countdown timer ───────────────────────────────────────
@@ -137,12 +175,14 @@ public class BidController {
     @FXML
     private void handleQuickBid(javafx.event.ActionEvent e) {
         Button src = (Button) e.getSource();
-        String raw = src.getText().replace("+$", "").replace(",", "").trim();
+        String raw = src.getText().replaceAll("[^0-9.]", "");
         try {
             double increment = Double.parseDouble(raw);
             bidAmountField.setText(String.format("%.0f", currentBid + increment));
             hideMessage();
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ex) {
+            showError("Invalid quick bid amount.");
+        }
     }
 
     // ── Confirm bid ───────────────────────────────────────────
@@ -165,24 +205,70 @@ public class BidController {
             showError("Your bid must be higher than the current bid of " + fmt(currentBid) + ".");
             return;
         }
-        if (amount > MOCK_BALANCE) {
-            showError("Insufficient balance. Your balance is " + fmt(MOCK_BALANCE) + ".");
+
+        double balance = UserSession.getInstance().getBalance();
+        if (amount > balance) {
+            showError(String.format(
+                "Insufficient balance. Your balance is %s.", fmt(balance)));
             return;
         }
 
+        // Refund the previous winning bid for THIS auction (user is outbidding themselves
+        // or replaces their old hold) — in a real system this would be a server-side hold
+        // UserSession.placeBid replaces the hold amount; self-bidding is still just a BID.
+
+                // Xóa bỏ hoặc comment phần này vì UserSession đã tự xử lý đè ghi trong holdMap:
+        /*
+        if (prevWinBid > 0) {
+            UserSession.getInstance().refundOutbid(currentItem.getItemName(), prevWinBid);
+        }
+        */
+
+        // Thực hiện đặt giá
+        boolean ok = UserSession.getInstance().placeBid(currentItem.getItemName(), amount);
+        if (!ok) {
+            showError("Bid could not be processed. Please try again.");
+            return;
+        }
+
+        // Cập nhật thuộc tính của item để mang đi các màn hình khác
+        currentItem.setCurrentPrice(amount);
+        currentItem.setTotalBids(currentItem.getTotalBids() + 1);
+
+        prevWinBid = amount;
         currentBid = amount;
         currentBidLabel.setText(fmt(currentBid));
         minBidLabel.setText(fmt(currentBid + 1));
         bidAmountField.clear();
+        // balanceLabel is refreshed via the listener automatically
 
         String bidder = UserSession.getInstance().isLoggedIn()
             ? UserSession.getInstance().getCurrentUser().getUsername()
             : "You";
 
-        bidHistoryList.getItems().add(0, bidder + "  →  " + fmt(amount));
-        bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
+        // Prepend to the in-page list (the listener will also fire but guard duplicate)
+        String entry = bidder + "  →  " + fmt(amount);
+        if (bidHistoryList.getItems().isEmpty() || !bidHistoryList.getItems().get(0).equals(entry)) {
+            bidHistoryList.getItems().add(0, entry);
+            bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
+        }
+
         showSuccess("Bid of " + fmt(amount) + " placed successfully!");
         System.out.println("✅ Bid placed: " + fmt(amount) + " on " + currentItem.getItemName());
+    }
+
+    // ── Prepend a new transaction to the bid history list ─────
+    private void prependTransaction(UserSession.Transaction t) {
+        if (t.kind != UserSession.Transaction.Kind.BID) return;
+        if (currentItem == null || !t.itemName.equals(currentItem.getItemName())) return;
+        String entry = (UserSession.getInstance().isLoggedIn()
+                ? UserSession.getInstance().getCurrentUser().getUsername() : "You")
+                + "  →  " + fmt(t.amount);
+        // Already added directly in handleConfirmBid; avoid duplicate
+        if (!bidHistoryList.getItems().isEmpty()
+                && bidHistoryList.getItems().get(0).equals(entry)) return;
+        bidHistoryList.getItems().add(0, entry);
+        bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
     }
 
     // ── Bid history list ──────────────────────────────────────
@@ -203,15 +289,16 @@ public class BidController {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-                Label amount = new Label(parts.length > 1 ? parts[1] : "");
-                amount.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 13px; -fx-font-weight: bold; -fx-font-family: 'Arial';");
+                Label amountLbl = new Label(parts.length > 1 ? parts[1] : "");
+                amountLbl.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 13px;" +
+                                   " -fx-font-weight: bold; -fx-font-family: 'Arial';");
 
                 if (getIndex() == 0) {
                     bidder.setStyle(bidder.getStyle() + " -fx-text-fill: #f5f0e6;");
-                    amount.setStyle(amount.getStyle() + " -fx-text-fill: #4ade80;");
+                    amountLbl.setStyle(amountLbl.getStyle() + " -fx-text-fill: #4ade80;");
                 }
 
-                row.getChildren().addAll(bidder, spacer, amount);
+                row.getChildren().addAll(bidder, spacer, amountLbl);
                 setGraphic(row);
                 setText(null);
                 setStyle("-fx-background-color: transparent;");
@@ -230,6 +317,15 @@ public class BidController {
         };
         for (String[] m : mocks) bidHistoryList.getItems().add(m[0] + "  →  " + m[1]);
         bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
+    }
+
+    // ── Cleanup ───────────────────────────────────────────────
+    private void cleanup() {
+        stopTimer();
+        if (balanceListener != null)
+            UserSession.getInstance().removeBalanceListener(balanceListener);
+        if (transactionListener != null)
+            UserSession.getInstance().removeTransactionListener(transactionListener);
     }
 
     // ── Utilities ─────────────────────────────────────────────

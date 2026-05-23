@@ -43,9 +43,9 @@ public class AuctionItem {
     }
 
     // Helper methods
-    public boolean isRunning() { return "RUNNING".equals(status); }
+    public boolean isRunning() { return "RUNNING".equals(status) && secondsLeft() > 0; }
     public boolean isPending() { return "PENDING".equals(status); }
-    public boolean isClosed()  { return "CLOSED".equals(status); }
+    public boolean isClosed()  { return "CLOSED".equals(status) || secondsLeft() <= 0; }
     public boolean isEndingSoon() {
         return isRunning() && secondsLeft() < 900; // 15 phút
     }
@@ -70,4 +70,16 @@ public class AuctionItem {
     public String getSellerName() { return sellerName; }
     public String getImageUrl() { return imageUrl; }
     public int getTotalBids() { return totalBids; }
+
+    // Setters to allow updating the current bid state
+    public void setCurrentPrice(double currentPrice) { 
+        this.currentPrice = currentPrice; 
+    }
+
+    public void setTotalBids(int totalBids) { 
+        this.totalBids = totalBids; 
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
