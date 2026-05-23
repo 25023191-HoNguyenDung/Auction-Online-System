@@ -65,7 +65,7 @@ public class AuctionClosingService {
             for (Auction auction : opening) {
                 try {
                     auctionService.openAuction(auction.getId());
-                    System.out.println("[AuctionScheduler] Found " + opening.size() + " auctions ready to open.");
+                    System.out.println("[AuctionScheduler] Opened auction id = " + auction.getId());
                 } catch (Exception e) {
                     System.err.println("[AuctionScheduler] Error opening auction id = " + auction.getId() + ": " + e.getMessage());
                 }
