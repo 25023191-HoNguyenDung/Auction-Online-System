@@ -1,7 +1,6 @@
 package com.auction.common.protocol;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 // kết quả khi đặt giá
 public class PlaceBidResPayload {
     private boolean accepted; // đặt giá thành công không

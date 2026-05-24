@@ -1,4 +1,4 @@
-﻿package com.auction.server.service;
+package com.auction.server.service;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;

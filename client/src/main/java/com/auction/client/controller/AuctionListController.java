@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import com.auction.client.model.AuctionItem;
 import com.auction.client.network.ClientMessageSender;
 import com.auction.client.network.ServerEventListener;
-import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionListViewModel;

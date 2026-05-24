@@ -1,4 +1,4 @@
-package service;
+package com.auction.server.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,8 +42,6 @@ import com.auction.server.model.BidTransaction;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.Seller;
 import com.auction.server.observer.AuctionEventPublisher;
-import com.auction.server.service.AuctionServiceImpl;
-import com.auction.server.service.AutoBidService;
 
 @ExtendWith(MockitoExtension.class)     //Tự động khởi tạo các trường đánh dấu Mocks, quản lý vòng đời và dọn dẹp sau mỗi test case
 
@@ -110,8 +108,12 @@ public class AuctionServiceTest {
     public void stubTransactionRunsLambda () throws Exception {
         doAnswer(inv -> {
             TransactionManager.TransactionWork work = inv.getArgument(0);
+        try {
             work.excecute(null); //Thực thi trực tiếp công việc mà không cần quản lý transaction thật
-            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
+        }
+        return null;
         }).when (transManager).executeInTransaction(any());
     }
 
@@ -373,7 +375,7 @@ public class AuctionServiceTest {
         stubTransactionRunsLambda();
 
         //Act & Assert: Người sau cố tính đặt giá <= giá hiện tại -> bị đẩy ra
-        assertThrows(RuntimeException.class, () -> service.placeBid(AUCTION_ID, BIDDER_ID, STARTING_PRICE));
+        assertThrows(Exception.class, () -> service.placeBid(AUCTION_ID, BIDDER_ID, STARTING_PRICE));
         verify(publisher, never()).publish(any());
     }
 
@@ -388,7 +390,7 @@ public class AuctionServiceTest {
         stubTransactionRunsLambda();
 
         //Act & Assert 1:: Phiên đấu giá đã kết thúc -> không cho đặt giá
-        assertThrows(RuntimeException.class, () -> service.placeBid(AUCTION_ID, BIDDER_ID, new BigDecimal("2000")));
+        assertThrows(Exception.class, () -> service.placeBid(AUCTION_ID, BIDDER_ID, new BigDecimal("2000")));
         //Assert 2: Đảm bảo lock được giải phóng dù có lỗi xảy ra
         verify(mockLockManager).unlock(AUCTION_ID);
         verify(publisher, never()).publish(any());

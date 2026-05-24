@@ -1,4 +1,4 @@
-package concurrency;
+package com.auction.server.concurrency;
 
 import java.sql.Connection;
 

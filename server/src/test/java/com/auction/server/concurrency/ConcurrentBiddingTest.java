@@ -1,4 +1,4 @@
-package concurrency;
+package com.auction.server.concurrency;
 
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.BidDao;

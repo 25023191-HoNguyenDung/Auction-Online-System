@@ -1,4 +1,4 @@
-package integration;
+package com.auction.server.integration;
 
 import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
@@ -15,7 +15,6 @@ import com.auction.server.model.BidTransaction;
 import com.auction.server.observer.AuctionEvent;
 import com.auction.server.observer.AuctionEventPublisher;
 import com.auction.server.observer.AuctionObserver;
-import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuctionServiceImpl;
 import org.junit.jupiter.api.*;
 

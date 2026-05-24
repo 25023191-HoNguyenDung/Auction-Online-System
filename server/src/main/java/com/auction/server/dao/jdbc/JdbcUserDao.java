@@ -8,7 +8,6 @@ import com.auction.server.model.Bidder;
 import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

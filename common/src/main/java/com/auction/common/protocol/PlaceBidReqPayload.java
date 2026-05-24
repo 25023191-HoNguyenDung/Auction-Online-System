@@ -1,7 +1,6 @@
 package com.auction.common.protocol;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 // dữ liệu khi user gửi đi
 public class PlaceBidReqPayload {
     private long auctionId; // sản phẩm

@@ -15,16 +15,22 @@ public class AuctionClosingService {
     private final AuctionDao auctionDao;
     private final AuctionService auctionService;
     private final ScheduledExecutorService scheduler; //Bộ lập lịch để tự động quét mở/đóng phiên theo chu kỳ
+    private final int checkIntervalSeconds; // Chu kỳ quét tùy chỉnh (linh hoạt cho cả chạy thật và test)
 
-    public AuctionClosingService(AuctionDao auctionDao, AuctionService auctionService) {
+    public AuctionClosingService(AuctionDao auctionDao, AuctionService auctionService, int checkIntervalSeconds) {
         this.auctionDao = auctionDao;
         this.auctionService = auctionService;
-        
+        this.checkIntervalSeconds = checkIntervalSeconds;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> { // scheduler có 1 thread duy nhất
             Thread t = new Thread(r, "auction_closinng_scheduler");
             t.setDaemon(true); // thread nền server dừng thì dừng theo
             return t;
         });
+    }
+
+    // Constructor mặc định với interval 10 giây
+    public AuctionClosingService(AuctionDao auctionDao, AuctionService auctionService) {
+        this(auctionDao, auctionService, CHECK_INTERVAL_SECONDS);
     }
 
     public AuctionClosingService(AuctionService auctionService) {
@@ -34,10 +40,10 @@ public class AuctionClosingService {
     // Start the scheduler
     public void start(){
         scheduler.scheduleAtFixedRate(() -> {
-            // Admin approval is mandatory. OPEN auctions should not be auto-opened.
+            processReadyToOpenAuctions();
             processExpiredAuctions();       // scanned and closed expired sessions
-        }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS); // run method every 10 seconds
-        System.out.println("Scheduler started, checking every " + CHECK_INTERVAL_SECONDS + " second(s)");
+        }, 0, checkIntervalSeconds, TimeUnit.SECONDS); // run method every 10 seconds
+        System.out.println("Scheduler started, checking every " + checkIntervalSeconds + " second(s)");
     }
 
     // tắt scheduler
@@ -95,5 +101,10 @@ public class AuctionClosingService {
         } catch (Exception e) {
             System.err.println("[AuctionScheduler] Error checking expired auctions: " + e.getMessage());
         }
+    }
+
+    //Getter phục vụ test kiểm tra thuộc tính interval
+    public int getCheckIntervalSeconds() {
+        return checkIntervalSeconds;
     }
 }
