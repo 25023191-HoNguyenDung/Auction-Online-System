@@ -26,7 +26,11 @@ public class BidStrategy {
         if (auction.getStatus() != AuctionStatus.RUNNING) {
             throw new AuctionTimeException("Auction is not running. Auction status: " + auction.getStatus());
         }
-        //Kiem tra số tiền đặt giá có hợp lệ hay không (bị âm, bằng 0 hoặc vi phạm luật đặt giá)
+        //Kiểm tra người đặt giá có đang dẫn đầu không
+        if (auction.getWinner_bidder_id() != 0 && auction.getWinner_bidder_id() == bid.getBidderId()) {
+            throw new InvalidBidException("You are already the highest bidder. No need to place another bid.");
+        }
+        //Kiểm tra số tiền đặt giá có hợp lệ hay không (bị âm, bằng 0 hoặc vi phạm luật đặt giá)
         validateBidAmount(auction, bid);
     }
     // Hàm kiểu tra tính hợp lệ của số tiền đặt giá dựa trên luật của phiên đấu giá
