@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -15,42 +16,27 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane
-    prefWidth="1280" prefHeight="820"
-    styleClass="al-root"
-    stylesheets="@../css/style.css"
-    xmlns="http://javafx.com/javafx/17"
-    xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="com.auction.client.controller.AdminDashboardController">
+<BorderPane prefHeight="820" prefWidth="1280" styleClass="al-root" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AdminDashboardController">
 
     <!-- ═══════════ NAVBAR ═══════════ -->
     <top>
-        <HBox prefHeight="54" alignment="CENTER_LEFT" spacing="0" styleClass="al-navbar">
-            <Label text="AUCTION PRO" styleClass="nav-logo-text">
-                <HBox.margin><Insets right="32"/></HBox.margin>
+        <HBox alignment="CENTER_LEFT" prefHeight="54" spacing="0" styleClass="al-navbar">
+            <Label styleClass="nav-logo-text" text="AUCTION PRO">
+                <HBox.margin><Insets right="32" /></HBox.margin>
             </Label>
-            <Label text="ADMIN PANEL"
-                   style="-fx-text-fill:#ef4444; -fx-font-size:11px; -fx-font-weight:bold;
-                          -fx-font-family:'Arial'; -fx-background-color:rgba(239,68,68,0.12);
-                          -fx-border-color:rgba(239,68,68,0.4); -fx-border-radius:20;
-                          -fx-background-radius:20; -fx-padding:3 12;">
-                <HBox.margin><Insets right="24"/></HBox.margin>
+            <Label style="-fx-text-fill:#ef4444; -fx-font-size:11px; -fx-font-weight:bold;                           -fx-font-family:'Arial'; -fx-background-color:rgba(239,68,68,0.12);                           -fx-border-color:rgba(239,68,68,0.4); -fx-border-radius:20;                           -fx-background-radius:20; -fx-padding:3 12;" text="ADMIN PANEL">
+                <HBox.margin><Insets right="24" /></HBox.margin>
             </Label>
-            <Region HBox.hgrow="ALWAYS"/>
-            <HBox spacing="14" alignment="CENTER">
-                <Button text="🔔"
-                        style="-fx-background-color:#141929; -fx-text-fill:#9aa0b4;
-                               -fx-font-size:15px; -fx-background-radius:20;
-                               -fx-border-color:rgba(201,168,76,0.2); -fx-border-radius:20;
-                               -fx-border-width:1; -fx-padding:6 10; -fx-cursor:hand;"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox alignment="CENTER" spacing="14">
+                <Button style="-fx-background-color:#141929; -fx-text-fill:#9aa0b4;                                -fx-font-size:15px; -fx-background-radius:20;                                -fx-border-color:rgba(201,168,76,0.2); -fx-border-radius:20;                                -fx-border-width:1; -fx-padding:6 10; -fx-cursor:hand;" text="🔔" />
                 <StackPane>
-                    <Circle radius="18" style="-fx-fill:#2a0a0a; -fx-stroke:#ef4444; -fx-stroke-width:2;"/>
-                    <Label text="A" style="-fx-text-fill:#ef4444; -fx-font-size:14px; -fx-font-weight:bold;"/>
+                    <Circle radius="18" style="-fx-fill:#2a0a0a; -fx-stroke:#ef4444; -fx-stroke-width:2;" />
+                    <Label style="-fx-text-fill:#ef4444; -fx-font-size:14px; -fx-font-weight:bold;" text="A" />
                 </StackPane>
             </HBox>
         </HBox>
@@ -61,163 +47,140 @@
         <HBox>
 
             <!-- ── SIDEBAR ── -->
-            <VBox prefWidth="230" styleClass="al-sidebar" spacing="0">
-                <HBox spacing="12" alignment="CENTER_LEFT">
+            <VBox prefWidth="230" spacing="0" styleClass="al-sidebar">
+                <HBox alignment="CENTER_LEFT" spacing="12">
                     <StackPane>
-                        <Circle radius="22" style="-fx-fill:#2a0a0a; -fx-stroke:#ef4444; -fx-stroke-width:2;"/>
-                        <Label text="A" style="-fx-text-fill:#ef4444; -fx-font-size:16px; -fx-font-weight:bold;"/>
+                        <Circle radius="22" style="-fx-fill:#2a0a0a; -fx-stroke:#ef4444; -fx-stroke-width:2;" />
+                        <Label style="-fx-text-fill:#ef4444; -fx-font-size:16px; -fx-font-weight:bold;" text="A" />
                     </StackPane>
                     <VBox spacing="2">
-                        <Label text="Admin" styleClass="al-user-name"/>
-                        <Label text="SUPER ADMINISTRATOR"
-                               style="-fx-text-fill:#ef4444; -fx-font-size:9px; -fx-font-weight:bold;"/>
+                        <Label styleClass="al-user-name" text="Admin" />
+                        <Label style="-fx-text-fill:#ef4444; -fx-font-size:9px; -fx-font-weight:bold;" text="SUPER ADMINISTRATOR" />
                     </VBox>
-                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                    <VBox.margin><Insets bottom="24" /></VBox.margin>
                 </HBox>
 
-                <Button fx:id="sideOverview"   text="📊  Overview"       styleClass="al-nav-item-active" maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideUsers"      text="👥  Users"           styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideAuctions"   text="🔨  Auctions"        styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
-                <Button fx:id="sideApprovals"  text="✅  Approvals"       styleClass="al-nav-item"        maxWidth="Infinity"><VBox.margin><Insets bottom="4"/></VBox.margin></Button>
+                <Button fx:id="sideOverview" maxWidth="Infinity" styleClass="al-nav-item-active" text="📊  Overview"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideUsers" maxWidth="Infinity" styleClass="al-nav-item" text="👥  Users"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideAuctions" maxWidth="Infinity" styleClass="al-nav-item" text="🔨  Auctions"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
+                <Button fx:id="sideApprovals" maxWidth="Infinity" styleClass="al-nav-item" text="✅  Approvals"><VBox.margin><Insets bottom="4" /></VBox.margin></Button>
 
-                <Separator style="-fx-background-color:rgba(201,168,76,0.1);"><VBox.margin><Insets bottom="20"/></VBox.margin></Separator>
+                <Separator style="-fx-background-color:rgba(201,168,76,0.1);"><VBox.margin><Insets bottom="20" /></VBox.margin></Separator>
 
-                <VBox VBox.vgrow="ALWAYS"/>
+                <VBox VBox.vgrow="ALWAYS" />
 
-                <Button text="🚪  Logout" onAction="#handleLogout"
-                        maxWidth="Infinity" prefHeight="36"
-                        style="-fx-background-color:rgba(239,68,68,0.1); -fx-text-fill:#ef4444;
-                               -fx-font-size:12px; -fx-font-family:'Arial';
-                               -fx-border-color:rgba(239,68,68,0.3); -fx-border-radius:6;
-                               -fx-background-radius:6; -fx-cursor:hand;">
-                    <VBox.margin><Insets top="24"/></VBox.margin>
+                <Button maxWidth="Infinity" onAction="#handleLogout" prefHeight="36" style="-fx-background-color:rgba(239,68,68,0.1); -fx-text-fill:#ef4444;                                -fx-font-size:12px; -fx-font-family:'Arial';                                -fx-border-color:rgba(239,68,68,0.3); -fx-border-radius:6;                                -fx-background-radius:6; -fx-cursor:hand;" text="🚪  Logout">
+                    <VBox.margin><Insets top="24" /></VBox.margin>
                 </Button>
             </VBox>
 
             <!-- ── MAIN ── -->
-            <VBox HBox.hgrow="ALWAYS" styleClass="al-content" spacing="0">
+            <VBox spacing="0" styleClass="al-content" HBox.hgrow="ALWAYS">
 
                 <!-- Title -->
                 <HBox alignment="CENTER_LEFT">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
-                        <Label text="Admin Dashboard" styleClass="al-page-title"/>
-                        <Label text="Admin overview — users, auctions, revenue and approvals."
-                               styleClass="al-page-subtitle"/>
+                        <Label styleClass="al-page-title" text="Admin Dashboard" />
+                        <Label styleClass="al-page-subtitle" text="Admin overview — users, auctions, revenue and approvals." />
                     </VBox>
-                    <Label fx:id="serverTimeLabel"
-                           text="Server: 00:00:00 UTC"
-                           style="-fx-text-fill:#555e7a; -fx-font-size:11px; -fx-font-family:'monospace';"/>
-                    <VBox.margin><Insets bottom="24"/></VBox.margin>
+                    <Label fx:id="serverTimeLabel" style="-fx-text-fill:#555e7a; -fx-font-size:11px; -fx-font-family:'monospace';" text="Server: 00:00:00 UTC" />
+                    <VBox.margin><Insets bottom="24" /></VBox.margin>
                 </HBox>
 
                 <!-- Stat cards (2x2) -->
                 <GridPane hgap="16" vgap="16">
                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25"/>
-                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25"/>
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
+                        <ColumnConstraints hgrow="SOMETIMES" percentWidth="25" />
                     </columnConstraints>
 
-                    <VBox GridPane.columnIndex="0" styleClass="sd-stat-card" spacing="8">
-                        <Label text="TOTAL USERS"    styleClass="sd-stat-label"/>
-                        <Label fx:id="cardUsers"     text="1,284" styleClass="sd-stat-value"/>
-                        <Label text="↑ 24 this week" style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="0">
+                        <Label styleClass="sd-stat-label" text="TOTAL USERS" />
+                        <Label fx:id="cardUsers" styleClass="sd-stat-value" text="1,284" />
+                        <Label style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';" text="Users" />
                     </VBox>
-                    <VBox GridPane.columnIndex="1" styleClass="sd-stat-card" spacing="8">
-                        <Label text="LIVE AUCTIONS"  styleClass="sd-stat-label"/>
-                        <Label fx:id="cardAuctions"  text="47" styleClass="sd-stat-value"/>
-                        <Label text="12 ending soon"  style="-fx-text-fill:#f59e0b; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="1">
+                        <Label styleClass="sd-stat-label" text="LIVE AUCTIONS" />
+                        <Label fx:id="cardAuctions" styleClass="sd-stat-value" text="47" />
+                        <Label style="-fx-text-fill:#f59e0b; -fx-font-size:11px; -fx-font-family:'Arial';" text="LIVE" />
                     </VBox>
-                    <VBox GridPane.columnIndex="2" styleClass="sd-stat-card" spacing="8">
-                        <Label text="PLATFORM REVENUE" styleClass="sd-stat-label"/>
-                        <Label fx:id="cardRevenue"   text="\$2.4M" styleClass="sd-stat-value-gold"/>
-                        <Label text="↑ 8% this month"  style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="2">
+                        <Label styleClass="sd-stat-label" text="PLATFORM REVENUE" />
+                        <Label fx:id="cardRevenue" styleClass="sd-stat-value-gold" text="\$2.4M" />
+                        <Label style="-fx-text-fill:#4ade80; -fx-font-size:11px; -fx-font-family:'Arial';" text="This month" />
                     </VBox>
-                    <VBox GridPane.columnIndex="3" styleClass="sd-stat-card" spacing="8">
-                        <Label text="PENDING APPROVAL" styleClass="sd-stat-label"/>
-                        <Label fx:id="cardPending"   text="9" styleClass="sd-stat-value-red"/>
-                        <Label text="Needs review"    style="-fx-text-fill:#ef4444; -fx-font-size:11px; -fx-font-family:'Arial';"/>
+                    <VBox spacing="8" styleClass="sd-stat-card" GridPane.columnIndex="3">
+                        <Label styleClass="sd-stat-label" text="PENDING APPROVAL" />
+                        <Label fx:id="cardPending" styleClass="sd-stat-value-red" text="9" />
+                        <Label style="-fx-text-fill:#ef4444; -fx-font-size:11px; -fx-font-family:'Arial';" text="Needs review" />
                     </VBox>
-                    <GridPane.margin><Insets bottom="24"/></GridPane.margin>
+                    <GridPane.margin><Insets bottom="24" /></GridPane.margin>
+               <rowConstraints>
+                  <RowConstraints />
+               </rowConstraints>
                 </GridPane>
 
                 <!-- Tabs -->
                 <TabPane fx:id="tabPane" styleClass="sd-tab-pane" VBox.vgrow="ALWAYS">
 
                     <!-- Tab: Users -->
-                    <Tab text="Users" closable="false">
+                    <Tab closable="false" text="Users">
                         <VBox spacing="14" style="-fx-padding:16 0 0 0;">
-                            <HBox spacing="12" alignment="CENTER_LEFT">
-                                <TextField fx:id="searchUsers"
-                                           promptText="Search users..."
-                                           styleClass="al-search-field"
-                                           prefWidth="240" prefHeight="34"
-                                           style="-fx-padding:8 14 8 14;"/>
-                                <ComboBox fx:id="filterRole"
-                                          styleClass="al-sort-combo"
-                                          prefWidth="140" prefHeight="34"/>
-                                <Region HBox.hgrow="ALWAYS"/>
-                                <Button text="Export CSV" onAction="#handleExportUsers"
-                                        style="-fx-background-color:rgba(201,168,76,0.12);
-                                               -fx-text-fill:#c9a84c; -fx-font-size:12px;
-                                               -fx-border-color:rgba(201,168,76,0.3);
-                                               -fx-border-radius:6; -fx-background-radius:6;
-                                               -fx-padding:8 16; -fx-cursor:hand;"/>
+                            <HBox alignment="CENTER_LEFT" spacing="12">
+                                <TextField fx:id="searchUsers" prefHeight="34" prefWidth="240" promptText="Search users..." style="-fx-padding:8 14 8 14;" styleClass="al-search-field" />
+                                <ComboBox fx:id="filterRole" prefHeight="34" prefWidth="140" styleClass="al-sort-combo" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button onAction="#handleExportUsers" style="-fx-background-color:rgba(201,168,76,0.12);                                                -fx-text-fill:#c9a84c; -fx-font-size:12px;                                                -fx-border-color:rgba(201,168,76,0.3);                                                -fx-border-radius:6; -fx-background-radius:6;                                                -fx-padding:8 16; -fx-cursor:hand;" text="Export CSV" />
                             </HBox>
-                            <TableView fx:id="usersTable" VBox.vgrow="ALWAYS" styleClass="sd-table">
+                            <TableView fx:id="usersTable" styleClass="sd-table" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="colUserId"     text="ID"       prefWidth="60"/>
-                                    <TableColumn fx:id="colUserName"   text="Name"     prefWidth="160"/>
-                                    <TableColumn fx:id="colUserEmail"  text="Email"    prefWidth="200"/>
-                                    <TableColumn fx:id="colUserRole"   text="Role"     prefWidth="100"/>
-                                    <TableColumn fx:id="colUserStatus" text="Status"   prefWidth="100"/>
-                                    <TableColumn fx:id="colUserJoined" text="Joined"   prefWidth="120"/>
-                                    <TableColumn fx:id="colUserAction" text="Actions"  prefWidth="120"/>
+                                    <TableColumn fx:id="colUserId" prefWidth="60" text="ID" />
+                                    <TableColumn fx:id="colUserName" prefWidth="160" text="Name" />
+                                    <TableColumn fx:id="colUserEmail" prefWidth="200" text="Email" />
+                                    <TableColumn fx:id="colUserRole" prefWidth="100" text="Role" />
+                                    <TableColumn fx:id="colUserStatus" prefWidth="100" text="Status" />
+                                    <TableColumn fx:id="colUserJoined" prefWidth="120" text="Joined" />
+                                    <TableColumn fx:id="colUserAction" prefWidth="120" text="Actions" />
                                 </columns>
                             </TableView>
                         </VBox>
                     </Tab>
 
                     <!-- Tab: Auctions -->
-                    <Tab text="Auctions" closable="false">
+                    <Tab closable="false" text="Auctions">
                         <VBox spacing="14" style="-fx-padding:16 0 0 0;">
-                            <HBox spacing="12" alignment="CENTER_LEFT">
-                                <TextField fx:id="searchAuctions"
-                                           promptText="Search auctions..."
-                                           styleClass="al-search-field"
-                                           prefWidth="240" prefHeight="34"
-                                           style="-fx-padding:8 14 8 14;"/>
-                                <ComboBox fx:id="filterAuctionStatus"
-                                          styleClass="al-sort-combo"
-                                          prefWidth="150" prefHeight="34"/>
-                                <Region HBox.hgrow="ALWAYS"/>
+                            <HBox alignment="CENTER_LEFT" spacing="12">
+                                <TextField fx:id="searchAuctions" prefHeight="34" prefWidth="240" promptText="Search auctions..." style="-fx-padding:8 14 8 14;" styleClass="al-search-field" />
+                                <ComboBox fx:id="filterAuctionStatus" prefHeight="34" prefWidth="150" styleClass="al-sort-combo" />
+                                <Region HBox.hgrow="ALWAYS" />
                             </HBox>
-                            <TableView fx:id="auctionsTable" VBox.vgrow="ALWAYS" styleClass="sd-table">
+                            <TableView fx:id="auctionsTable" styleClass="sd-table" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="colAucId"       text="ID"         prefWidth="60"/>
-                                    <TableColumn fx:id="colAucTitle"    text="Item"        prefWidth="200"/>
-                                    <TableColumn fx:id="colAucSeller"   text="Seller"      prefWidth="140"/>
-                                    <TableColumn fx:id="colAucBid"      text="Current Bid" prefWidth="120"/>
-                                    <TableColumn fx:id="colAucBids"     text="Bids"        prefWidth="70"/>
-                                    <TableColumn fx:id="colAucStatus"   text="Status"      prefWidth="100"/>
-                                    <TableColumn fx:id="colAucAction"   text="Actions"     prefWidth="120"/>
+                                    <TableColumn fx:id="colAucId" prefWidth="60" text="ID" />
+                                    <TableColumn fx:id="colAucTitle" prefWidth="200" text="Item" />
+                                    <TableColumn fx:id="colAucSeller" prefWidth="140" text="Seller" />
+                                    <TableColumn fx:id="colAucBid" prefWidth="120" text="Current Bid" />
+                                    <TableColumn fx:id="colAucBids" prefWidth="70" text="Bids" />
+                                    <TableColumn fx:id="colAucStatus" prefWidth="100" text="Status" />
+                                    <TableColumn fx:id="colAucAction" prefWidth="120" text="Actions" />
                                 </columns>
                             </TableView>
                         </VBox>
                     </Tab>
 
                     <!-- Tab: Approvals -->
-                    <Tab text="Approvals" closable="false">
+                    <Tab closable="false" text="Approvals">
                         <VBox spacing="14" style="-fx-padding:16 0 0 0;">
-                            <TableView fx:id="approvalsTable" VBox.vgrow="ALWAYS" styleClass="sd-table">
+                            <TableView fx:id="approvalsTable" styleClass="sd-table" VBox.vgrow="ALWAYS">
                                 <columns>
-                                    <TableColumn fx:id="colAppItem"     text="Item"        prefWidth="220"/>
-                                    <TableColumn fx:id="colAppSeller"   text="Seller"      prefWidth="150"/>
-                                    <TableColumn fx:id="colAppCategory" text="Category"    prefWidth="120"/>
-                                    <TableColumn fx:id="colAppPrice"    text="Start Price" prefWidth="120"/>
-                                    <TableColumn fx:id="colAppDate"     text="Submitted"   prefWidth="130"/>
-                                    <TableColumn fx:id="colAppAction"   text="Action"      prefWidth="160"/>
+                                    <TableColumn fx:id="colAppItem" prefWidth="220" text="Item" />
+                                    <TableColumn fx:id="colAppSeller" prefWidth="150" text="Seller" />
+                                    <TableColumn fx:id="colAppCategory" prefWidth="120" text="Category" />
+                                    <TableColumn fx:id="colAppPrice" prefWidth="120" text="Start Price" />
+                                    <TableColumn fx:id="colAppDate" prefWidth="130" text="Submitted" />
+                                    <TableColumn fx:id="colAppAction" prefWidth="160" text="Action" />
                                 </columns>
                             </TableView>
                         </VBox>
@@ -228,4 +191,3 @@
         </HBox>
     </center>
 </BorderPane>
-

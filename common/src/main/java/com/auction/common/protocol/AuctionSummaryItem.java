@@ -14,6 +14,8 @@ public class AuctionSummaryItem {
     private String status; 
     private Instant endTime;
     private List<String> bidHistory = new ArrayList<>();
+    private long sellerId;
+    private String sellerName;
 
     // Constructor rỗng cho Jackson giải mã JSON
     public AuctionSummaryItem() {
@@ -34,6 +36,14 @@ public class AuctionSummaryItem {
                               BigDecimal currentHighestBid, String status, Instant endTime, List<String> bidHistory) {
         this(auctionId, itemName, description, category, currentHighestBid, status, endTime);
         this.bidHistory = bidHistory;
+    }
+
+    public AuctionSummaryItem(long auctionId, String itemName, String description, String category, 
+                              BigDecimal currentHighestBid, String status, Instant endTime, List<String> bidHistory,
+                              long sellerId, String sellerName) {
+        this(auctionId, itemName, description, category, currentHighestBid, status, endTime, bidHistory);
+        this.sellerId = sellerId;
+        this.sellerName = sellerName;
     }
 
     public long getAuctionId() { return auctionId; }
@@ -59,4 +69,10 @@ public class AuctionSummaryItem {
 
     public List<String> getBidHistory() { return bidHistory; }
     public void setBidHistory(List<String> bidHistory) { this.bidHistory = bidHistory; }
+
+    public long getSellerId() { return sellerId; }
+    public void setSellerId(long sellerId) { this.sellerId = sellerId; }
+
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
 }

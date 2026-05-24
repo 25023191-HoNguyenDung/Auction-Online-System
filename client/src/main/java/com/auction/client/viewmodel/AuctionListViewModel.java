@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import com.auction.client.network.ServerConnection;
 import com.auction.client.network.ClientMessageSender;
 import com.auction.client.network.ServerEventListener;
+import com.auction.client.data.AuctionStore;
+import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.common.protocol.MessageEnvelope;
 import com.auction.common.protocol.MessageType;
@@ -24,9 +26,9 @@ import com.auction.client.model.AuctionItem;
 
 /**
  * AuctionListViewModel
- * - Toàn bộ logic filter/sort/search
- * - Mock data khớp với cấu trúc server (Auction + Item)
- * - Khi server xong: thay loadData() bằng gọi network
+ * - All filtering/sorting/search logic
+ * - Mock data matches server structure (Auction + Item)
+ * - When server ready: replace loadData() with network call
  */
 public class AuctionListViewModel {
     private static final List<AuctionItem> allItems      = new ArrayList<>();
@@ -39,75 +41,77 @@ public class AuctionListViewModel {
     private double priceMax            = Double.MAX_VALUE;
     private String sortBy              = "NEWEST";
 
-    // ── Load data ─────────────────────────────────────────────
+    // -- Load data ---------------------------------------------
     /**
-     * Giai đoạn 1 — Mock, khớp đúng cấu trúc server:
-     *   status: RUNNING / PENDING / CLOSED (theo AuctionStatus server)
-     *
-     * Giai đoạn 2 — thay bằng:
-     *   List<AuctionItem> items = serverConnection.getAuctions();
-     *   allItems.addAll(items);
+     * Phase 1 - Mock data
+     * Phase 2 - Network data
      */
     public void loadData() {
-        // 1. Kiểm tra trạng thái mạng
+        allItems.clear();
+
+        // 1. Check network connection status
         ServerConnection connection = ServerConnection.getInstance();
         if (!connection.isConnected()) {
             System.err.println("No server connection. Cannot load real auctions!");
+            applyFilters();
             return;
         }
         try {
             CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
             ClientMessageSender sender = new ClientMessageSender();
             
-            // Lấy ID người dùng hiện tại
+            // Get current user's ID
             long userId = UserSession.getInstance().isLoggedIn() 
                 ? UserSession.getInstance().getCurrentUser().getId() 
                 : 0L;
-            // Gửi request lấy toàn bộ danh sách phiên đấu giá
+            // Send request to retrieve all auctions
             String messageId = sender.sendListAuctions(userId, 1, 100, null);
-            // Đăng ký callback chờ server phản hồi
+            // Register callback to await server response
             ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
-            // Chờ tối đa 5 giây nhận kết quả từ Server
+            // Wait up to 5 seconds for server response
             MessageEnvelope resEnvelope = responseFuture.get(5, TimeUnit.SECONDS);
-            // Kiểm tra nếu Server trả về gói lỗi
+            // Check if server returned an error package
             if (resEnvelope.getType() == MessageType.ERROR_RES) {
                 ErrorPayload err = new ProtocolMapper().parsePayload(resEnvelope, ErrorPayload.class);
                 System.err.println("Failed to load auctions from server: " + err.getMessage());
+                applyFilters();
                 return;
             }
-            // Parse danh sách từ server
+            // Parse list from server
             ListAuctionsResPayload res = new ProtocolMapper().parsePayload(resEnvelope, ListAuctionsResPayload.class);
             
-            // Xóa mock cũ, nạp dữ liệu thật mới
-            allItems.clear();
+            // Populate real data
             for (AuctionSummaryItem summary : res.getAuctions()) {
+                if ("OPEN".equalsIgnoreCase(summary.getStatus())) {
+                    continue;
+                }
                 allItems.add(new AuctionItem(
                     summary.getAuctionId(), 
-                    0L, // itemId (không cần thiết ở màn list)
-                    0L, // sellerId
-                    "Authorized Seller", // Tên Seller tạm thời
-                    summary.getItemName(), // Tên thật lấy từ DB
-                    summary.getDescription(), // Mô tả thật lấy từ DB
-                    summary.getCategory(), // Thể loại thật lấy từ DB
+                    0L, // itemId (not needed for list view)
+                    summary.getSellerId(), // sellerId from DB
+                    summary.getSellerName() != null ? summary.getSellerName() : "Authorized Seller", // Seller name from DB
+                    summary.getItemName(), // Real name from DB
+                    summary.getDescription(), // Real description from DB
+                    summary.getCategory(), // Real category from DB
                     summary.getStatus(), 
                     summary.getCurrentHighestBid().doubleValue(), // Starting Price
                     summary.getCurrentHighestBid().doubleValue(), // Current Price
-                    LocalDateTime.now().minusMinutes(5), // Start Time tạm thời
-                    LocalDateTime.ofInstant(summary.getEndTime(), ZoneId.systemDefault()), // End Time chuẩn từ DB!
+                    LocalDateTime.now().minusMinutes(5), // Temporary start time
+                    LocalDateTime.ofInstant(summary.getEndTime(), ZoneId.systemDefault()), // Precise end time from DB!
                     null, // imageUrl
                     summary.getBidHistory() != null ? summary.getBidHistory().size() : 0, // totalBids
-                    summary.getBidHistory() // bidHistory thực tế từ DB
+                    summary.getBidHistory() // Real bid history from DB
                 ));
             }
         } catch (Exception e) {
             System.err.println("Error while fetching auctions from server: " + e.getMessage());
             e.printStackTrace();
         }
-        // Thực hiện áp dụng filter/sắp xếp
+        // Apply filtering and sorting
         applyFilters();
     }
 
-    // ── Setters (Controller gọi) ──────────────────────────────
+    // -- Setters (called by Controller) ------------------------
     public void setKeyword(String kw) {
         this.keyword = kw == null ? "" : kw.trim().toLowerCase();
     }
@@ -129,7 +133,7 @@ public class AuctionListViewModel {
         this.sortBy = sortBy == null ? "NEWEST" : sortBy;
     }
 
-    // ── Apply filters + sort ──────────────────────────────────
+    // -- Apply filters + sort ----------------------------------
     public List<AuctionItem> applyFilters() {
         filteredItems.clear();
         filteredItems.addAll(
@@ -146,7 +150,7 @@ public class AuctionListViewModel {
 
     private boolean matchStatus(AuctionItem item) {
         if ("ALL".equals(filterStatus)) return true;
-        // Map UI status → server status
+        // Map UI status -> server status
         return switch (filterStatus) {
             case "LIVE"         -> item.isRunning() && !item.isEndingSoon();
             case "ENDING_SOON"  -> item.isEndingSoon();
@@ -187,7 +191,7 @@ public class AuctionListViewModel {
         }
     }
 
-    // ── Getters ───────────────────────────────────────────────
+    // -- Getters -----------------------------------------------
     public List<AuctionItem> getFilteredItems() { return new ArrayList<>(filteredItems); }
     public List<AuctionItem> getAllItems()       { return new ArrayList<>(allItems); }
     public int getTotalCount()                  { return allItems.size(); }

@@ -22,7 +22,6 @@ public class AuctionItem {
     private int totalBids;
     private List<String> bidHistory = new ArrayList<>();
 
-    
     // Constructor used in ViewModel
     public AuctionItem(long auctionId, long itemId, long sellerId, String sellerName,
                        String itemName, String description, String category, String status,
@@ -56,11 +55,18 @@ public class AuctionItem {
     }
 
     // Helper methods
-    public boolean isRunning() { return "RUNNING".equals(status) && secondsLeft() > 0; }
+    public boolean isRunning() { 
+        if (isPending()) return false;
+        return secondsLeft() > 0; 
+    }
     public boolean isPending() { return "PENDING".equals(status) || "OPEN".equals(status); }
-    public boolean isClosed()  { return "CLOSED".equals(status) || "FINISHED".equals(status) || "PAID".equals(status) || "CANCELLED".equals(status) || secondsLeft() <= 0; }
+    public boolean isClosed()  { 
+        if (isPending()) return false;
+        if (secondsLeft() > 0) return false;
+        return "CLOSED".equals(status) || "FINISHED".equals(status) || "PAID".equals(status) || "CANCELLED".equals(status) || secondsLeft() <= 0; 
+    }
     public boolean isEndingSoon() {
-        return isRunning() && secondsLeft() < 900; // 15 phút
+        return isRunning() && secondsLeft() <= 300; // 5 minutes (300 seconds)
     }
 
     public int secondsLeft() {
@@ -70,7 +76,7 @@ public class AuctionItem {
 
     public String getDisplayStatus() {
         if (isClosed()) return "CLOSED";
-        if (isPending()) return "PENDING";
+        if (isPending()) return "UPCOMING";
         if (isEndingSoon()) return "ENDING_SOON";
         return "LIVE";
     }
@@ -78,6 +84,7 @@ public class AuctionItem {
     // Getters
     public long getAuctionId() { return auctionId; }
     public long getItemId() { return itemId; }
+    public long getSellerId() { return sellerId; }
     public String getItemName() { return itemName; }
     public String getDescription() { return description; }
     public String getCategory() { return category; }

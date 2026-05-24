@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
@@ -18,21 +20,26 @@ import com.auction.server.service.AuctionServiceImpl;
 import com.auction.server.dao.ItemDao;
 import com.auction.server.dao.jdbc.JdbcItemDao;
 import com.auction.server.model.Item;
+import com.auction.server.model.Auction;
+import com.auction.server.dao.AuctionDao;
+import com.auction.server.dao.jdbc.JdbcAuctionDao;
+import com.auction.server.config.DatabaseConfig;
 
-// điều hướng request đến server phù hợp
+// dispatch requests to the appropriate handlers
 public class RequestDispatcher {
     private final AuctionServiceImpl auctionService;
     private final UserDao userDao;
     private final ProtocolMapper mapper;
-    private final ItemDao itemDao; // THÊM MỚI 
+    private final ItemDao itemDao; // NEW ADDITION
+    private final AuctionDao auctionDao; // NEW ADDITION
     private final Object writeLock = new Object();
 
     public RequestDispatcher() {
         this.auctionService = new AuctionServiceImpl();
         this.userDao = new JdbcUserDao();
         this.mapper = new ProtocolMapper();
-        this.itemDao = new JdbcItemDao(); // THÊM MỚI
-
+        this.itemDao = new JdbcItemDao(); // NEW ADDITION
+        this.auctionDao = new JdbcAuctionDao(); // NEW ADDITION
     }
 
 
@@ -65,6 +72,22 @@ public class RequestDispatcher {
                 case UNSUBSCRIBE_REQ: {
                     long auctionId = mapper.parsePayload(envelope, SubscriptionReqPayload.class).getAuctionId();
                     SubscriptionRegistry.getInstance().unsubscribe(clientId, auctionId);
+                    break;
+                }
+                case SUBMIT_LISTING_REQ: {
+                    handleSubmitListing(envelope, correlationId, out);
+                    break;
+                }
+                case ADMIN_ACTION_REQ: {
+                    handleAdminAction(envelope, correlationId, out);
+                    break;
+                }
+                case LIST_USERS_REQ: {
+                    handleListUsers(envelope, correlationId, out);
+                    break;
+                }
+                case UPDATE_USER_REQ: {
+                    handleUpdateUser(envelope, correlationId, out);
                     break;
                 }
                 default: {
@@ -154,6 +177,13 @@ public class RequestDispatcher {
             // Sắp xếp giao dịch mới nhất lên đầu
             java.util.Collections.reverse(bidStrings);
             
+            String sellerName = "Unknown";
+            long sellerId = a.getSeller_id();
+            Optional<User> sellerOpt = userDao.findById(sellerId);
+            if (sellerOpt.isPresent()) {
+                sellerName = sellerOpt.get().get_user_name();
+            }
+
             return new AuctionSummaryItem(
                 a.getId(), 
                 name, 
@@ -161,14 +191,16 @@ public class RequestDispatcher {
                 cat, 
                 a.getCurrent_price(), 
                 a.getStatus().name(), 
-                a.getEnd_time().toInstant(ZoneOffset.UTC),
-                bidStrings
+                a.getEnd_time().atZone(java.time.ZoneId.systemDefault()).toInstant(),
+                bidStrings,
+                sellerId,
+                sellerName
             );
         }).toList();
         
         send(out, mapper.buildResponse(MessageType.LIST_AUCTIONS_RES, correlationId, 
              new ListAuctionsResPayload(summaries, summaries.size())));
-        }
+    }
 
     private void handlePlaceBid(MessageEnvelope envelope, String correlationId, PrintWriter out) throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
         PlaceBidReqPayload req = mapper.parsePayload(envelope, PlaceBidReqPayload.class); // đọc req
@@ -199,5 +231,97 @@ public class RequestDispatcher {
         send(out, mapper.buildErrorResponse(correlationId, code, message));
     }
 
+    private void handleSubmitListing(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        SubmitListingReqPayload req = mapper.parsePayload(envelope, SubmitListingReqPayload.class);
+        try {
+            Item item = new Item();
+            item.setSellerId(req.getSellerId());
+            item.setItemName(req.getItemName());
+            item.setDescription(req.getDescription());
+            item.setCategory(req.getCategory().toUpperCase());
+            item.setStartingPrice(java.math.BigDecimal.valueOf(req.getStartingPrice()));
+            item.setCurrentPrice(java.math.BigDecimal.valueOf(req.getStartingPrice()));
+            item = itemDao.save(item);
 
+            Auction auction = new Auction();
+            auction.setItem_id(item.getItemId());
+            auction.setSeller_id(req.getSellerId());
+            auction.setStarting_price(java.math.BigDecimal.valueOf(req.getStartingPrice()));
+            auction.setCurrent_price(java.math.BigDecimal.valueOf(req.getStartingPrice()));
+            auction.setStatus(AuctionStatus.OPEN);
+            auction.setStart_time(java.time.LocalDateTime.now());
+            auction.setEnd_time(java.time.LocalDateTime.now().plusMinutes(req.getDurationMinutes()));
+            auction = auctionDao.save(auction);
+
+            SubmitListingResPayload res = new SubmitListingResPayload(true, "Listing submitted successfully!", auction.getId());
+            send(out, mapper.buildResponse(MessageType.SUBMIT_LISTING_RES, correlationId, res));
+        } catch (Exception e) {
+            send(out, mapper.buildResponse(MessageType.SUBMIT_LISTING_RES, correlationId, new SubmitListingResPayload(false, e.getMessage(), 0L)));
+        }
+    }
+
+    private void handleAdminAction(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        AdminActionReqPayload req = mapper.parsePayload(envelope, AdminActionReqPayload.class);
+        try {
+            String action = req.getAction().toUpperCase();
+            long auctionId = req.getAuctionId();
+
+            if ("APPROVE".equals(action)) {
+                Auction auction = auctionService.getAuctionById(auctionId);
+                java.time.Duration originalDuration = java.time.Duration.between(auction.getStart_time(), auction.getEnd_time());
+                auction.setStatus(AuctionStatus.RUNNING);
+                auction.setStart_time(java.time.LocalDateTime.now());
+                auction.setEnd_time(java.time.LocalDateTime.now().plus(originalDuration));
+                auctionDao.update(auction);
+            } else if ("REJECT".equals(action) || "REMOVE".equals(action)) {
+                auctionDao.deleteById(auctionId);
+            } else if ("END".equals(action)) {
+                auctionService.closeAuction(auctionId);
+            } else {
+                throw new IllegalArgumentException("Unknown admin action: " + action);
+            }
+
+            AdminActionResPayload res = new AdminActionResPayload(true, "Action " + action + " executed successfully!");
+            send(out, mapper.buildResponse(MessageType.ADMIN_ACTION_RES, correlationId, res));
+        } catch (Exception e) {
+            send(out, mapper.buildResponse(MessageType.ADMIN_ACTION_RES, correlationId, new AdminActionResPayload(false, e.getMessage())));
+        }
+    }
+
+    private void handleListUsers(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        try {
+            List<User> dbUsers = userDao.findAll();
+            List<UserSummaryItem> summaries = new java.util.ArrayList<>();
+            for (User u : dbUsers) {
+                double balance = 0.0;
+                if (u instanceof com.auction.server.model.Bidder b && b.getAccount_balance() != null) {
+                    balance = b.getAccount_balance().doubleValue();
+                } else if (u instanceof com.auction.server.model.Seller s && s.getAccount_balance() != null) {
+                    balance = s.getAccount_balance().doubleValue();
+                }
+                summaries.add(new UserSummaryItem(u.get_ID(), u.get_user_name(), u.get_email(), u.getRole(), balance));
+            }
+            ListUsersResPayload res = new ListUsersResPayload(summaries);
+            send(out, mapper.buildResponse(MessageType.LIST_USERS_RES, correlationId, res));
+        } catch (Exception e) {
+            sendError(out, correlationId, ErrorCode.INTERNAL_ERROR, e.getMessage());
+        }
+    }
+
+    private void handleUpdateUser(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        UpdateUserReqPayload req = mapper.parsePayload(envelope, UpdateUserReqPayload.class);
+        try {
+            String sql = "UPDATE users SET role = ? WHERE id = ?";
+            try (Connection conn = DatabaseConfig.getInstance().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, req.getNewRole().toUpperCase());
+                ps.setLong(2, req.getUserId());
+                ps.executeUpdate();
+            }
+            UpdateUserResPayload res = new UpdateUserResPayload(true, "User role updated successfully!");
+            send(out, mapper.buildResponse(MessageType.UPDATE_USER_RES, correlationId, res));
+        } catch (Exception e) {
+            send(out, mapper.buildResponse(MessageType.UPDATE_USER_RES, correlationId, new UpdateUserResPayload(false, e.getMessage())));
+        }
+    }
 }

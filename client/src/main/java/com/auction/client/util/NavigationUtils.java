@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.auction.client.controller.AuctionDetailController;
 import com.auction.client.controller.BidController;
 import com.auction.client.model.AuctionItem;
+import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 
 import javafx.fxml.FXMLLoader;

@@ -14,7 +14,9 @@ public class ProtocolMapper {
     private final ObjectMapper objectMapper; // chuyển đổi giữa obj và JSON
 
     public ProtocolMapper() {
-        this.objectMapper = new ObjectMapper().findAndRegisterModules(); // tạo obj và tự động tìm và đăng ký các module hỗ trợ thêm
+        this.objectMapper = new ObjectMapper()
+                .findAndRegisterModules()
+                .disable(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS); // Create mapper and register modules
     }
 
     public ProtocolMapper(ObjectMapper objectMapper) {
