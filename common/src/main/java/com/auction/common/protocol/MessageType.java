@@ -1,5 +1,10 @@
 package com.auction.common.protocol;
 
+/**
+ * THÊM MỚI: DEPOSIT_REQ và DEPOSIT_RES
+ *
+ * PATH: common/src/main/java/com/auction/common/protocol/MessageType.java
+ */
 public enum MessageType {
     PLACE_BID_REQ,
     PLACE_BID_RES,
@@ -13,5 +18,7 @@ public enum MessageType {
     REGISTER_REQ,
     REGISTER_RES,
     SUBSCRIBE_REQ,
-    UNSUBSCRIBE_REQ
+    UNSUBSCRIBE_REQ,
+    DEPOSIT_REQ,   // ← THÊM MỚI
+    DEPOSIT_RES    // ← THÊM MỚI
 }
