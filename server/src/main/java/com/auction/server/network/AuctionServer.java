@@ -1,7 +1,6 @@
 package com.auction.server.network;
 
 import com.auction.server.service.AuctionClosingService;
-import com.auction.server.service.AuctionService;
 import com.auction.server.service.AuctionServiceImpl;
 
 import java.io.IOException;
@@ -10,7 +9,6 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import com.auction.server.service.AuctionServiceImpl;
 
 public class AuctionServer {
     private static final int defaultPort = 1337; //port mặc định

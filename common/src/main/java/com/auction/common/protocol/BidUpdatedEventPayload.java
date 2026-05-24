@@ -2,7 +2,6 @@ package com.auction.common.protocol;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 // gói thông tin và gửi cho hệ thông khác khi có giá mới
 public class BidUpdatedEventPayload {
     private long auctionId;

@@ -1,17 +1,11 @@
-package observer;
+package com.auction.server.observer;
 
-import com.auction.server.observer.AuctionEvent;
-import com.auction.server.observer.AuctionEventPublisher;
-import com.auction.server.observer.AuctionObserver;
+
 import org.junit.jupiter.api.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 // trung tâm phát thông báo

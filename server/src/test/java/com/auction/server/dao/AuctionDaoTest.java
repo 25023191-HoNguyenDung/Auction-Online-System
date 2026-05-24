@@ -1,7 +1,6 @@
-package dao;
+package com.auction.server.dao;
 
 import com.auction.common.exception.AuctionConnectException;
-import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.jdbc.JdbcAuctionDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;

@@ -1,10 +1,8 @@
 package com.auction.client.controller;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import com.auction.client.model.AuctionItem;
-import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
