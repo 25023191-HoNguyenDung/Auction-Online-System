@@ -36,10 +36,10 @@ public class AuctionListController {
     @FXML private Button    btnLogout;
 
     // ── Sidebar Filters ───────────────────────────────────────
-    @FXML private CheckBox catFineArt;
-    @FXML private CheckBox catLuxuryWatches;
-    @FXML private CheckBox catClassicCars;
-    @FXML private CheckBox catJewelry;
+    @FXML private CheckBox catVehicles;
+    @FXML private CheckBox catArts;
+    @FXML private CheckBox catWatches;
+    @FXML private CheckBox catElectronics;
     @FXML private TextField priceMin;
     @FXML private TextField priceMax;
     @FXML private Button    statusLive;
@@ -282,10 +282,10 @@ public class AuctionListController {
         viewModel.setPriceRange(min, max);
 
         java.util.Set<String> cats = new java.util.HashSet<>();
-        if (catFineArt.isSelected())       cats.add("Art");
-        if (catLuxuryWatches.isSelected()) cats.add("Watches");
-        if (catClassicCars.isSelected())   cats.add("Vehicles");
-        if (catJewelry.isSelected())       cats.add("Jewellery");
+        if (catVehicles.isSelected())    { cats.add("Vehicles"); cats.add("Vehicle"); }
+        if (catArts.isSelected())        { cats.add("Art"); cats.add("Fine Art"); }
+        if (catWatches.isSelected())     { cats.add("Watches"); cats.add("Watch"); }
+        if (catElectronics.isSelected()) { cats.add("Electronics"); }
         viewModel.setFilterCategories(cats);
 
         refreshCards();
@@ -324,7 +324,9 @@ public class AuctionListController {
         // Badge
         String displayStatus = item.getDisplayStatus();
         String badgeText, badgeStyle;
-        if ("ENDING_SOON".equals(displayStatus)) {
+        if ("CLOSED".equals(displayStatus) || item.isClosed()) {
+            badgeText = "● CLOSED";        badgeStyle = "al-badge-upcoming";
+        } else if ("ENDING_SOON".equals(displayStatus)) {
             badgeText = "⏰ ENDING SOON"; badgeStyle = "al-badge-ending";
         } else if (item.isPending()) {
             badgeText = "🕐 UPCOMING";   badgeStyle = "al-badge-upcoming";
@@ -455,12 +457,12 @@ public class AuctionListController {
     private String emojiFor(String category) {
         if (category == null) return "⭐";
         return switch (category.toLowerCase()) {
-            case "vehicles"            -> "🏎️";
-            case "watches"             -> "⌚";
-            case "art"                 -> "🖼️";
-            case "jewelry","jewellery" -> "💎";
-            case "electronics"         -> "💻";
-            default                    -> "⭐";
+            case "vehicles", "vehicle"            -> "🏎️";
+            case "watches", "watch"               -> "⌚";
+            case "art", "fine art"                -> "🖼️";
+            case "jewelry", "jewellery"           -> "💎";
+            case "electronics"                    -> "💻";
+            default                               -> "⭐";
         };
     }
 

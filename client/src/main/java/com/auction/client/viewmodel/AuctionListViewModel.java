@@ -95,7 +95,8 @@ public class AuctionListViewModel {
                     LocalDateTime.now().minusMinutes(5), // Start Time tạm thời
                     LocalDateTime.ofInstant(summary.getEndTime(), ZoneId.systemDefault()), // End Time chuẩn từ DB!
                     null, // imageUrl
-                    0 // totalBids tạm thời
+                    summary.getBidHistory() != null ? summary.getBidHistory().size() : 0, // totalBids
+                    summary.getBidHistory() // bidHistory thực tế từ DB
                 ));
             }
         } catch (Exception e) {

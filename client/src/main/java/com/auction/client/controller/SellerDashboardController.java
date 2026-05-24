@@ -451,12 +451,12 @@ public class SellerDashboardController {
     private String emojiFor(String category) {
         if (category == null) return "⭐";
         return switch (category.toLowerCase()) {
-            case "vehicles"            -> "🏎️";
-            case "watches"             -> "⌚";
-            case "art"                 -> "🖼️";
-            case "jewellery","jewelry" -> "💎";
-            case "electronics"         -> "💻";
-            default                    -> "⭐";
+            case "vehicles", "vehicle"            -> "🏎️";
+            case "watches", "watch"               -> "⌚";
+            case "art", "fine art"                -> "🖼️";
+            case "jewellery","jewelry"            -> "💎";
+            case "electronics"                    -> "💻";
+            default                               -> "⭐";
         };
     }
 }

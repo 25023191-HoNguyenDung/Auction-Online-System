@@ -2,6 +2,8 @@ package com.auction.common.protocol;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuctionSummaryItem {
     private long auctionId;
@@ -11,6 +13,7 @@ public class AuctionSummaryItem {
     private BigDecimal currentHighestBid;
     private String status; 
     private Instant endTime;
+    private List<String> bidHistory = new ArrayList<>();
 
     // Constructor rỗng cho Jackson giải mã JSON
     public AuctionSummaryItem() {
@@ -25,6 +28,12 @@ public class AuctionSummaryItem {
         this.currentHighestBid = currentHighestBid;
         this.status = status;
         this.endTime = endTime;
+    }
+
+    public AuctionSummaryItem(long auctionId, String itemName, String description, String category, 
+                              BigDecimal currentHighestBid, String status, Instant endTime, List<String> bidHistory) {
+        this(auctionId, itemName, description, category, currentHighestBid, status, endTime);
+        this.bidHistory = bidHistory;
     }
 
     public long getAuctionId() { return auctionId; }
@@ -47,4 +56,7 @@ public class AuctionSummaryItem {
 
     public Instant getEndTime() { return endTime; }
     public void setEndTime(Instant endTime) { this.endTime = endTime; }
+
+    public List<String> getBidHistory() { return bidHistory; }
+    public void setBidHistory(List<String> bidHistory) { this.bidHistory = bidHistory; }
 }

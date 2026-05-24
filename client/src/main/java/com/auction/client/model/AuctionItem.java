@@ -2,6 +2,8 @@ package com.auction.client.model;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuctionItem {
     private long auctionId;
@@ -18,6 +20,7 @@ public class AuctionItem {
     private LocalDateTime endTime;
     private String imageUrl;
     private int totalBids;
+    private List<String> bidHistory = new ArrayList<>();
 
     
     // Constructor used in ViewModel
@@ -42,10 +45,20 @@ public class AuctionItem {
         this.totalBids = totalBids;
     }
 
+    public AuctionItem(long auctionId, long itemId, long sellerId, String sellerName,
+                       String itemName, String description, String category, String status,
+                       double startingPrice, double currentPrice,
+                       LocalDateTime startTime, LocalDateTime endTime,
+                       String imageUrl, int totalBids, List<String> bidHistory) {
+        this(auctionId, itemId, sellerId, sellerName, itemName, description, category, status,
+             startingPrice, currentPrice, startTime, endTime, imageUrl, totalBids);
+        this.bidHistory = bidHistory;
+    }
+
     // Helper methods
     public boolean isRunning() { return "RUNNING".equals(status) && secondsLeft() > 0; }
-    public boolean isPending() { return "PENDING".equals(status); }
-    public boolean isClosed()  { return "CLOSED".equals(status) || secondsLeft() <= 0; }
+    public boolean isPending() { return "PENDING".equals(status) || "OPEN".equals(status); }
+    public boolean isClosed()  { return "CLOSED".equals(status) || "FINISHED".equals(status) || "PAID".equals(status) || "CANCELLED".equals(status) || secondsLeft() <= 0; }
     public boolean isEndingSoon() {
         return isRunning() && secondsLeft() < 900; // 15 phút
     }
@@ -56,7 +69,10 @@ public class AuctionItem {
     }
 
     public String getDisplayStatus() {
-        return isEndingSoon() ? "ENDING_SOON" : "LIVE";
+        if (isClosed()) return "CLOSED";
+        if (isPending()) return "PENDING";
+        if (isEndingSoon()) return "ENDING_SOON";
+        return "LIVE";
     }
 
     // Getters
@@ -70,6 +86,7 @@ public class AuctionItem {
     public String getSellerName() { return sellerName; }
     public String getImageUrl() { return imageUrl; }
     public int getTotalBids() { return totalBids; }
+    public List<String> getBidHistory() { return bidHistory; }
 
     // Setters to allow updating the current bid state
     public void setCurrentPrice(double currentPrice) { 
@@ -81,5 +98,8 @@ public class AuctionItem {
     }
     public void setStatus(String status) {
         this.status = status;
+    }
+    public void setBidHistory(List<String> bidHistory) {
+        this.bidHistory = bidHistory;
     }
 }

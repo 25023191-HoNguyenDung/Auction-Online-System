@@ -3,10 +3,17 @@ package com.auction.client.controller;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 import com.auction.client.model.AuctionItem;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerEventListener;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.ProtocolMapper;
+import com.auction.common.protocol.ErrorPayload;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -93,12 +100,29 @@ public class BidController {
         totalBidsLabel.setText(String.valueOf(item.getTotalBids()));
         sellerLabel.setText(item.getSellerName() != null ? item.getSellerName() : "—");
 
-        if (item.isEndingSoon()) {
-            badgeLabel.setText("⏰ ENDING SOON");
-            badgeLabel.getStyleClass().setAll("al-badge-ending");
+        if (item.isClosed()) {
+            badgeLabel.setText("● CLOSED");
+            badgeLabel.getStyleClass().setAll("al-badge-upcoming");
+            if (confirmBidButton != null) confirmBidButton.setDisable(true);
+            if (quickBid1 != null) quickBid1.setDisable(true);
+            if (quickBid2 != null) quickBid2.setDisable(true);
+            if (quickBid3 != null) quickBid3.setDisable(true);
+            if (quickBid4 != null) quickBid4.setDisable(true);
+            if (bidAmountField != null) bidAmountField.setDisable(true);
+            showError("This auction has closed.");
         } else if (item.isPending()) {
             badgeLabel.setText("🕐 UPCOMING");
             badgeLabel.getStyleClass().setAll("al-badge-upcoming");
+            if (confirmBidButton != null) confirmBidButton.setDisable(true);
+            if (quickBid1 != null) quickBid1.setDisable(true);
+            if (quickBid2 != null) quickBid2.setDisable(true);
+            if (quickBid3 != null) quickBid3.setDisable(true);
+            if (quickBid4 != null) quickBid4.setDisable(true);
+            if (bidAmountField != null) bidAmountField.setDisable(true);
+            showError("This auction is upcoming and has not started yet.");
+        } else if (item.isEndingSoon()) {
+            badgeLabel.setText("⏰ ENDING SOON");
+            badgeLabel.getStyleClass().setAll("al-badge-ending");
         } else {
             badgeLabel.setText("● LIVE");
             badgeLabel.getStyleClass().setAll("al-badge-live");
@@ -213,48 +237,78 @@ public class BidController {
             return;
         }
 
-        // Refund the previous winning bid for THIS auction (user is outbidding themselves
-        // or replaces their old hold) — in a real system this would be a server-side hold
-        // UserSession.placeBid replaces the hold amount; self-bidding is still just a BID.
+        // Disable button while sending to avoid double submission
+        if (confirmBidButton != null) confirmBidButton.setDisable(true);
+        showSuccess("Submitting bid to server...");
 
-                // Xóa bỏ hoặc comment phần này vì UserSession đã tự xử lý đè ghi trong holdMap:
-        /*
-        if (prevWinBid > 0) {
-            UserSession.getInstance().refundOutbid(currentItem.getItemName(), prevWinBid);
-        }
-        */
+        // Gửi Place Bid Req lên Server
+        new Thread(() -> {
+            try {
+                CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
+                ClientMessageSender sender = new ClientMessageSender();
+                
+                long bidderId = UserSession.getInstance().getCurrentUser().getId();
+                long auctionId = currentItem.getAuctionId();
+                java.math.BigDecimal bidAmount = new java.math.BigDecimal(amount);
+                
+                String messageId = sender.sendPlaceBid(auctionId, bidderId, bidAmount);
+                ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                
+                Platform.runLater(() -> {
+                    if (confirmBidButton != null) confirmBidButton.setDisable(false);
+                    
+                    if (resEnvelope.getType() == MessageType.ERROR_RES) {
+                        try {
+                            ErrorPayload err = new ProtocolMapper().parsePayload(resEnvelope, ErrorPayload.class);
+                            showError("Failed: " + err.getMessage());
+                        } catch (Exception ex) {
+                            showError("Bid rejected by server.");
+                        }
+                    } else {
+                        // Thành công! Tiến hành cập nhật local và ví
+                        boolean ok = UserSession.getInstance().placeBid(currentItem.getItemName(), amount);
+                        if (!ok) {
+                            showError("Bid could not be processed locally.");
+                            return;
+                        }
+                        
+                        // Cập nhật thuộc tính của item để mang đi các màn hình khác
+                        currentItem.setCurrentPrice(amount);
+                        currentItem.setTotalBids(currentItem.getTotalBids() + 1);
 
-        // Thực hiện đặt giá
-        boolean ok = UserSession.getInstance().placeBid(currentItem.getItemName(), amount);
-        if (!ok) {
-            showError("Bid could not be processed. Please try again.");
-            return;
-        }
+                        prevWinBid = amount;
+                        currentBid = amount;
+                        currentBidLabel.setText(fmt(currentBid));
+                        minBidLabel.setText(fmt(currentBid + 1));
+                        bidAmountField.clear();
 
-        // Cập nhật thuộc tính của item để mang đi các màn hình khác
-        currentItem.setCurrentPrice(amount);
-        currentItem.setTotalBids(currentItem.getTotalBids() + 1);
+                        String bidder = UserSession.getInstance().isLoggedIn()
+                            ? UserSession.getInstance().getCurrentUser().getUsername()
+                            : "You";
 
-        prevWinBid = amount;
-        currentBid = amount;
-        currentBidLabel.setText(fmt(currentBid));
-        minBidLabel.setText(fmt(currentBid + 1));
-        bidAmountField.clear();
-        // balanceLabel is refreshed via the listener automatically
+                        String entry = bidder + "  →  " + fmt(amount);
+                        if (currentItem.getBidHistory() == null) {
+                            currentItem.setBidHistory(new java.util.ArrayList<>());
+                        }
+                        currentItem.getBidHistory().add(0, entry);
 
-        String bidder = UserSession.getInstance().isLoggedIn()
-            ? UserSession.getInstance().getCurrentUser().getUsername()
-            : "You";
+                        // Reload list
+                        seedMockHistory(currentItem);
 
-        // Prepend to the in-page list (the listener will also fire but guard duplicate)
-        String entry = bidder + "  →  " + fmt(amount);
-        if (bidHistoryList.getItems().isEmpty() || !bidHistoryList.getItems().get(0).equals(entry)) {
-            bidHistoryList.getItems().add(0, entry);
-            bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
-        }
-
-        showSuccess("Bid of " + fmt(amount) + " placed successfully!");
-        System.out.println("✅ Bid placed: " + fmt(amount) + " on " + currentItem.getItemName());
+                        showSuccess("Bid of " + fmt(amount) + " placed successfully!");
+                        System.out.println("✅ Bid placed on server: " + fmt(amount) + " on " + currentItem.getItemName());
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Platform.runLater(() -> {
+                    if (confirmBidButton != null) confirmBidButton.setDisable(false);
+                    showError("Network timeout. Please try again.");
+                });
+            }
+        }).start();
     }
 
     // ── Prepend a new transaction to the bid history list ─────
@@ -308,14 +362,11 @@ public class BidController {
 
     private void seedMockHistory(AuctionItem item) {
         bidHistoryList.getItems().clear();
-        double price = item.getCurrentPrice();
-        String[][] mocks = {
-            {"Sterling House", fmt(price)},
-            {"@bidder_99",     fmt(price * 0.97)},
-            {"@luxcollector",  fmt(price * 0.94)},
-            {"@marcus_g",      fmt(price * 0.90)},
-        };
-        for (String[] m : mocks) bidHistoryList.getItems().add(m[0] + "  →  " + m[1]);
+        if (item.getBidHistory() != null) {
+            for (String b : item.getBidHistory()) {
+                bidHistoryList.getItems().add(b);
+            }
+        }
         bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
     }
 
@@ -354,12 +405,12 @@ public class BidController {
     private String emojiFor(String category) {
         if (category == null) return "⭐";
         return switch (category.toLowerCase()) {
-            case "vehicles"            -> "🏎️";
-            case "watches"             -> "⌚";
-            case "art"                 -> "🖼️";
-            case "jewelry","jewellery" -> "💎";
-            case "electronics"         -> "💻";
-            default                    -> "⭐";
+            case "vehicles", "vehicle"            -> "🏎️";
+            case "watches", "watch"               -> "⌚";
+            case "art", "fine art"                -> "🖼️";
+            case "jewelry", "jewellery"           -> "💎";
+            case "electronics"                    -> "💻";
+            default                               -> "⭐";
         };
     }
 }

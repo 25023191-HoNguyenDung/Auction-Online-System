@@ -213,11 +213,11 @@ public class UserSession {
     // ── Login / logout ────────────────────────────────────────
     public void login(User user) {
         this.currentUser = user;
-        this.balance     = 50_000.0;   // reset to mock starting balance on login
+        this.balance     = user.getBalance();   // Nạp số dư thực tế từ Database
         transactions.clear();
-        // Seed some mock history so the history screen is not empty on first login
-        seedMockTransactions();
-        System.out.println("Logged in: " + user.getFullName() + " (" + user.getRole() + ")");
+        // Tạo một lịch sử giao dịch ban đầu tương đương với số dư thật
+        transactions.add(new Transaction(Transaction.Kind.DEPOSIT, "", user.getBalance(), "DEPOSIT", LocalDateTime.now()));
+        System.out.println("Logged in: " + user.getFullName() + " (" + user.getRole() + ") | Balance: " + user.getBalance());
     }
 
     public void logout() {

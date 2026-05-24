@@ -3,6 +3,7 @@ package com.auction.server.network;
 import java.io.PrintWriter;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.List;
 
 import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
@@ -84,7 +85,19 @@ public class RequestDispatcher {
             return;
         }
         User user = userOpt.get();
-        LoginResPayload res = new LoginResPayload(true, user.get_ID(), user.get_user_name(), user.getRole()); // tạo payload phản hồi
+
+        // Lấy số dư tài khoản thực tế từ database
+        java.math.BigDecimal balance = java.math.BigDecimal.ZERO;
+        if (user instanceof com.auction.server.model.Bidder) {
+            balance = ((com.auction.server.model.Bidder) user).getAccount_balance();
+        } else if (user instanceof com.auction.server.model.Seller) {
+            balance = ((com.auction.server.model.Seller) user).getAccount_balance();
+        }
+        if (balance == null) {
+            balance = java.math.BigDecimal.ZERO;
+        }
+
+        LoginResPayload res = new LoginResPayload(true, user.get_ID(), user.get_user_name(), user.getRole(), balance); // tạo payload phản hồi
         send(out, mapper.buildResponse(MessageType.LOGIN_RES,correlationId,res)); // gửi dưới dạng JSON
     }
 
@@ -130,6 +143,17 @@ public class RequestDispatcher {
             String desc = (item != null) ? item.getDescription() : "No description";
             String cat  = (item != null) ? item.getCategory() : "Art";
             
+            // Lấy lịch sử đặt giá thực tế từ Database
+            List<com.auction.server.model.BidTransaction> bids = auctionService.getBidHistory(a.getId());
+            List<String> bidStrings = new java.util.ArrayList<>();
+            for (com.auction.server.model.BidTransaction b : bids) {
+                String bidderName = b.getBidder() != null && b.getBidder().get_user_name() != null && !b.getBidder().get_user_name().isEmpty() 
+                    ? b.getBidder().get_user_name() : "bidder" + b.getBidderId();
+                bidStrings.add(bidderName + "  →  $" + String.format("%,.0f", b.getBidAmount().doubleValue()));
+            }
+            // Sắp xếp giao dịch mới nhất lên đầu
+            java.util.Collections.reverse(bidStrings);
+            
             return new AuctionSummaryItem(
                 a.getId(), 
                 name, 
@@ -137,7 +161,8 @@ public class RequestDispatcher {
                 cat, 
                 a.getCurrent_price(), 
                 a.getStatus().name(), 
-                a.getEnd_time().toInstant(ZoneOffset.UTC)
+                a.getEnd_time().toInstant(ZoneOffset.UTC),
+                bidStrings
             );
         }).toList();
         
