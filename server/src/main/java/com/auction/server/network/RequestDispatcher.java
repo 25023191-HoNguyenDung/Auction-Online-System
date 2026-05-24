@@ -74,6 +74,10 @@ public class RequestDispatcher {
                     SubscriptionRegistry.getInstance().unsubscribe(clientId, auctionId);
                     break;
                 }
+                case DEPOSIT_REQ: {                  // từ main: xử lý nạp tiền
+                    handleDeposit(envelope, correlationId, out);
+                    break;
+                }
                 case SUBMIT_LISTING_REQ: {
                     handleSubmitListing(envelope, correlationId, out);
                     break;
@@ -229,6 +233,42 @@ public class RequestDispatcher {
     private void sendError(PrintWriter out, String correlationId,
                            ErrorCode code, String message) {
         send(out, mapper.buildErrorResponse(correlationId, code, message));
+    }
+
+    // Xử lý nạp tiền — cập nhật account_balance thật vào DB (từ main)
+    private void handleDeposit(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        DepositReqPayload req = mapper.parsePayload(envelope, DepositReqPayload.class);
+
+        if (req.getAmount() == null || req.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Số tiền nạp phải lớn hơn 0");
+            return;
+        }
+
+        User user = userDao.findById(req.getUserId()).orElse(null);
+        if (user == null) {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Không tìm thấy user id: " + req.getUserId());
+            return;
+        }
+
+        java.math.BigDecimal newBalance;
+        if (user instanceof com.auction.server.model.Bidder bidder) {
+            newBalance = (bidder.getAccount_balance() == null ? java.math.BigDecimal.ZERO : bidder.getAccount_balance())
+                         .add(req.getAmount());
+            bidder.setAccount_balance(newBalance);
+        } else if (user instanceof com.auction.server.model.Seller seller) {
+            newBalance = (seller.getAccount_balance() == null ? java.math.BigDecimal.ZERO : seller.getAccount_balance())
+                         .add(req.getAmount());
+            seller.setAccount_balance(newBalance);
+        } else {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Admin không thể nạp tiền");
+            return;
+        }
+
+        userDao.update(user);
+        System.out.println("[Deposit] User " + req.getUserId() + " deposited " + req.getAmount() + " → new balance: " + newBalance);
+
+        DepositResPayload res = new DepositResPayload(true, newBalance, "Nạp tiền thành công");
+        send(out, mapper.buildResponse(MessageType.DEPOSIT_RES, correlationId, res));
     }
 
     private void handleSubmitListing(MessageEnvelope envelope, String correlationId, PrintWriter out) {

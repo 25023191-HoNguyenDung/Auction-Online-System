@@ -6,10 +6,17 @@ import java.util.TimerTask;
 import java.util.function.Consumer;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerEventListener;
 import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionListViewModel;
+import com.auction.common.protocol.DepositResPayload;
+import com.auction.common.protocol.ErrorPayload;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.ProtocolMapper;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -135,7 +142,8 @@ public class AuctionListController {
     /** Called by FXML button fx:id="btnDeposit" */
     @FXML
     private void handleDepositSimulation() {
-        String raw = depositAmountField != null ? depositAmountField.getText().trim().replace(",", "") : "";
+        String raw = depositAmountField != null
+                ? depositAmountField.getText().trim().replace(",", "") : "";
         if (raw.isEmpty()) {
             showAlert("Please enter an amount.", false);
             return;
@@ -151,13 +159,50 @@ public class AuctionListController {
             showAlert("Amount must be greater than zero.", false);
             return;
         }
-        try {
-            UserSession.getInstance().deposit(amount);
-            if (depositAmountField != null) depositAmountField.clear();
-            showAlert(String.format("$%,.0f deposited successfully.", amount), true);
-        } catch (Exception ex) {
-            showAlert(ex.getMessage(), false);
-        }
+        // ← THAY ĐỔI CHÍNH: Gửi lên server thay vì chỉ update local
+        if (btnDeposit != null) btnDeposit.setDisable(true);
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<MessageEnvelope> responseFuture =
+                        new java.util.concurrent.CompletableFuture<>();
+                ClientMessageSender sender = new ClientMessageSender();
+                long userId = UserSession.getInstance().getCurrentUser().getId();
+                java.math.BigDecimal depositAmount = java.math.BigDecimal.valueOf(amount);
+                String messageId = sender.sendDeposit(userId, depositAmount);
+                ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                Platform.runLater(() -> {
+                    if (btnDeposit != null) btnDeposit.setDisable(false);
+                    if (resEnvelope.getType() == MessageType.ERROR_RES) {
+                        try {
+                            ErrorPayload err = new ProtocolMapper().parsePayload(resEnvelope, ErrorPayload.class);
+                            showAlert("Nạp tiền thất bại: " + err.getMessage(), false);
+                        } catch (Exception ex) {
+                            showAlert("Nạp tiền thất bại.", false);
+                        }
+                    } else {
+                        // Server xác nhận thành công → cập nhật số dư local theo số dư thật từ DB
+                        try {
+                            DepositResPayload res = new ProtocolMapper().parsePayload(resEnvelope, DepositResPayload.class);
+                            // Đồng bộ balance local = balance thật trong DB
+                            double newBal = res.getNewBalance().doubleValue();
+                            UserSession.getInstance().setBalance(newBal);
+                        } catch (Exception ex) {
+                            // fallback: cộng local nếu không parse được
+                            UserSession.getInstance().deposit(amount);
+                        }
+                        if (depositAmountField != null) depositAmountField.clear();
+                        showAlert(String.format("$%,.0f deposited successfully.", amount), true);
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Platform.runLater(() -> {
+                    if (btnDeposit != null) btnDeposit.setDisable(false);
+                    showAlert("Network timeout. Please try again.", false);
+                });
+            }
+        }).start();
     }
 
     /** Called by the WITHDRAW button (fx:id="btnDeposit1") */
