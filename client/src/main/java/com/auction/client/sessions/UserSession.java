@@ -1,6 +1,4 @@
-﻿package com.auction.client.sessions;
-
-import com.auction.client.model.User;
+package com.auction.client.sessions;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+
+import com.auction.client.model.User;
 
 /**
  * Singleton session — holds the logged-in user, their balance,
