@@ -12,6 +12,10 @@ import com.auction.server.dao.AutoBidProfileDao;
 import com.auction.server.dao.jdbc.JdbcAutoBidProfileDao;
 import com.auction.server.model.AutoBidProfile;
 public class AutoBidService {
+    //Đặt hằng số giới hạn vòng lặp rõ ràng
+    //Bảo vệ server: Ngăn treo máy/quá tải DB do 2 user giằng co liên tục với bước giá nhỏ.
+    private static final int MAX_AUTO_BID_ROUNDS = 50;
+
     private final AutoBidProfileDao autoBidProfileDao;
     private final AuctionServiceImpl auctionService;
 
@@ -64,7 +68,7 @@ public class AutoBidService {
         return autoBidProfileDao.findByUserIdAndAuctionId(userId, auctionId);
     }
 
-    // Ham đặt giá tự động cho một phiên đấu giá dựa trên profile auto-bid của người dùng
+    // Hàm đặt giá tự động cho một phiên đấu giá dựa trên profile auto-bid của người dùng
     public boolean placeBidAutomatically(long auctionId, long userId, BigDecimal bidAmount) {
         try {
             auctionService.placeBidInternal(auctionId, userId, bidAmount);
@@ -76,16 +80,24 @@ public class AutoBidService {
         } catch (AuctionMisMatchException e) {
             throw new RuntimeException("[AutoBid] Auction ID mismatch for auction " + auctionId + ".", e);
         } catch (InvalidBidException e) {
-            System.err.println("[Auction] Invalid bid amount. Skipping user " + userId);
+            System.err.println("[AutoBid] Invalid bid amount for auction=" + auctionId
+                    + " user=" + userId + " amount=" + bidAmount
+                    + " — " + e.getMessage() + ". Skipping.");
             return false;
         }
     }
+
     public void processAutoBids(long auctionId, BigDecimal currentPrice, long currentBidderId) {
         //Lấy tất cả profile auto-bid của phiên đấu này
         List<AutoBidProfile> profiles = autoBidProfileDao.findByAuctionId(auctionId);
+        if (profiles.isEmpty()) {
+            return;
+        }
         BigDecimal currentHighestBid = currentPrice;  //Giá sàn hiện tại
         long currentHighestBidder = currentBidderId;  //ID người đang dẫn đầu hiện tại
-        while (true) { 
+        int rounds = 0;
+        while (rounds < MAX_AUTO_BID_ROUNDS) { 
+            rounds++;
             boolean isPriceUpdated = false;
             for (AutoBidProfile profile : profiles) {
                 //Nếu người dùng này đang dẫn đầu -> bỏ qua
@@ -106,13 +118,20 @@ public class AutoBidService {
                 currentHighestBid = nextBid;
                 currentHighestBidder = profile.getUser_id();
                 isPriceUpdated = true;
-                System.out.println("[AutoBid] User " + profile.getUser_id() + " placed an automatic bid of " + nextBid + " on auction " + auctionId);
+                System.out.println("[AutoBid] User " + profile.getUser_id() 
+                        + " placed an automatic bid of " + nextBid 
+                        + " on auction " + auctionId 
+                        + "(round " + rounds + ")");
                 break; // Sau khi có một profile đặt giá thành công -> dừng vòng này để kiểm tra lại từ đầu với giá mới
             }
             //Nếu sau khi duyệt hết tất cả profile mà không có ai đặt giá thành công -> dừng vòng lặp
             if (!isPriceUpdated) {
                 break;
             }
+        }
+        if (rounds >= MAX_AUTO_BID_ROUNDS) {
+            System.err.println("[AutoBid] Reached max rounds (" + MAX_AUTO_BID_ROUNDS
+                    + ") for auction " + auctionId + ". Stopping auto-bid loop.");
         }
     }
 }
