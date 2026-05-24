@@ -1,3 +1,4 @@
+SET SQL_SAFE_UPDATES = 0;
 USE auction_db;
 
 -- Xóa dữ liệu cũ trước khi insert (an toàn)
