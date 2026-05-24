@@ -1,4 +1,4 @@
-package service;
+package com.auction.server.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,8 +36,7 @@ import com.auction.server.dao.AutoBidProfileDao;
 import com.auction.server.model.AutoBidProfile;
 import com.auction.server.model.BidTransaction;
 import com.auction.server.model.Bidder;
-import com.auction.server.service.AuctionServiceImpl;
-import com.auction.server.service.AutoBidService;
+
 
 @ExtendWith(MockitoExtension.class)
 public class AutoBidServiceTest {

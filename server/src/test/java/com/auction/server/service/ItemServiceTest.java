@@ -1,11 +1,10 @@
-package service;
+package com.auction.server.service;
 
 import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.ItemDao;
 import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Item;
-import com.auction.server.service.ItemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

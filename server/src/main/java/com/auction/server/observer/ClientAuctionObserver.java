@@ -5,7 +5,6 @@ import com.auction.common.protocol.*;
 import java.io.PrintWriter;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 // observer cụ thể : khi có thay đổi thì đóng gói tin nhắn gửi cho người dùng
 public class ClientAuctionObserver implements AuctionObserver {
     private final String clientId;

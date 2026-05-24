@@ -13,8 +13,6 @@ import java.util.concurrent.TimeUnit;
 import com.auction.client.network.ServerConnection;
 import com.auction.client.network.ClientMessageSender;
 import com.auction.client.network.ServerEventListener;
-import com.auction.client.data.AuctionStore;
-import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.common.protocol.MessageEnvelope;
 import com.auction.common.protocol.MessageType;

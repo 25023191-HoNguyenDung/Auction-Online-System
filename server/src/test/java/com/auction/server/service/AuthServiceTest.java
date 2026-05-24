@@ -1,9 +1,8 @@
-package service;
+package com.auction.server.service;
 
 import com.auction.common.exception.ValidRegisterException;
 import com.auction.server.dao.UserDao;
 import com.auction.server.model.User;
-import com.auction.server.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

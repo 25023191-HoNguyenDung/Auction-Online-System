@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
 import com.auction.client.model.AuctionItem;
-import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.network.ClientMessageSender;
