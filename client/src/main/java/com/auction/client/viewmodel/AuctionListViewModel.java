@@ -150,7 +150,7 @@ public class AuctionListViewModel {
         if ("ALL".equals(filterStatus)) return true;
         // Map UI status -> server status
         return switch (filterStatus) {
-            case "LIVE"         -> item.isRunning() && !item.isEndingSoon();
+            case "LIVE"         -> item.isRunning();
             case "ENDING_SOON"  -> item.isEndingSoon();
             case "PENDING"      -> item.isPending();
             case "CLOSED"       -> item.isClosed();

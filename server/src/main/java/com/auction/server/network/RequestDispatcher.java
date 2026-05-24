@@ -169,14 +169,14 @@ public class RequestDispatcher {
             String desc = (item != null) ? item.getDescription() : "No description";
             String cat  = (item != null) ? item.getCategory() : "Art";
             
-            // Lấy lịch sử đặt giá thực tế từ Database
-            List<com.auction.server.model.BidTransaction> bids = auctionService.getBidHistory(a.getId());
-            List<String> bidStrings = new java.util.ArrayList<>();
-            for (com.auction.server.model.BidTransaction b : bids) {
-                String bidderName = b.getBidder() != null && b.getBidder().get_user_name() != null && !b.getBidder().get_user_name().isEmpty() 
-                    ? b.getBidder().get_user_name() : "bidder" + b.getBidderId();
-                bidStrings.add(bidderName + "  →  $" + String.format("%,.0f", b.getBidAmount().doubleValue()));
-            }
+             // Lấy lịch sử đặt giá thực tế từ Database
+             List<com.auction.server.model.BidTransaction> bids = auctionService.getBidHistory(a.getId());
+             List<String> bidStrings = new java.util.ArrayList<>();
+             for (com.auction.server.model.BidTransaction b : bids) {
+                 String bidderName = b.getBidder() != null && b.getBidder().get_user_name() != null && !b.getBidder().get_user_name().isEmpty() 
+                     ? b.getBidder().get_user_name() : "bidder" + b.getBidderId();
+                 bidStrings.add(bidderName + "  →  $" + String.format("%,.0f", b.getBidAmount().doubleValue()) + "  →  " + b.getTimeBidding().toString());
+             }
             // Sắp xếp giao dịch mới nhất lên đầu
             java.util.Collections.reverse(bidStrings);
             
@@ -197,7 +197,8 @@ public class RequestDispatcher {
                 a.getEnd_time().atZone(java.time.ZoneId.systemDefault()).toInstant(),
                 bidStrings,
                 sellerId,
-                sellerName
+                sellerName,
+                a.getStart_time() != null ? a.getStart_time().atZone(java.time.ZoneId.systemDefault()).toInstant() : null
             );
         }).toList();
         

@@ -14,6 +14,7 @@ public class AuctionSummaryItem {
     private String status; 
     private Instant endTime;
     private List<String> bidHistory = new ArrayList<>();
+    private Instant startTime;
     private long sellerId;
     private String sellerName;
 
@@ -46,6 +47,13 @@ public class AuctionSummaryItem {
         this.sellerName = sellerName;
     }
 
+    public AuctionSummaryItem(long auctionId, String itemName, String description, String category, 
+                              BigDecimal currentHighestBid, String status, Instant endTime, List<String> bidHistory,
+                              long sellerId, String sellerName, Instant startTime) {
+        this(auctionId, itemName, description, category, currentHighestBid, status, endTime, bidHistory, sellerId, sellerName);
+        this.startTime = startTime;
+    }
+
     public long getAuctionId() { return auctionId; }
     public void setAuctionId(long auctionId) { this.auctionId = auctionId; }
 
@@ -75,4 +83,7 @@ public class AuctionSummaryItem {
 
     public String getSellerName() { return sellerName; }
     public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    public Instant getStartTime() { return startTime; }
+    public void setStartTime(Instant startTime) { this.startTime = startTime; }
 }

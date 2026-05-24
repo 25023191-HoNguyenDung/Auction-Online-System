@@ -188,7 +188,7 @@ public class SellerDashboardController {
             boolean matchKw = keyword.isEmpty()
                 || item.getItemName().toLowerCase().contains(keyword);
             boolean matchSt = "All".equals(status)
-                || item.getDisplayStatus().equalsIgnoreCase(status)
+                || (status.equals("Live")        && item.isRunning())
                 || (status.equals("Ending Soon") && item.isEndingSoon())
                 || (status.equals("Upcoming")    && item.isPending())
                 || (status.equals("Closed")      && item.isClosed());
@@ -201,8 +201,7 @@ public class SellerDashboardController {
     private void setupCreateListingTab() {
         formCategory.getItems().addAll("Vehicles", "Watches", "Art", "Electronics", "Other");
         formDuration.getItems().addAll(
-            "1 Hour", "3 Hours", "6 Hours", "12 Hours",
-            "1 Day", "3 Days", "7 Days", "14 Days", "30 Days"
+            "1 Minute", "3 Minutes", "5 Minutes", "10 Minutes", "30 Minutes", "60 Minutes"
         );
         formCondition.getItems().addAll("New", "Like New", "Excellent", "Good", "Fair");
 
@@ -255,20 +254,17 @@ public class SellerDashboardController {
                 com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
                 long sellerId = UserSession.getInstance().getCurrentUser().getId();
                 
-                int hours = 24;
+                int minutes = 5;
                 String durVal = formDuration.getValue();
                 if (durVal != null) {
-                    hours = switch (durVal) {
-                        case "1 Hour" -> 1;
-                        case "3 Hours" -> 3;
-                        case "6 Hours" -> 6;
-                        case "12 Hours" -> 12;
-                        case "1 Day" -> 24;
-                        case "3 Days" -> 72;
-                        case "7 Days" -> 168;
-                        case "14 Days" -> 336;
-                        case "30 Days" -> 720;
-                        default -> 24;
+                    minutes = switch (durVal) {
+                        case "1 Minute" -> 1;
+                        case "3 Minutes" -> 3;
+                        case "5 Minutes" -> 5;
+                        case "10 Minutes" -> 10;
+                        case "30 Minutes" -> 30;
+                        case "60 Minutes" -> 60;
+                        default -> 5;
                     };
                 }
 
@@ -278,7 +274,7 @@ public class SellerDashboardController {
                     desc.isEmpty() ? cat.toUpperCase() : desc,
                     cat,
                     startPrice,
-                    hours
+                    minutes
                 );
                 
                 com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
@@ -440,6 +436,18 @@ public class SellerDashboardController {
                     com.auction.common.protocol.ListAuctionsResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ListAuctionsResPayload.class);
                     
                     java.util.List<AuctionItem> myItems = new java.util.ArrayList<>();
+                    
+                    class TempEntry {
+                        LocalDateTime time;
+                        String[] data;
+                        TempEntry(LocalDateTime time, String[] data) {
+                            this.time = time;
+                            this.data = data;
+                        }
+                    }
+                    java.util.List<TempEntry> tempBids = new java.util.ArrayList<>();
+                    java.util.List<TempEntry> tempHistory = new java.util.ArrayList<>();
+                    
                     for (com.auction.common.protocol.AuctionSummaryItem summary : res.getAuctions()) {
                         if (summary.getSellerId() == userId || (username != null && username.equalsIgnoreCase(summary.getSellerName()))) {
                             myItems.add(new AuctionItem(
@@ -459,10 +467,142 @@ public class SellerDashboardController {
                                 summary.getBidHistory() != null ? summary.getBidHistory().size() : 0, 
                                 summary.getBidHistory()
                             ));
+                            
+                            String itemName = summary.getItemName();
+                            String auctionStatus = summary.getStatus();
+                            LocalDateTime endTime = LocalDateTime.ofInstant(summary.getEndTime(), java.time.ZoneId.systemDefault());
+
+                            // 2. Bids Received & Bid History
+                            java.util.List<String> history = summary.getBidHistory();
+                            
+                            LocalDateTime createTime = null;
+                            if (summary.getStartTime() != null) {
+                                try {
+                                    createTime = LocalDateTime.ofInstant(summary.getStartTime(), java.time.ZoneId.systemDefault());
+                                } catch (Exception ex) {}
+                            }
+                            if (createTime == null) {
+                                if (endTime.isAfter(LocalDateTime.now())) {
+                                    createTime = endTime.minusHours(2).minusMinutes(5);
+                                } else {
+                                    createTime = endTime.minusMinutes(5);
+                                }
+                            }
+                            if (createTime.isAfter(LocalDateTime.now())) {
+                                createTime = LocalDateTime.now().minusMinutes(5);
+                            }
+                            
+                            String createTimeStr = createTime.toLocalTime().withNano(0).toString();
+                            String createStatus = "OPEN".equalsIgnoreCase(auctionStatus) || "PENDING".equalsIgnoreCase(auctionStatus) 
+                                ? "Pending Review" : "Approved";
+                            tempHistory.add(new TempEntry(createTime, new String[]{
+                                itemName,
+                                "Created listing",
+                                String.format("$%,.0f", summary.getCurrentHighestBid().doubleValue()),
+                                createTimeStr,
+                                createStatus
+                            }));
+
+                            if (history != null && !history.isEmpty()) {
+                                for (int i = 0; i < history.size(); i++) {
+                                    String entry = history.get(i);
+                                    String[] parts = entry.split("  →  ");
+                                    if (parts.length > 1) {
+                                        String bidderName = parts[0].trim();
+                                        String amtStr = parts[1].trim();
+
+                                        LocalDateTime bidTime = null;
+                                        if (parts.length > 2) {
+                                            try {
+                                                bidTime = LocalDateTime.parse(parts[2].trim());
+                                            } catch (Exception ex) {}
+                                        }
+                                        if (bidTime == null) {
+                                            if (endTime.isAfter(LocalDateTime.now())) {
+                                                bidTime = endTime.minusHours(2).minusSeconds(10 * (i + 1));
+                                            } else {
+                                                bidTime = endTime.minusSeconds(10 * (i + 1));
+                                            }
+                                        }
+                                        if (bidTime.isAfter(LocalDateTime.now())) {
+                                            bidTime = LocalDateTime.now().minusSeconds(10 * (i + 1));
+                                        }
+                                        String bidTimeStr = bidTime.toLocalTime().withNano(0).toString();
+
+                                        // Determine status
+                                        String status;
+                                        if (i == 0) { // highest bid
+                                            if ("FINISHED".equalsIgnoreCase(auctionStatus) || "PAID".equalsIgnoreCase(auctionStatus) || "CLOSED".equalsIgnoreCase(auctionStatus)) {
+                                                status = "Won";
+                                            } else {
+                                                status = "Winning";
+                                            }
+                                        } else {
+                                            status = "Outbid";
+                                        }
+
+                                        tempBids.add(new TempEntry(bidTime, new String[]{
+                                            itemName,
+                                            bidderName,
+                                            amtStr,
+                                            bidTimeStr,
+                                            status
+                                        }));
+
+                                        tempHistory.add(new TempEntry(bidTime, new String[]{
+                                            itemName,
+                                            "Bid from " + bidderName,
+                                            amtStr,
+                                            bidTimeStr,
+                                            status
+                                        }));
+                                    }
+                                }
+                            }
+
+                            // 3. History: Ended Auction event if closed/finished/paid
+                            if ("FINISHED".equalsIgnoreCase(auctionStatus) || "PAID".equalsIgnoreCase(auctionStatus) || "CLOSED".equalsIgnoreCase(auctionStatus)) {
+                                String endStatus = "Closed";
+                                if (history != null && !history.isEmpty()) {
+                                    String entry = history.get(0);
+                                    String[] parts = entry.split("  →  ");
+                                    if (parts.length > 1) {
+                                        endStatus = "Winner: " + parts[0].trim();
+                                    }
+                                }
+                                LocalDateTime actualEndTime = endTime;
+                                if (actualEndTime.isAfter(LocalDateTime.now())) {
+                                    actualEndTime = LocalDateTime.now();
+                                }
+                                tempHistory.add(new TempEntry(actualEndTime, new String[]{
+                                    itemName,
+                                    "Ended auction",
+                                    String.format("$%,.0f", summary.getCurrentHighestBid().doubleValue()),
+                                    actualEndTime.toLocalTime().withNano(0).toString(),
+                                    endStatus
+                                }));
+                            }
                         }
                     }
+                    
+                    // Sort descending (latest/newest time first)
+                    tempHistory.sort((a, b) -> b.time.compareTo(a.time));
+                    tempBids.sort((a, b) -> b.time.compareTo(a.time));
+                    
+                    java.util.List<String[]> newHistoryList = new java.util.ArrayList<>();
+                    for (TempEntry entry : tempHistory) {
+                        newHistoryList.add(entry.data);
+                    }
+                    
+                    java.util.List<String[]> newBidsList = new java.util.ArrayList<>();
+                    for (TempEntry entry : tempBids) {
+                        newBidsList.add(entry.data);
+                    }
+                    
                     javafx.application.Platform.runLater(() -> {
                         myAuctions.setAll(myItems);
+                        bidsData.setAll(newBidsList);
+                        historyData.setAll(newHistoryList);
                         applyAuctionFilter();
                         updateStatCards();
                         updateSidebarStats();

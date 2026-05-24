@@ -334,7 +334,7 @@ public class AdminDashboardController {
                 || item.getItemName().toLowerCase().contains(kw)
                 || item.getSellerName().toLowerCase().contains(kw);
             boolean matchSt = "All".equals(status)
-                || (status.equals("Live")        && item.isRunning() && !item.isEndingSoon())
+                || (status.equals("Live")        && item.isRunning())
                 || (status.equals("Ending Soon") && item.isEndingSoon())
                 || (status.equals("Upcoming")    && item.isPending())
                 || (status.equals("Closed")      && item.isClosed());

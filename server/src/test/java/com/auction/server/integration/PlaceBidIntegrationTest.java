@@ -41,8 +41,23 @@ class PlaceBidIntegrationTest {
     static void setUp() throws AuctionConnectException, SQLException {
         auctionDao     = new JdbcAuctionDao();
         bidDao         = new JdbcBidDao();
-        auctionService = new AuctionServiceImpl(auctionDao, bidDao, new JdbcUserDao());
+        JdbcUserDao userDao = new JdbcUserDao();
+        auctionService = new AuctionServiceImpl(auctionDao, bidDao, userDao);
         publisher      = AuctionEventPublisher.getInstance();
+
+        // Đảm bảo các user test (3L, 4L) có đủ số dư tài khoản
+        userDao.findById(3L).ifPresent(u -> {
+            if (u instanceof com.auction.server.model.Bidder b) {
+                b.setAccount_balance(new BigDecimal("20000000")); // 20 triệu
+                userDao.update(b);
+            }
+        });
+        userDao.findById(4L).ifPresent(u -> {
+            if (u instanceof com.auction.server.model.Bidder b) {
+                b.setAccount_balance(new BigDecimal("20000000")); // 20 triệu
+                userDao.update(b);
+            }
+        });
 
         Auction auction = new Auction();// tạo phiên đgia mẫu
         // khởi tạo gtri bđầu
@@ -82,8 +97,7 @@ class PlaceBidIntegrationTest {
     @Test // đặt giá thấp hơn htai
     @Order(2)
     void testPlaceBidTooLowThrowsException() {
-
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(InvalidBidException.class, () ->
                 auctionService.placeBid(testAuctionId, 4L, new BigDecimal("5000000"))); // vứt lỗi khi đặt giá thấp hơn
     }
 
@@ -127,13 +141,13 @@ class PlaceBidIntegrationTest {
         publisher.unsubscribe(testAuctionId, observer); // hủy theo dõi
     }
 
-    @Test // khi đóng phiên giá thì phải chuyển thành FINISHED
+    @Test // khi đóng phiên giá thì phải chuyển thành PAID sau khi thanh toán thành công
     @Order(6)
     void testCloseAuction() throws AuctionConnectException, AuctionTimeException {
         auctionService.closeAuction(testAuctionId); // kết thúc phiên
 
         Auction closed = auctionDao.findById(testAuctionId).orElseThrow(); // lấy dlieu
-        assertEquals(AuctionStatus.FINISHED, closed.getStatus(), "Phiên phải chuyển sang FINISHED sau closeAuction"); // ktra status
+        assertEquals(AuctionStatus.PAID, closed.getStatus(), "Phiên phải chuyển sang PAID sau closeAuction"); // ktra status
 
         assertTrue(closed.getWinner_bidder_id() > 0, "Phải có winner sau khi đóng phiên");
     }
@@ -142,7 +156,7 @@ class PlaceBidIntegrationTest {
     @Order(7)
     void testPlaceBidOnClosedAuctionThrowsException() {
         // Phiên đã FINISHED — không thể đặt giá nữa
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(AuctionTimeException.class, () ->
                 auctionService.placeBid(testAuctionId, 4L, new BigDecimal("9000000"))); // cố đặt giá mới
     }
 }

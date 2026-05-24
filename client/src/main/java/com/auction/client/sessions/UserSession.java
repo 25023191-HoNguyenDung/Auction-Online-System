@@ -145,23 +145,21 @@ public class UserSession {
     public boolean placeBid(String itemName, double amount) {
         if (amount <= 0) return false;
         
-        double available = getAvailableBalance() + holdMap.getOrDefault(itemName, 0.0);
-        if (amount > available) return false;
-
-        // Cập nhật hold (khóa tiền)
-        holdMap.put(itemName, amount);
-
         // Tạo transaction với status = "BID" (không phải WINNING)
         Transaction t = new Transaction(
                 Transaction.Kind.BID, 
                 itemName, 
-                amount,                    // Changed to positive amount
-                "BID",                      // ← Sửa ở đây
+                amount,
+                "BID",
                 LocalDateTime.now());
         
         transactions.add(0, t);
         notifyBalance();
         notifyTransaction(t);
+        
+        // Synchronize balance asynchronously from the server database
+        refreshUserBalanceFromServer();
+        
         return true;
     }
 
@@ -170,9 +168,6 @@ public class UserSession {
      * Changes the matching WINNING transaction to OUTBID and releases the hold.
      */
     public void refundOutbid(String itemName, double refundAmount) {
-        // Giải phóng hold cho phiên này
-        holdMap.remove(itemName);
-        
         // Mark the most recent WINNING bid on this item as OUTBID
         for (Transaction t : transactions) {
             if (t.kind == Transaction.Kind.BID
@@ -185,33 +180,63 @@ public class UserSession {
             }
         }
         notifyBalance();
+        refreshUserBalanceFromServer();
     }
 
-    // Tính tổng tiền đang bị khóa
+    // Tính tổng tiền đang bị khóa (no longer locked, return 0)
     public double getTotalHeld() {
-        return holdMap.values().stream().mapToDouble(Double::doubleValue).sum();
+        return 0.0;
     }
     
-    // Tính số dư khả dụng (Available Balance) = Tổng tiền - Tiền đang bị khóa
+    // Tính số dư khả dụng (Available Balance) = Tổng tiền
     public double getAvailableBalance() {
-        return balance - getTotalHeld();
+        return balance;
     }
 
     // Deducts the final amount from the winner's balance when the auction ends
     public void deductWinnerBalance(double amount) {
-        this.balance = Math.max(0, this.balance - amount);
-        notifyBalance();
+        refreshUserBalanceFromServer();
     }
 
     /** Read-only view of all transactions (newest first). */
     public List<Transaction> getTransactions() {
         return Collections.unmodifiableList(transactions);
     }
+    
     // Khi thắng cuộc: giải phóng hold và trừ tiền thật vào Tổng số dư
     public void deductWinnerBalance(String itemName, double amount) {
-        holdMap.remove(itemName); // Giải phóng hold
-        balance -= amount;        // Trừ trực tiếp vào Tổng số dư
-        notifyBalance();
+        refreshUserBalanceFromServer();
+    }
+
+    /**
+     * Refreshes the user's balance from the server's database.
+     */
+    public void refreshUserBalanceFromServer() {
+        if (currentUser == null) return;
+        long currentUserId = currentUser.getId();
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture =
+                        new java.util.concurrent.CompletableFuture<>();
+                com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                String messageId = sender.sendListUsers();
+                com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(3, java.util.concurrent.TimeUnit.SECONDS);
+                if (resEnvelope.getType() != com.auction.common.protocol.MessageType.ERROR_RES) {
+                    com.auction.common.protocol.ListUsersResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ListUsersResPayload.class);
+                    for (com.auction.common.protocol.UserSummaryItem item : res.getUsers()) {
+                        if (item.getId() == currentUserId) {
+                            javafx.application.Platform.runLater(() -> {
+                                setBalance(item.getBalance());
+                            });
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to refresh user balance: " + e.getMessage());
+            }
+        }).start();
     }
     
     
