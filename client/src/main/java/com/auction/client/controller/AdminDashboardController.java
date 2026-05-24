@@ -36,8 +36,6 @@ public class AdminDashboardController {
     @FXML private Button sideUsers;
     @FXML private Button sideAuctions;
     @FXML private Button sideApprovals;
-    @FXML private Button sideReports;
-    @FXML private Button sideSettings;
 
     // ── Stat cards ────────────────────────────────────────────
     @FXML private Label cardUsers;
@@ -108,12 +106,10 @@ public class AdminDashboardController {
         sideUsers    .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideUsers);     });
         sideAuctions .setOnAction(e -> { tabPane.getSelectionModel().select(1); setActive(sideAuctions);  });
         sideApprovals.setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideApprovals); });
-        sideReports  .setOnAction(e -> { setActive(sideReports);  showInfo("Reports", "Reports module coming soon."); });
-        sideSettings .setOnAction(e -> { setActive(sideSettings); showInfo("Settings", "Settings module coming soon."); });
     }
 
     private void setActive(Button active) {
-        List.of(sideOverview, sideUsers, sideAuctions, sideApprovals, sideReports, sideSettings)
+        List.of(sideOverview, sideUsers, sideAuctions, sideApprovals)
             .forEach(b -> {
                 b.getStyleClass().remove("al-nav-item-active");
                 if (!b.getStyleClass().contains("al-nav-item")) b.getStyleClass().add("al-nav-item");
