@@ -1,4 +1,4 @@
-package com.auction.client.sessions;
+﻿package com.auction.client.sessions;
 
 import com.auction.client.model.User;
 
@@ -104,6 +104,11 @@ public class UserSession {
         return getAvailableBalance(); 
     }
 
+    public void setBalance(double newBalance) {
+        this.balance = newBalance;
+        notifyBalance();
+    }
+    
     /**
      * Deposit money.  Adds a DEPOSIT entry to the transaction log.
      * @throws IllegalArgumentException if amount <= 0
@@ -150,7 +155,7 @@ public class UserSession {
         Transaction t = new Transaction(
                 Transaction.Kind.BID, 
                 itemName, 
-                -amount,                    // Dùng số âm để dễ hiển thị
+                amount,                    // Changed to positive amount
                 "BID",                      // ← Sửa ở đây
                 LocalDateTime.now());
         
