@@ -1,4 +1,4 @@
-package com.auction.server.config;
+﻿package com.auction.server.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -22,9 +22,9 @@ public class DatabaseConfig {
         String password = System.getenv("DB_PASSWORD");
 
         // Sửa 26.134.195.52 thành localhost
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/auction_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/auction_db?useSSL=false&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8");
         config.setUsername("root");
-        config.setPassword("@Ducanh2007");
+        config.setPassword("Pach2308@");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setPoolName("AuctionPool");
