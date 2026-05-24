@@ -21,9 +21,10 @@ public class DatabaseConfig {
         String username = System.getenv("DB_USERNAME");
         String password = System.getenv("DB_PASSWORD");
 
-        config.setJdbcUrl(url != null ? url : "jdbc:mysql://localhost:3306/auction_db?useSSL=false&serverTimezone=UTC");
-        config.setUsername(username != null ? username : "root");
-        config.setPassword(password != null ? password : "Pach2308@");
+        // Sửa 26.134.195.52 thành localhost
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/auction_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8");
+        config.setUsername("root");
+        config.setPassword("@Ducanh2007");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setPoolName("AuctionPool");

@@ -10,6 +10,8 @@ public enum MessageType {
     LOGIN_RES,
     LIST_AUCTIONS_REQ,
     LIST_AUCTIONS_RES,
-    REGISTER_REQ,   // thêm
-    REGISTER_RES,   // thêm
+    REGISTER_REQ,
+    REGISTER_RES,
+    SUBSCRIBE_REQ,
+    UNSUBSCRIBE_REQ
 }

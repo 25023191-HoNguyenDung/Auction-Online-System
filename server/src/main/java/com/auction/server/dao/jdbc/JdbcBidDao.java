@@ -21,8 +21,13 @@ public class JdbcBidDao implements BidDao {
         long bidderId  = rs.getLong("bidder");
         java.math.BigDecimal amount = rs.getBigDecimal("amount");
         java.time.LocalDateTime bidTime = rs.getTimestamp("bid_time").toLocalDateTime();
-        // tạo bidder
-        Bidder bidder = new Bidder("", bidderId, "", "", "BIDDER", BigDecimal.ZERO, new ArrayList<>());
+        
+        String username = "";
+        try {
+            username = rs.getString("user_name");
+        } catch (SQLException ignored) {}
+        
+        Bidder bidder = new Bidder(username, bidderId, "", "", "BIDDER", BigDecimal.ZERO, new ArrayList<>());
         return new BidTransaction(id, auctionId, bidder, amount, bidTime);
     }
 
@@ -44,7 +49,7 @@ public class JdbcBidDao implements BidDao {
 
     @Override
     public List<BidTransaction> findByAuctionId(long auctionId) {
-        String sql = "SELECT * FROM bids WHERE auctionId = ? ORDER BY bid_time ASC"; // auctionId
+        String sql = "SELECT b.*, u.user_name FROM bids b JOIN users u ON b.bidder = u.id WHERE b.auctionId = ? ORDER BY b.bid_time ASC"; // auctionId
         List<BidTransaction> list = new ArrayList<>();
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

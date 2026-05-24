@@ -7,7 +7,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import java.time.ZoneId;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import com.auction.client.network.ServerConnection;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerEventListener;
+import com.auction.client.sessions.UserSession;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.ListAuctionsResPayload;
+import com.auction.common.protocol.AuctionSummaryItem;
+import com.auction.common.protocol.ProtocolMapper;
+import com.auction.common.protocol.ErrorPayload;
 import com.auction.client.model.AuctionItem;
 
 /**
@@ -37,73 +49,61 @@ public class AuctionListViewModel {
      *   allItems.addAll(items);
      */
     public void loadData() {
-        if (!allItems.isEmpty()) {
-            applyFilters();
+        // 1. Kiểm tra trạng thái mạng
+        ServerConnection connection = ServerConnection.getInstance();
+        if (!connection.isConnected()) {
+            System.err.println("No server connection. Cannot load real auctions!");
             return;
         }
-        allItems.clear();
-        LocalDateTime now = LocalDateTime.now();
-
-        // auctionId, itemId, sellerId, sellerName,
-        // itemName, description, category, status,
-        // startingPrice, currentPrice,
-        // startTime, endTime, imageUrl, totalBids
-        allItems.add(new AuctionItem(
-            1L, 101L, 2L, "Sterling House",
-            "Pioneer Zenith Hybrid", "LIMITED PRODUCTION 1 OF 50",
-            "Vehicles", "RUNNING",
-            180000, 245000,
-            now.minusMinutes(2), now.plusSeconds(7685),
-            null, 47));
-
-        allItems.add(new AuctionItem(
-            2L, 102L, 4L, "Marcus Gold",
-            "Vanguard Tourbillon", "ROSE GOLD SKELETON EDITION",
-            "Watches", "RUNNING",
-            70000, 82400,
-            now.minusMinutes(5), now.plusSeconds(704),
-            null, 31));
-
-        allItems.add(new AuctionItem(
-            3L, 103L, 2L, "Sterling House",
-            "Ethereal Horizon", "MIXED MEDIA ON CANVAS (2024)",
-            "Art", "RUNNING",
-            12000, 18900,
-            now.minusMinutes(1), now.plusSeconds(31332),
-            null, 12));
-
-        allItems.add(new AuctionItem(
-            4L, 104L, 4L, "Marcus Gold",
-            "Wraith Stealth Tender", "CUSTOM CARBON SERIES",
-            "Vehicles", "RUNNING",
-            400000, 512000,
-            now.minusMinutes(3), now.plusDays(1).plusMinutes(4),
-            null, 28));
-
-        allItems.add(new AuctionItem(
-            5L, 105L, 2L, "Sterling House",
-            "Neon Phantom", "DIGITAL ART 1/1 EDITION",
-            "Art", "RUNNING",
-            6000, 9500,
-            now.minusMinutes(1), now.plusSeconds(5400),
-            null, 15));
-
-        allItems.add(new AuctionItem(
-            6L, 106L, 4L, "Marcus Gold",
-            "Quantum X Laptop", "TITANIUM EDITION 2024",
-            "Electronics", "RUNNING",
-            3000, 4200,
-            now.minusMinutes(0), now.plusSeconds(60),
-            null, 8));
-
-        allItems.add(new AuctionItem(
-            7L, 107L, 2L, "Sterling House",
-            "Sapphire Ring 3ct", "VVS1 CERTIFIED",
-            "Jewellery", "PENDING",
-            10000, 10000,
-            now.plusDays(1), now.plusDays(8),
-            null, 0));
-
+        try {
+            CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
+            ClientMessageSender sender = new ClientMessageSender();
+            
+            // Lấy ID người dùng hiện tại
+            long userId = UserSession.getInstance().isLoggedIn() 
+                ? UserSession.getInstance().getCurrentUser().getId() 
+                : 0L;
+            // Gửi request lấy toàn bộ danh sách phiên đấu giá
+            String messageId = sender.sendListAuctions(userId, 1, 100, null);
+            // Đăng ký callback chờ server phản hồi
+            ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+            // Chờ tối đa 5 giây nhận kết quả từ Server
+            MessageEnvelope resEnvelope = responseFuture.get(5, TimeUnit.SECONDS);
+            // Kiểm tra nếu Server trả về gói lỗi
+            if (resEnvelope.getType() == MessageType.ERROR_RES) {
+                ErrorPayload err = new ProtocolMapper().parsePayload(resEnvelope, ErrorPayload.class);
+                System.err.println("Failed to load auctions from server: " + err.getMessage());
+                return;
+            }
+            // Parse danh sách từ server
+            ListAuctionsResPayload res = new ProtocolMapper().parsePayload(resEnvelope, ListAuctionsResPayload.class);
+            
+            // Xóa mock cũ, nạp dữ liệu thật mới
+            allItems.clear();
+            for (AuctionSummaryItem summary : res.getAuctions()) {
+                allItems.add(new AuctionItem(
+                    summary.getAuctionId(), 
+                    0L, // itemId (không cần thiết ở màn list)
+                    0L, // sellerId
+                    "Authorized Seller", // Tên Seller tạm thời
+                    summary.getItemName(), // Tên thật lấy từ DB
+                    summary.getDescription(), // Mô tả thật lấy từ DB
+                    summary.getCategory(), // Thể loại thật lấy từ DB
+                    summary.getStatus(), 
+                    summary.getCurrentHighestBid().doubleValue(), // Starting Price
+                    summary.getCurrentHighestBid().doubleValue(), // Current Price
+                    LocalDateTime.now().minusMinutes(5), // Start Time tạm thời
+                    LocalDateTime.ofInstant(summary.getEndTime(), ZoneId.systemDefault()), // End Time chuẩn từ DB!
+                    null, // imageUrl
+                    summary.getBidHistory() != null ? summary.getBidHistory().size() : 0, // totalBids
+                    summary.getBidHistory() // bidHistory thực tế từ DB
+                ));
+            }
+        } catch (Exception e) {
+            System.err.println("Error while fetching auctions from server: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // Thực hiện áp dụng filter/sắp xếp
         applyFilters();
     }
 

@@ -2,39 +2,61 @@ package com.auction.common.protocol;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-// hiển thị của phiên đấu giá
-public class AuctionSummaryItem {
-    private final long auctionId;
-    private final String itemName;
-    private final BigDecimal currentHighestBid;
-    private final String status; // trạng thái phiên đấu giá
-    private final Instant endTime;
+import java.util.ArrayList;
+import java.util.List;
 
-    public AuctionSummaryItem(long auctionId, String itemName, BigDecimal currentHighestBid, String status, Instant endTime) {
+public class AuctionSummaryItem {
+    private long auctionId;
+    private String itemName;
+    private String description;
+    private String category;
+    private BigDecimal currentHighestBid;
+    private String status; 
+    private Instant endTime;
+    private List<String> bidHistory = new ArrayList<>();
+
+    // Constructor rỗng cho Jackson giải mã JSON
+    public AuctionSummaryItem() {
+    }
+
+    public AuctionSummaryItem(long auctionId, String itemName, String description, String category, 
+                              BigDecimal currentHighestBid, String status, Instant endTime) {
         this.auctionId = auctionId;
         this.itemName = itemName;
+        this.description = description;
+        this.category = category;
         this.currentHighestBid = currentHighestBid;
         this.status = status;
         this.endTime = endTime;
     }
 
-    public long getAuctionId() {
-        return auctionId;
+    public AuctionSummaryItem(long auctionId, String itemName, String description, String category, 
+                              BigDecimal currentHighestBid, String status, Instant endTime, List<String> bidHistory) {
+        this(auctionId, itemName, description, category, currentHighestBid, status, endTime);
+        this.bidHistory = bidHistory;
     }
 
-    public String getItemName() {
-        return itemName;
-    }
+    public long getAuctionId() { return auctionId; }
+    public void setAuctionId(long auctionId) { this.auctionId = auctionId; }
 
-    public BigDecimal getCurrentHighestBid() {
-        return currentHighestBid;
-    }
+    public String getItemName() { return itemName; }
+    public void setItemName(String itemName) { this.itemName = itemName; }
 
-    public String getStatus() {
-        return status;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Instant getEndTime() {
-        return endTime;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public BigDecimal getCurrentHighestBid() { return currentHighestBid; }
+    public void setCurrentHighestBid(BigDecimal currentHighestBid) { this.currentHighestBid = currentHighestBid; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public Instant getEndTime() { return endTime; }
+    public void setEndTime(Instant endTime) { this.endTime = endTime; }
+
+    public List<String> getBidHistory() { return bidHistory; }
+    public void setBidHistory(List<String> bidHistory) { this.bidHistory = bidHistory; }
 }

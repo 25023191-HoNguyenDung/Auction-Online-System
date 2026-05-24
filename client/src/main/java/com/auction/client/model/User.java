@@ -12,6 +12,7 @@ public class User {
     private String email;
     private String password;
     private String role;       // ADMIN | SELLER | BIDDER
+    private double balance;    // THÊM MỚI: số dư tài khoản thực tế
 
     public User() {}
     public User(long id, String username, String email, String role) {
@@ -20,11 +21,27 @@ public class User {
         this.fullName = username;
         this.email    = email;
         this.role     = role;
+        this.balance  = 0.0;
+    }
+
+    public User(long id, String username, String email, String role, double balance) {
+        this.id       = id;
+        this.username = username;
+        this.fullName = username;
+        this.email    = email;
+        this.role     = role;
+        this.balance  = balance;
     }
 
     public User(long id, String username, String email,
                 String password, String role) {
         this(id, username, email, role);
+        this.password = password;
+    }
+
+    public User(long id, String username, String email,
+                String password, String role, double balance) {
+        this(id, username, email, role, balance);
         this.password = password;
     }
 
@@ -35,6 +52,7 @@ public class User {
     public String getEmail()    { return email; }
     public String getPassword() { return password; }
     public String getRole()     { return role; }
+    public double getBalance()  { return balance; } // THÊM MỚI
 
     // ── Setters ──────────────────────────────────────────────
     public void setId(long id)           { this.id = id; }
@@ -43,6 +61,7 @@ public class User {
     public void setEmail(String v)       { this.email = v; }
     public void setPassword(String v)    { this.password = v; }
     public void setRole(String v)        { this.role = v; }
+    public void setBalance(double balance) { this.balance = balance; } // THÊM MỚI
 
     // ── Role helpers ──────────────────────────────────────────
     public boolean isAdmin()  { return "ADMIN".equalsIgnoreCase(role); }
