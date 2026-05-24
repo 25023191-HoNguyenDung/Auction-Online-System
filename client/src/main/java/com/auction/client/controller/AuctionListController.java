@@ -183,6 +183,8 @@ public class AuctionListController {
                         // Server xác nhận thành công → cập nhật số dư local theo số dư thật từ DB
                         try {
                             DepositResPayload res = new ProtocolMapper().parsePayload(resEnvelope, DepositResPayload.class);
+                            // Call deposit to add the DEPOSIT transaction in history and notify
+                            UserSession.getInstance().deposit(amount);
                             // Đồng bộ balance local = balance thật trong DB
                             double newBal = res.getNewBalance().doubleValue();
                             UserSession.getInstance().setBalance(newBal);
@@ -476,28 +478,9 @@ public class AuctionListController {
                             if (remaining <= 0 && item.isRunning()) {
                                 anyEnded = true;
 
-                                // Lấy giao dịch đặt giá gần nhất của người dùng cho phiên này
-                                com.auction.client.sessions.UserSession.Transaction userBid = null;
-                                for (com.auction.client.sessions.UserSession.Transaction t : com.auction.client.sessions.UserSession.getInstance().getTransactions()) {
-                                    if (t.kind == com.auction.client.sessions.UserSession.Transaction.Kind.BID 
-                                            && "BID".equals(t.status) 
-                                            && t.itemName.equals(item.getItemName())) {
-                                        userBid = t;
-                                        break;
-                                    }
-                                }
-
-                                if (userBid != null) {
-                                    if (item.getCurrentPrice() > userBid.amount) {
-                                        // Thua cuộc: Giải phóng số tiền bị giữ (Bước 4 trong ví dụ của bạn)
-                                        com.auction.client.sessions.UserSession.getInstance().refundOutbid(item.getItemName(), userBid.amount);
-                                        System.out.println("❌ You lost the auction for " + item.getItemName() + ". Released hold: $" + userBid.amount);
-                                    } else {
-                                        // Thắng cuộc: Trừ tiền thật vào tổng số dư và giải phóng hold
-                                        com.auction.client.sessions.UserSession.getInstance().deductWinnerBalance(item.getItemName(), userBid.amount);
-                                        System.out.println("🏆 You won the auction for " + item.getItemName() + "! Deducted: $" + userBid.amount);
-                                    }
-                                }
+                                // Let the server handle closing and payment settlement.
+                                // We just refresh user balance from server to get updated winning/lost balance.
+                                UserSession.getInstance().refreshUserBalanceFromServer();
 
                                 // Đóng phiên để tránh xử lý lặp lại
                                 item.setStatus("CLOSED");
@@ -514,6 +497,7 @@ public class AuctionListController {
                         listRefreshCounter = 0;
                         new Thread(() -> {
                             viewModel.loadData();
+                            UserSession.getInstance().refreshUserBalanceFromServer();
                             Platform.runLater(AuctionListController.this::refreshCards);
                         }).start();
                     }

@@ -2,6 +2,13 @@ package com.auction.client.controller;
 
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
+import com.auction.client.network.ClientMessageSender;
+import com.auction.client.network.ServerEventListener;
+import com.auction.common.protocol.MessageEnvelope;
+import com.auction.common.protocol.MessageType;
+import com.auction.common.protocol.ListAuctionsResPayload;
+import com.auction.common.protocol.AuctionSummaryItem;
+import com.auction.common.protocol.ProtocolMapper;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -12,11 +19,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.function.Consumer;
 
 /**
  * Shows the full transaction log (bids + deposits + withdrawals) from
- * UserSession.  The list updates in real-time whenever any screen
+ * UserSession. The list updates in real-time whenever any screen
  * triggers a balance change.
  */
 public class BidHistoryController {
@@ -31,28 +43,104 @@ public class BidHistoryController {
         setupListView();
         loadFromSession();
 
-        transactionListener = t -> Platform.runLater(() -> upsertTransaction(t));
+        // Refresh whenever a new transaction happens
+        transactionListener = t -> Platform.runLater(this::loadFromSession);
         UserSession.getInstance().addTransactionListener(transactionListener);
     }
 
     // ── Load existing transactions ────────────────────────────
     private void loadFromSession() {
         activityListView.getItems().clear();
-        List<UserSession.Transaction> all = UserSession.getInstance().getTransactions();
-        activityListView.getItems().addAll(all);
-    }
-
-    private void upsertTransaction(UserSession.Transaction updated) {
-        for (int i = 0; i < activityListView.getItems().size(); i++) {
-            UserSession.Transaction current = activityListView.getItems().get(i);
-            if (current.kind == updated.kind
-                    && current.itemName.equals(updated.itemName)
-                    && current.time.equals(updated.time)) {
-                activityListView.getItems().set(i, updated);
-                return;
+        
+        List<UserSession.Transaction> displayList = new ArrayList<>();
+        
+        // 1. Add deposit/withdrawal transactions from local session
+        for (UserSession.Transaction t : UserSession.getInstance().getTransactions()) {
+            if (t.kind != UserSession.Transaction.Kind.BID) {
+                displayList.add(t);
             }
         }
-        activityListView.getItems().add(0, updated);
+        
+        // 2. Fetch all auctions from server to reconstruct bid history and results
+        com.auction.client.network.ServerConnection connection = com.auction.client.network.ServerConnection.getInstance();
+        if (connection.isConnected() && UserSession.getInstance().isLoggedIn()) {
+            String currentUsername = UserSession.getInstance().getCurrentUser().getUsername();
+            try {
+                CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
+                ClientMessageSender sender = new ClientMessageSender();
+                long userId = UserSession.getInstance().getCurrentUser().getId();
+                
+                String messageId = sender.sendListAuctions(userId, 1, 100, null);
+                ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                MessageEnvelope resEnvelope = responseFuture.get(3, TimeUnit.SECONDS);
+                if (resEnvelope.getType() != MessageType.ERROR_RES) {
+                    ListAuctionsResPayload res = new ProtocolMapper().parsePayload(resEnvelope, ListAuctionsResPayload.class);
+                    
+                    for (AuctionSummaryItem summary : res.getAuctions()) {
+                        List<String> history = summary.getBidHistory();
+                        if (history == null || history.isEmpty()) continue;
+                        
+                        for (int i = 0; i < history.size(); i++) {
+                            String entry = history.get(i);
+                            String[] parts = entry.split("  →  ");
+                            if (parts.length > 1) {
+                                String bidderName = parts[0].trim();
+                                if (currentUsername != null && currentUsername.equalsIgnoreCase(bidderName)) {
+                                    String amtStr = parts[1].replace("$", "").replace(",", "").trim();
+                                    double amount = Double.parseDouble(amtStr);
+                                    
+                                    // Determine bid status/result
+                                    String status = "OUTBID";
+                                    if (i == 0) { // Highest bid on this auction
+                                        if ("FINISHED".equalsIgnoreCase(summary.getStatus()) || "PAID".equalsIgnoreCase(summary.getStatus())) {
+                                            status = "WON";
+                                        } else {
+                                            status = "BID";
+                                        }
+                                    }
+                                    
+                                     LocalDateTime bidTime = null;
+                                     if (parts.length > 2) {
+                                         try {
+                                             bidTime = LocalDateTime.parse(parts[2].trim());
+                                         } catch (Exception ex) {}
+                                     }
+                                     if (bidTime == null) {
+                                         LocalDateTime endTime = LocalDateTime.ofInstant(summary.getEndTime(), ZoneId.systemDefault());
+                                         if (endTime.isAfter(LocalDateTime.now())) {
+                                             bidTime = endTime.minusHours(2).minusMinutes(5 + i * 10);
+                                         } else {
+                                             bidTime = endTime.minusMinutes(5 + i * 10);
+                                         }
+                                     }
+                                     
+                                     // Safety check: ensure bidTime is never in the future relative to client local now
+                                     if (bidTime.isAfter(LocalDateTime.now())) {
+                                         bidTime = LocalDateTime.now().minusMinutes(5 + i * 10);
+                                     }
+                                     
+                                     displayList.add(new UserSession.Transaction(
+                                         UserSession.Transaction.Kind.BID,
+                                         summary.getItemName(),
+                                         amount,
+                                         status,
+                                         bidTime
+                                     ));
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading bid history: " + e.getMessage());
+            }
+        }
+        
+        // 3. Sort by time newest first
+        displayList.sort((a, b) -> b.time.compareTo(a.time));
+        
+        activityListView.getItems().addAll(displayList);
     }
 
     // ── ListView cell factory ─────────────────────────────────
@@ -73,15 +161,26 @@ public class BidHistoryController {
                 badge.setMinWidth(90);
 
                 // Display name
-                String displayName = switch (entry.kind) {
-                    case DEPOSIT  -> "Deposit";
-                    case WITHDRAW -> "Withdrawal";
-                    case BID      -> entry.itemName;
-                };
+                String username = UserSession.getInstance().isLoggedIn()
+                        ? UserSession.getInstance().getCurrentUser().getUsername()
+                        : "You";
+
+                String displayName;
+                if (entry.kind == UserSession.Transaction.Kind.BID) {
+                    String action = "WON".equals(entry.status) ? "won" : "bid";
+                    displayName = String.format("%s %s %,.0f$ %s", 
+                            username, action, Math.abs(entry.amount), entry.itemName);
+                } else {
+                    displayName = switch (entry.kind) {
+                        case DEPOSIT  -> "Deposit";
+                        case WITHDRAW -> "Withdrawal";
+                        default       -> "";
+                    };
+                }
                 Label item = new Label(displayName);
                 item.setStyle("-fx-text-fill: #f5f0e6; -fx-font-size: 13px;" +
                               " -fx-font-weight: bold; -fx-font-family: 'Arial';");
-                item.setMaxWidth(300);
+                item.setMaxWidth(400);
 
                 // Amount — green for incoming money, gold for bids, red for withdrawals
                 double displayAmount = entry.kind == UserSession.Transaction.Kind.BID

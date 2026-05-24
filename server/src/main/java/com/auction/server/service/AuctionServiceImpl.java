@@ -63,26 +63,17 @@ public class AuctionServiceImpl implements AuctionService {
         this(new JdbcAuctionDao(), new JdbcBidDao(), new JdbcUserDao());
     }
 
-    // Lấy bộ quản lý logic của phiên đấu giá từ cache hoặc tạo mới nếu chưa tồn tại
-    // dùng computeIfAbsent để đảm bảo thread-safe
+    // Lấy bộ quản lý logic của phiên đấu giá - luôn nạp mới từ cơ sở dữ liệu
+    // để tránh các lỗi không đồng bộ dữ liệu (stale cache) sau khi Admin phê duyệt hoặc đặt giá.
     private AuctionLogicManager getManager(long auctionId) {
-        return managerCache.computeIfAbsent(auctionId, id -> {
-            Auction auction = auctionDao.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Auction not found: " + id));
-            return new AuctionLogicManager(auction, auctionDao);
-        });
+        Auction auction = auctionDao.findById(auctionId)
+                .orElseThrow(() -> new RuntimeException("Auction not found: " + auctionId));
+        return new AuctionLogicManager(auction, auctionDao);
     }
 
-    // Dọn cache khi phiên đấu giá kết thúc hoặc bị hủy
+    // Dọn cache - Không cần thiết vì không còn sử dụng cache trong getManager()
     private void clearCached(long auctionId) {
-        AuctionLogicManager manager = managerCache.get(auctionId);
-        //Nếu phiên đấu không xuất hiện trong cache
-        if (manager == null) return;
-        AuctionStatus status = manager.getStatus();
-        //Nếu phiên đã kết thúc hoặc bị hủy thì xóa khỏi cache để giải phóng bộ nhớ
-        if (status == AuctionStatus.FINISHED || status == AuctionStatus.CANCELLED) {
-            managerCache.remove(auctionId);
-        }
+        // No-op
     }
 
     // Quản lý phiên đấu giá
@@ -250,12 +241,8 @@ public class AuctionServiceImpl implements AuctionService {
             if (winnerId > 0 && amount.compareTo(BigDecimal.ZERO) > 0) {
                 transManager.executeInTransaction(conn -> {
                     try {
-                        // 1. Deduct winner's balance
-                        User winnerOpt = userDao.findById(winnerId).orElse(null);
-                        if (winnerOpt instanceof Bidder bidder) {
-                            bidder.deductBalance(amount);
-                            userDao.update(bidder);
-                        }
+                        // 1. Winner's balance is already deducted when placing the bid, no need to deduct it again.
+
                         
                         // 2. Credit seller's balance
                         User sellerOpt = userDao.findById(sellerId).orElse(null);

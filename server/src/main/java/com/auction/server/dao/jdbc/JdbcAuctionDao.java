@@ -116,13 +116,13 @@ public class JdbcAuctionDao implements AuctionDao {
 
     @Override
     public List<Auction> findExpiredRunning() {
-        String sql = "SELECT * FROM auctions WHERE status = 'RUNNING' AND end_time <= NOW()";
+        String sql = "SELECT * FROM auctions WHERE status = 'RUNNING' AND end_time <= UTC_TIMESTAMP()";
         List<Auction> list = new ArrayList<>();
         Connection conn = null;
         try {
             conn = getConn();
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(sql)) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ResultSet rs = ps.executeQuery();
                 while (rs.next()) list.add(mapRow(rs));
             }
         } catch (SQLException e) {
@@ -212,20 +212,9 @@ public class JdbcAuctionDao implements AuctionDao {
 
     @Override
     public List<Auction> findOpenReadyToStart() {
-        String sql = "SELECT * FROM auctions WHERE status = 'OPEN' AND start_time <= NOW()";
-        List<Auction> list = new ArrayList<>();
-        Connection conn = null;
-        try {
-            conn = getConn();
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(sql)) {
-                while (rs.next()) list.add(mapRow(rs));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Lỗi findOpenReadyToStart", e);
-        } finally {
-            if (shouldClose()) closeQuietly(conn);
-        }
-        return list;
+        // Trả về danh sách rỗng để ngăn luồng Scheduler tự động kích hoạt phiên đấu giá
+        // đang ở trạng thái OPEN (chờ duyệt). Phiên đấu giá chỉ được phép chuyển sang RUNNING
+        // khi và chỉ khi Admin phê duyệt thủ công.
+        return new ArrayList<>();
     }
 }
