@@ -50,10 +50,10 @@
 
                 <VBox spacing="12">
                     <Label styleClass="section-title" text="CATEGORY" />
-                    <CheckBox fx:id="catFineArt" styleClass="filter-checkbox" text="Fine Art" />
-                    <CheckBox fx:id="catLuxuryWatches" styleClass="filter-checkbox" text="Luxury Watches" />
-                    <CheckBox fx:id="catClassicCars" styleClass="filter-checkbox" text="Classic Cars" />
-                    <CheckBox fx:id="catJewelry" styleClass="filter-checkbox" text="Jewelry" />
+                    <CheckBox fx:id="catVehicles" styleClass="filter-checkbox" text="Vehicles" />
+                    <CheckBox fx:id="catArts" styleClass="filter-checkbox" text="Arts" />
+                    <CheckBox fx:id="catWatches" styleClass="filter-checkbox" text="Watches" />
+                    <CheckBox fx:id="catElectronics" styleClass="filter-checkbox" text="Electronics" />
                 </VBox>
 
                 <VBox spacing="12">

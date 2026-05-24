@@ -62,8 +62,9 @@ public class LoginViewModel {
 
             com.auction.common.protocol.LoginResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.LoginResPayload.class);
             if (res.isSuccess()) {
-                // Tạo đối tượng User thật trả về từ DB
-                User user = new User(res.getUserId(), res.getUsername(), emailOrUsername, res.getRole());
+                // Tạo đối tượng User thật trả về từ DB kèm theo số dư thực tế
+                double balance = res.getBalance() != null ? res.getBalance().doubleValue() : 0.0;
+                User user = new User(res.getUserId(), res.getUsername(), emailOrUsername, res.getRole(), balance);
                 com.auction.client.sessions.UserSession.getInstance().login(user);
                 errorMessage = "";
                 return LoginResult.SUCCESS;
