@@ -64,6 +64,7 @@ public class AuctionListController {
     private Consumer<Double> balanceListener;
 
     // ── Lifecycle ─────────────────────────────────────────────
+    // ─── THAY THẾ LẠI LUỒNG LOAD TRONG HÀM initialize() ────────
     @FXML
     public void initialize() {
         loadUserInfo();
@@ -72,9 +73,19 @@ public class AuctionListController {
         setupSortCombo();
         setupStatusButtons();
         setupApplyFilter();
-
-        viewModel.loadData();
-        refreshCards();
+        // CHẠY BẤT ĐỒNG BỘ: Tạo thread phụ để kết nối Socket không làm đơ giao diện chính
+        new Thread(() -> {
+            try {
+                viewModel.loadData(); // Kết nối socket và tải dữ liệu thật từ DB
+                
+                // Trở lại UI Thread để hiển thị danh sách sản phẩm lên màn hình
+                Platform.runLater(() -> {
+                    refreshCards();
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
         startCountdownTimer();
     }
 

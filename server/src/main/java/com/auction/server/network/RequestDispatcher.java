@@ -14,19 +14,23 @@ import com.auction.server.dao.jdbc.JdbcUserDao;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.User;
 import com.auction.server.service.AuctionServiceImpl;
+import com.auction.server.dao.ItemDao;
+import com.auction.server.dao.jdbc.JdbcItemDao;
+import com.auction.server.model.Item;
 
 // điều hướng request đến server phù hợp
 public class RequestDispatcher {
     private final AuctionServiceImpl auctionService;
     private final UserDao userDao;
     private final ProtocolMapper mapper;
-
+    private final ItemDao itemDao; // THÊM MỚI 
     private final Object writeLock = new Object();
 
     public RequestDispatcher() {
         this.auctionService = new AuctionServiceImpl();
         this.userDao = new JdbcUserDao();
         this.mapper = new ProtocolMapper();
+        this.itemDao = new JdbcItemDao(); // THÊM MỚI
 
     }
 
@@ -111,15 +115,35 @@ public class RequestDispatcher {
     }
 
     // lấy ds phiên đgia gửi client
-    private void handleListAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out){
-        ListAuctionsReqPayload req = mapper.parsePayload(envelope, ListAuctionsReqPayload.class); // lấy dữ liệu từ req -> obj
-        // lấy ds auctions( trống : lấy tất cả, ko thì lấy các auction có trạng thái)
-        var auctions = (req.getStatusFilter() == null || req.getStatusFilter().isBlank()) ? auctionService.getAllAuctions() : auctionService.getAuctionsByStatus(AuctionStatus.valueOf(req.getStatusFilter()));
-        // chuyển auction-> AuctionSummaryItem(chỉ chứa tt hữu ích cho client)
-        var summaries = auctions.stream().map(a -> new AuctionSummaryItem(a.getId(), String.valueOf(a.getItem_id()), a.getCurrent_price(), a.getStatus().name(), a.getEnd_time().toInstant(ZoneOffset.UTC))).toList();
-        // gửi res về client
-        send(out, mapper.buildResponse(MessageType.LIST_AUCTIONS_RES, correlationId, new ListAuctionsResPayload(summaries, summaries.size())));
-    }
+    private void handleListAuctions(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        ListAuctionsReqPayload req = mapper.parsePayload(envelope, ListAuctionsReqPayload.class);
+        
+        var auctions = (req.getStatusFilter() == null || req.getStatusFilter().isBlank()) 
+            ? auctionService.getAllAuctions() 
+            : auctionService.getAuctionsByStatus(AuctionStatus.valueOf(req.getStatusFilter()));
+            
+        // Map sang DTO mới chứa thông tin sản phẩm thật
+        var summaries = auctions.stream().map(a -> {
+            // Lấy thông tin sản phẩm từ Database
+            Item item = itemDao.findById(a.getItem_id()).orElse(null);
+            String name = (item != null) ? item.getItemName() : "Unknown Item";
+            String desc = (item != null) ? item.getDescription() : "No description";
+            String cat  = (item != null) ? item.getCategory() : "Art";
+            
+            return new AuctionSummaryItem(
+                a.getId(), 
+                name, 
+                desc, 
+                cat, 
+                a.getCurrent_price(), 
+                a.getStatus().name(), 
+                a.getEnd_time().toInstant(ZoneOffset.UTC)
+            );
+        }).toList();
+        
+        send(out, mapper.buildResponse(MessageType.LIST_AUCTIONS_RES, correlationId, 
+             new ListAuctionsResPayload(summaries, summaries.size())));
+        }
 
     private void handlePlaceBid(MessageEnvelope envelope, String correlationId, PrintWriter out) throws InvalidBidException, AuctionConnectException, AuctionMisMatchException, AuctionTimeException {
         PlaceBidReqPayload req = mapper.parsePayload(envelope, PlaceBidReqPayload.class); // đọc req

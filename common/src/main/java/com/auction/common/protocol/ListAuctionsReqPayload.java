@@ -1,10 +1,15 @@
 package com.auction.common.protocol;
+
 // gửi yêu cầu lên server để lấy danh sách phiên đấu giá
 public class ListAuctionsReqPayload {
-    private final long userId; // id người gửi yêu cầu
-    private final int page;
-    private final int size;
-    private final String statusFilter;
+    private long userId; // id người gửi yêu cầu
+    private int page;
+    private int size;
+    private String statusFilter; // trạng thái
+
+    // Constructor rỗng cho Jackson giải mã JSON
+    public ListAuctionsReqPayload() {
+    }
 
     public ListAuctionsReqPayload(long userId, int page, int size, String statusFilter) {
         this.userId = userId;
@@ -17,15 +22,31 @@ public class ListAuctionsReqPayload {
         return userId;
     }
 
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
     public int getPage() {
         return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
     }
 
     public int getSize() {
         return size;
     }
 
+    public void setSize(int size) {
+        this.size = size;
+    }
+
     public String getStatusFilter() {
         return statusFilter;
+    }
+
+    public void setStatusFilter(String statusFilter) {
+        this.statusFilter = statusFilter;
     }
 }
