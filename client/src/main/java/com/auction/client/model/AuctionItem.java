@@ -13,7 +13,7 @@ public class AuctionItem {
     private String itemName;
     private String description;
     private String category;
-    private String status;           // RUNNING, PENDING, CLOSED
+    private String status;           // RUNNING, PENDING, CLOSED, FINISHED, PAID, CANCELLED
     private double startingPrice;
     private double currentPrice;
     private LocalDateTime startTime;
@@ -54,19 +54,30 @@ public class AuctionItem {
         this.bidHistory = bidHistory;
     }
 
-    // Helper methods
-    public boolean isRunning() { 
-        if (isPending()) return false;
-        return secondsLeft() > 0; 
+    // ── Status helpers ────────────────────────────────────────
+    // FIX: Kiểm tra status terminal TRƯỚC, không phụ thuộc vào timer
+    private static final java.util.Set<String> TERMINAL_STATUSES =
+        java.util.Set.of("CLOSED", "FINISHED", "PAID", "CANCELLED");
+
+    public boolean isClosed() {
+        // Nếu status là terminal (PAID, FINISHED, CANCELLED, CLOSED) → luôn closed
+        if (status != null && TERMINAL_STATUSES.contains(status.toUpperCase())) return true;
+        // Nếu không phải pending và hết giờ → cũng closed
+        return !isPending() && secondsLeft() <= 0;
     }
-    public boolean isPending() { return "PENDING".equals(status) || "OPEN".equals(status); }
-    public boolean isClosed()  { 
-        if (isPending()) return false;
-        if (secondsLeft() > 0) return false;
-        return "CLOSED".equals(status) || "FINISHED".equals(status) || "PAID".equals(status) || "CANCELLED".equals(status) || secondsLeft() <= 0; 
+
+    public boolean isPending() {
+        return "PENDING".equals(status) || "OPEN".equals(status);
     }
+
+    public boolean isRunning() {
+        if (isClosed()) return false;
+        if (isPending()) return false;
+        return secondsLeft() > 0;
+    }
+
     public boolean isEndingSoon() {
-        return isRunning() && secondsLeft() <= 300; // 5 minutes (300 seconds)
+        return isRunning() && secondsLeft() <= 300; // 5 phút
     }
 
     public int secondsLeft() {
@@ -81,7 +92,7 @@ public class AuctionItem {
         return "LIVE";
     }
 
-    // Getters
+    // ── Getters ───────────────────────────────────────────────
     public long getAuctionId() { return auctionId; }
     public long getItemId() { return itemId; }
     public long getSellerId() { return sellerId; }
@@ -89,24 +100,18 @@ public class AuctionItem {
     public String getDescription() { return description; }
     public String getCategory() { return category; }
     public String getStatus() { return status; }
+    public double getStartingPrice() { return startingPrice; }
     public double getCurrentPrice() { return currentPrice; }
     public String getSellerName() { return sellerName; }
     public String getImageUrl() { return imageUrl; }
     public int getTotalBids() { return totalBids; }
     public List<String> getBidHistory() { return bidHistory; }
+    public LocalDateTime getStartTime() { return startTime; }
+    public LocalDateTime getEndTime() { return endTime; }
 
-    // Setters to allow updating the current bid state
-    public void setCurrentPrice(double currentPrice) { 
-        this.currentPrice = currentPrice; 
-    }
-
-    public void setTotalBids(int totalBids) { 
-        this.totalBids = totalBids; 
-    }
-    public void setStatus(String status) {
-        this.status = status;
-    }
-    public void setBidHistory(List<String> bidHistory) {
-        this.bidHistory = bidHistory;
-    }
+    // ── Setters ───────────────────────────────────────────────
+    public void setCurrentPrice(double currentPrice) { this.currentPrice = currentPrice; }
+    public void setTotalBids(int totalBids) { this.totalBids = totalBids; }
+    public void setStatus(String status) { this.status = status; }
+    public void setBidHistory(List<String> bidHistory) { this.bidHistory = bidHistory; }
 }
