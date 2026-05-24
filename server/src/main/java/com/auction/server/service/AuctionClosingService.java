@@ -31,12 +31,12 @@ public class AuctionClosingService {
         this(new JdbcAuctionDao(), auctionService);
     }
 
-    //khời động scheduler
+    // Start the scheduler
     public void start(){
         scheduler.scheduleAtFixedRate(() -> {
-            processReadyToOpenAuctions();   //quét và mở các phiên đến giờ
-            processExpiredAuctions();       //quét và đóng các phiên hết giờ
-    }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS); // chạy method 10s 1 lần
+            // Admin approval is mandatory. OPEN auctions should not be auto-opened.
+            processExpiredAuctions();       // scanned and closed expired sessions
+        }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS); // run method every 10 seconds
         System.out.println("Scheduler started, checking every " + CHECK_INTERVAL_SECONDS + " second(s)");
     }
 

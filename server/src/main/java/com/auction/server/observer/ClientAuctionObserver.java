@@ -60,7 +60,7 @@ public class ClientAuctionObserver implements AuctionObserver {
     }
 
     private Instant toInstant(LocalDateTime ldt) {
-        return ldt.toInstant(ZoneOffset.UTC);
+        return ldt.atZone(java.time.ZoneId.systemDefault()).toInstant();
     }
 
     public String getClientId() {

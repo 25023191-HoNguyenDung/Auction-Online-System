@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import com.auction.client.model.AuctionItem;
 import com.auction.client.network.ClientMessageSender;
 import com.auction.client.network.ServerEventListener;
+import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.viewmodel.AuctionListViewModel;
@@ -66,6 +67,7 @@ public class AuctionListController {
     @FXML private GridPane         cardsGrid;
 
     private Timer clockTimer;
+    private int listRefreshCounter = 0;
 
     // Balance listener reference (kept so we can remove it on cleanup)
     private Consumer<Double> balanceListener;
@@ -379,6 +381,7 @@ public class AuctionListController {
             badgeText = "● LIVE";        badgeStyle = "al-badge-live";
         }
         Label badge = new Label(badgeText);
+        badge.setId("badge_" + item.getAuctionId());
         badge.getStyleClass().add(badgeStyle);
         StackPane.setAlignment(badge, Pos.TOP_LEFT);
         StackPane.setMargin(badge, new Insets(12, 0, 0, 12));
@@ -448,8 +451,28 @@ public class AuctionListController {
                             int remaining = item.secondsLeft();
                             lbl.setText(formatTime(remaining));
                             if (remaining < 900)
-                                lbl.getStyleClass().setAll("al-timer-ending");
+                                lbl.getStyleClass().setAll("label", "al-timer-ending");
                             
+                            // Dynamically update the badge in real-time
+                            Label badgeLbl = (Label) cardsGrid.lookup("#badge_" + item.getAuctionId());
+                            if (badgeLbl != null) {
+                                String displayStatus = item.getDisplayStatus();
+                                String badgeText, badgeStyle;
+                                if ("CLOSED".equals(displayStatus) || item.isClosed()) {
+                                    badgeText = "● CLOSED";        badgeStyle = "al-badge-upcoming";
+                                } else if ("ENDING_SOON".equals(displayStatus)) {
+                                    badgeText = "⏰ ENDING SOON"; badgeStyle = "al-badge-ending";
+                                } else if (item.isPending()) {
+                                    badgeText = "🕐 UPCOMING";   badgeStyle = "al-badge-upcoming";
+                                } else {
+                                    badgeText = "● LIVE";        badgeStyle = "al-badge-live";
+                                }
+                                if (!badgeLbl.getText().equals(badgeText)) {
+                                    badgeLbl.setText(badgeText);
+                                    badgeLbl.getStyleClass().setAll("label", badgeStyle);
+                                }
+                            }
+
                             // Phát hiện phiên kết thúc và đang trạng thái RUNNING
                             if (remaining <= 0 && item.isRunning()) {
                                 anyEnded = true;
@@ -485,6 +508,15 @@ public class AuctionListController {
                     if (anyEnded) {
                         // Ẩn sản phẩm đã kết thúc khỏi màn hình Live Auctions
                         refreshCards();
+                    }
+                    
+                    listRefreshCounter++;
+                    if (listRefreshCounter >= 3) {
+                        listRefreshCounter = 0;
+                        new Thread(() -> {
+                            viewModel.loadData();
+                            Platform.runLater(AuctionListController.this::refreshCards);
+                        }).start();
                     }
                 });
             }

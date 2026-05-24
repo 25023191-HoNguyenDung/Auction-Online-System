@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.network.ClientMessageSender;
@@ -172,16 +173,26 @@ public class BidController {
                     int seconds = currentItem.secondsLeft();
                     timeRemainingLabel.setText(formatTime(seconds));
 
-                    if (seconds < 900) {
-                        timeRemainingLabel.getStyleClass().setAll("ad-timer-ending");
-                    } else {
-                        timeRemainingLabel.getStyleClass().setAll("ad-timer-value");
-                    }
-
                     if (seconds <= 0) {
                         stopTimer();
                         if (confirmBidButton != null) confirmBidButton.setDisable(true);
+                        if (badgeLabel != null) {
+                            badgeLabel.setText("● CLOSED");
+                            badgeLabel.getStyleClass().setAll("label", "al-badge-upcoming");
+                        }
                         showError("Auction has ended.");
+                    } else if (seconds <= 300) {
+                        timeRemainingLabel.getStyleClass().setAll("label", "ad-timer-ending");
+                        if (badgeLabel != null && !"⏰ ENDING SOON".equals(badgeLabel.getText())) {
+                            badgeLabel.setText("⏰ ENDING SOON");
+                            badgeLabel.getStyleClass().setAll("label", "al-badge-ending");
+                        }
+                    } else {
+                        timeRemainingLabel.getStyleClass().setAll("label", "ad-timer-value");
+                        if (badgeLabel != null && !"● LIVE".equals(badgeLabel.getText())) {
+                            badgeLabel.setText("● LIVE");
+                            badgeLabel.getStyleClass().setAll("label", "al-badge-live");
+                        }
                     }
                 });
             }

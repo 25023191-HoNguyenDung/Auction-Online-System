@@ -59,6 +59,35 @@ public class ClientMessageSender {
         return envelope.getMessageId();
     }
 
+    public String sendSubmitListing(long sellerId, String itemName, String description, String category,
+                                     double startingPrice, int durationMinutes) {
+        SubmitListingReqPayload payload = new SubmitListingReqPayload(sellerId, itemName, description, category, startingPrice, durationMinutes);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.SUBMIT_LISTING_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendAdminAction(long auctionId, String action) {
+        AdminActionReqPayload payload = new AdminActionReqPayload(auctionId, action);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.ADMIN_ACTION_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendListUsers() {
+        ListUsersReqPayload payload = new ListUsersReqPayload();
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.LIST_USERS_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendUpdateUser(long userId, String newRole) {
+        UpdateUserReqPayload payload = new UpdateUserReqPayload(userId, newRole);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.UPDATE_USER_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
     // Gửi mọi loại message
     private void send(MessageEnvelope envelope) {
         String json = mapper.toJson(envelope);

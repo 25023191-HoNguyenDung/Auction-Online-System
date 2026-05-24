@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.auction.client.model.AuctionItem;
+import com.auction.client.model.User;
 import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 
@@ -91,6 +92,7 @@ public class SellerDashboardController {
     private final ObservableList<AuctionItem> myAuctions = FXCollections.observableArrayList();
     private final ObservableList<String[]>    bidsData   = FXCollections.observableArrayList();
     private final ObservableList<String[]>    historyData = FXCollections.observableArrayList();
+    private java.util.Timer refreshTimer;
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
@@ -101,7 +103,8 @@ public class SellerDashboardController {
         setupCreateListingTab();
         setupBidsTab();
         setupHistoryTab();
-        loadMockData();
+        refreshSellerAuctions();
+        startRefreshTimer();
     }
 
     // ── Seller info ───────────────────────────────────────────
@@ -118,11 +121,11 @@ public class SellerDashboardController {
 
     // ── Sidebar navigation ────────────────────────────────────
     private void setupSidebarButtons() {
-        sideOverview  .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideOverview);   });
-        sideMyAuctions.setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideMyAuctions); });
+        sideOverview  .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideOverview);   refreshSellerAuctions(); });
+        sideMyAuctions.setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideMyAuctions); refreshSellerAuctions(); });
         sideCreate    .setOnAction(e -> { tabPane.getSelectionModel().select(1); setActive(sideCreate);     });
-        sideBids      .setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideBids);       });
-        sideHistory   .setOnAction(e -> { tabPane.getSelectionModel().select(3); setActive(sideHistory);    });
+        sideBids      .setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideBids);       refreshSellerAuctions(); });
+        sideHistory   .setOnAction(e -> { tabPane.getSelectionModel().select(3); setActive(sideHistory);    refreshSellerAuctions(); });
     }
 
     private void setActive(Button active) {
@@ -139,7 +142,7 @@ public class SellerDashboardController {
 
     // ── My Auctions tab ───────────────────────────────────────
     private void setupMyAuctionsTab() {
-        filterMyStatus.getItems().addAll("All", "Live", "Ending Soon", "Pending", "Closed");
+        filterMyStatus.getItems().addAll("All", "Live", "Ending Soon", "Upcoming", "Closed");
         filterMyStatus.getSelectionModel().selectFirst();
         filterMyStatus.setOnAction(e -> applyAuctionFilter());
 
@@ -189,7 +192,7 @@ public class SellerDashboardController {
             boolean matchSt = "All".equals(status)
                 || item.getDisplayStatus().equalsIgnoreCase(status)
                 || (status.equals("Ending Soon") && item.isEndingSoon())
-                || (status.equals("Pending")     && item.isPending())
+                || (status.equals("Upcoming")    && item.isPending())
                 || (status.equals("Closed")      && item.isClosed());
             if (matchKw && matchSt) filtered.add(item);
         }
@@ -246,26 +249,61 @@ public class SellerDashboardController {
             return;
         }
 
-        // Mock submission — in real app send to server
-        LocalDateTime now = LocalDateTime.now();
-        AuctionItem newItem = new AuctionItem(
-            myAuctions.size() + 100L, myAuctions.size() + 200L,
-            UserSession.getInstance().getCurrentUser().getId(),
-            UserSession.getInstance().getCurrentUser().getUsername(),
-            name, desc.isEmpty() ? cat.toUpperCase() : desc,
-            cat, "PENDING",
-            startPrice, startPrice,
-            now, now.plusDays(7),
-            null, 0
-        );
-        myAuctions.add(newItem);
-        addHistory(name, "Created listing", String.format("$%,.0f", startPrice), "Pending Review");
-        updateStatCards();
-        updateSidebarStats();
+        showFormMessage("Submitting listing to server...", true);
 
-        showFormMessage("✅ Listing submitted for admin approval!", true);
-        handleClearForm();
-        System.out.println("✅ New listing submitted: " + name);
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                long sellerId = UserSession.getInstance().getCurrentUser().getId();
+                
+                int hours = 24;
+                String durVal = formDuration.getValue();
+                if (durVal != null) {
+                    hours = switch (durVal) {
+                        case "1 Hour" -> 1;
+                        case "3 Hours" -> 3;
+                        case "6 Hours" -> 6;
+                        case "12 Hours" -> 12;
+                        case "1 Day" -> 24;
+                        case "3 Days" -> 72;
+                        case "7 Days" -> 168;
+                        case "14 Days" -> 336;
+                        case "30 Days" -> 720;
+                        default -> 24;
+                    };
+                }
+
+                String messageId = sender.sendSubmitListing(
+                    sellerId,
+                    name,
+                    desc.isEmpty() ? cat.toUpperCase() : desc,
+                    cat,
+                    startPrice,
+                    hours
+                );
+                
+                com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                com.auction.common.protocol.SubmitListingResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.SubmitListingResPayload.class);
+                
+                javafx.application.Platform.runLater(() -> {
+                    if (res.isSuccess()) {
+                        refreshSellerAuctions();
+                        addHistory(name, "Created listing", String.format("$%,.0f", startPrice), "Pending Review");
+                        showFormMessage("✅ Listing submitted for admin approval!", true);
+                        handleClearForm();
+                    } else {
+                        showFormMessage("❌ Failed to submit listing: " + res.getMessage(), false);
+                    }
+                });
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> {
+                    showFormMessage("❌ Network error: " + e.getMessage(), false);
+                });
+            }
+        }).start();
     }
 
     @FXML
@@ -297,11 +335,26 @@ public class SellerDashboardController {
         alert.setContentText("End \"" + item.getItemName() + "\" early?\nThis cannot be undone.");
         alert.showAndWait().ifPresent(btn -> {
             if (btn == javafx.scene.control.ButtonType.OK) {
-                myAuctions.remove(item);
-                addHistory(item.getItemName(), "Ended auction", String.format("$%,.0f", item.getCurrentPrice()), "Closed");
-                updateStatCards();
-                updateSidebarStats();
-                System.out.println("🔨 Ended: " + item.getItemName());
+                new Thread(() -> {
+                    try {
+                        java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                        com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                        String messageId = sender.sendAdminAction(item.getAuctionId(), "END");
+                        com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                        
+                        com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                        com.auction.common.protocol.AdminActionResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.AdminActionResPayload.class);
+                        
+                        javafx.application.Platform.runLater(() -> {
+                            if (res.isSuccess()) {
+                                refreshSellerAuctions();
+                                addHistory(item.getItemName(), "Ended auction", String.format("$%,.0f", item.getCurrentPrice()), "Closed");
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
             }
         });
     }
@@ -368,48 +421,59 @@ public class SellerDashboardController {
         });
     }
 
-    // ── Mock data ─────────────────────────────────────────────
-    private void loadMockData() {
-        LocalDateTime now = LocalDateTime.now();
-        myAuctions.addAll(List.of(
-            new AuctionItem(1L, 101L,
-                UserSession.getInstance().isLoggedIn() ? UserSession.getInstance().getCurrentUser().getId() : 2L,
-                "Seller Test",
-                "Pioneer Zenith Hybrid", "LIMITED PRODUCTION 1 OF 50",
-                "Vehicles", "RUNNING",
-                180000, 245000,
-                now.minusHours(2), now.plusSeconds(7685), null, 47),
-            new AuctionItem(3L, 103L,
-                UserSession.getInstance().isLoggedIn() ? UserSession.getInstance().getCurrentUser().getId() : 2L,
-                "Seller Test",
-                "Ethereal Horizon", "MIXED MEDIA ON CANVAS (2024)",
-                "Art", "RUNNING",
-                12000, 18900,
-                now.minusHours(1), now.plusSeconds(31332), null, 12),
-            new AuctionItem(7L, 107L,
-                UserSession.getInstance().isLoggedIn() ? UserSession.getInstance().getCurrentUser().getId() : 2L,
-                "Seller Test",
-                "Sapphire Ring 3ct", "VVS1 CERTIFIED",
-                "Jewellery", "PENDING",
-                10000, 10000,
-                now.plusDays(1), now.plusDays(8), null, 0)
-        ));
-
-        bidsData.addAll(List.of(
-            new String[]{"Pioneer Zenith Hybrid", "@bidder_99",    "$245,000", "14:32:01", "Winning"},
-            new String[]{"Pioneer Zenith Hybrid", "@luxcollector", "$240,000", "14:28:44", "Outbid"},
-            new String[]{"Ethereal Horizon",      "@marcus_g",     "$18,900",  "13:55:12", "Winning"},
-            new String[]{"Ethereal Horizon",      "@artlover22",   "$17,500",  "13:40:08", "Outbid"}
-        ));
-
-        historyData.addAll(List.of(
-            new String[]{"Pioneer Zenith Hybrid", "Listing approved", "$180,000", "09:15:22", "Live"},
-            new String[]{"Ethereal Horizon", "Listing approved", "$12,000", "10:02:11", "Live"},
-            new String[]{"Sapphire Ring 3ct", "Submitted for review", "$10,000", "11:28:47", "Pending"}
-        ));
-
-        updateStatCards();
-        updateSidebarStats();
+    private void refreshSellerAuctions() {
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                long userId = UserSession.getInstance().isLoggedIn() 
+                    ? UserSession.getInstance().getCurrentUser().getId() 
+                    : 0L;
+                String username = UserSession.getInstance().isLoggedIn()
+                    ? UserSession.getInstance().getCurrentUser().getUsername()
+                    : "";
+                
+                String messageId = sender.sendListAuctions(userId, 1, 100, null);
+                com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                
+                if (resEnvelope.getType() == com.auction.common.protocol.MessageType.LIST_AUCTIONS_RES) {
+                    com.auction.common.protocol.ListAuctionsResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ListAuctionsResPayload.class);
+                    
+                    java.util.List<AuctionItem> myItems = new java.util.ArrayList<>();
+                    for (com.auction.common.protocol.AuctionSummaryItem summary : res.getAuctions()) {
+                        if (summary.getSellerId() == userId || (username != null && username.equalsIgnoreCase(summary.getSellerName()))) {
+                            myItems.add(new AuctionItem(
+                                summary.getAuctionId(), 
+                                0L, 
+                                summary.getSellerId(), 
+                                summary.getSellerName(), 
+                                summary.getItemName(), 
+                                summary.getDescription(), 
+                                summary.getCategory(), 
+                                summary.getStatus(), 
+                                summary.getCurrentHighestBid().doubleValue(), 
+                                summary.getCurrentHighestBid().doubleValue(), 
+                                LocalDateTime.now().minusMinutes(5), 
+                                LocalDateTime.ofInstant(summary.getEndTime(), java.time.ZoneId.systemDefault()), 
+                                null, 
+                                summary.getBidHistory() != null ? summary.getBidHistory().size() : 0, 
+                                summary.getBidHistory()
+                            ));
+                        }
+                    }
+                    javafx.application.Platform.runLater(() -> {
+                        myAuctions.setAll(myItems);
+                        applyAuctionFilter();
+                        updateStatCards();
+                        updateSidebarStats();
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void updateStatCards() {
@@ -417,7 +481,7 @@ public class SellerDashboardController {
         long pending = myAuctions.stream().filter(AuctionItem::isPending).count();
         int  bids    = myAuctions.stream().mapToInt(AuctionItem::getTotalBids).sum();
         double rev   = myAuctions.stream()
-            .filter(AuctionItem::isClosed)
+            .filter(item -> item.isClosed() && item.getTotalBids() > 0)
             .mapToDouble(AuctionItem::getCurrentPrice).sum();
 
         if (cardActive    != null) cardActive.setText(String.valueOf(active));
@@ -439,9 +503,19 @@ public class SellerDashboardController {
     // ── Logout ────────────────────────────────────────────────
     @FXML
     private void handleLogout() {
+        if (refreshTimer != null) refreshTimer.cancel();
         NavigationUtils.logout();
     }
     // ── Utilities ─────────────────────────────────────────────
+    private void startRefreshTimer() {
+        refreshTimer = new java.util.Timer(true);
+        refreshTimer.scheduleAtFixedRate(new java.util.TimerTask() {
+            @Override public void run() {
+                refreshSellerAuctions();
+            }
+        }, 3000, 3000);
+    }
+
     private String formatTime(int seconds) {
         if (seconds <= 0) return "Ended";
         return String.format("%02d:%02d:%02d",

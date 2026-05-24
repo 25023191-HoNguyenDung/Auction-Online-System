@@ -21,6 +21,7 @@ import com.auction.server.model.Auction;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.BidTransaction;
 import com.auction.server.model.Bidder;
+import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 import com.auction.server.observer.AuctionEvent;
 import com.auction.server.observer.AuctionEventPublisher;
@@ -210,34 +211,88 @@ public class AuctionServiceImpl implements AuctionService {
         return bidDao.findHighestBidByAuctionId(auctionId).orElse(null);
     }
 
-    //Cập nhật trạng thái phiên đấu giá
+    // Update auction status
     @Override
     public void checkStatus(long auctionId) throws AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
+            AuctionStatus oldStatus = manager.getStatus();
             manager.updateAuctionStatus();
-        } catch (SQLException e) {
+            AuctionStatus newStatus = manager.getStatus();
+            
+            // If transitioned from RUNNING to FINISHED, trigger automatic payment
+            if (oldStatus == AuctionStatus.RUNNING && newStatus == AuctionStatus.FINISHED) {
+                processPayment(auctionId);
+            }
+        } catch (Exception e) {
             throw new RuntimeException("Database error while checking status for auction "
                     + auctionId + ": " + e.getMessage(), e);
         }
-        clearCached(auctionId); // Dọn cache vì phiên đã FINISHED
+        clearCached(auctionId); // Clear cache because auction is finished
     }
 
-    // Xử lí thanh toán sau khi kết thúc phiên đấu giá
+    // Process payment after auction finishes
     @Override
     public void processPayment(long auctionId) throws AuctionTimeException, AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
-            manager.payment();
-        } catch (AuctionTimeException e) {
-            throw new RuntimeException("Cannot process payment. Auction time error: " + e.getMessage(), e);
-        } catch (AuctionConnectException e) {
-            throw new RuntimeException("Database error during payment for auction "
-                    + auctionId + ": " + e.getMessage(), e);
+            manager.payment(); // logs
+            
+            Auction auction = manager.getAuction();
+            if (auction.getStatus() != AuctionStatus.FINISHED) {
+                return; // Only process if currently FINISHED
+            }
+            
+            long winnerId = auction.getWinner_bidder_id();
+            long sellerId = auction.getSeller_id();
+            BigDecimal amount = auction.getCurrent_price();
+            
+            if (winnerId > 0 && amount.compareTo(BigDecimal.ZERO) > 0) {
+                transManager.executeInTransaction(conn -> {
+                    try {
+                        // 1. Deduct winner's balance
+                        User winnerOpt = userDao.findById(winnerId).orElse(null);
+                        if (winnerOpt instanceof Bidder bidder) {
+                            bidder.deductBalance(amount);
+                            userDao.update(bidder);
+                        }
+                        
+                        // 2. Credit seller's balance
+                        User sellerOpt = userDao.findById(sellerId).orElse(null);
+                        if (sellerOpt instanceof Seller seller) {
+                            seller.receivePayment(amount);
+                            userDao.update(seller);
+                        }
+                        
+                        // 3. Mark auction as PAID
+                        auction.setStatus(AuctionStatus.PAID);
+                        auctionDao.update(auction);
+                        
+                        System.out.println("[Payment] Processed payment of " + amount 
+                            + " from Bidder " + winnerId + " to Seller " + sellerId);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Database transaction failed: " + e.getMessage(), e);
+                    }
+                });
+            } else {
+                // No winner, transition status directly to PAID
+                transManager.executeInTransaction(conn -> {
+                    try {
+                        auction.setStatus(AuctionStatus.PAID);
+                        auctionDao.update(auction);
+                        System.out.println("[Payment] Auction " + auctionId + " closed with no winner - marked as PAID.");
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to update status: " + e.getMessage(), e);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            throw new AuctionConnectException("Database error during payment for auction "
+                    + auctionId + ": " + e.getMessage());
         }
     }
 
-    // Hủy phiên đấu giá
+    // Cancel auction
     @Override
     public void cancelAuction(long auctionId) throws AuctionTimeException, AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
@@ -249,7 +304,7 @@ public class AuctionServiceImpl implements AuctionService {
             throw new RuntimeException("Database error during cancellation of auction "
                     + auctionId + ": " + e.getMessage(), e);
         }
-        clearCached(auctionId); // Dọn cache vì phiên đã CANCELLED
+        clearCached(auctionId); // Clear cache because auction is CANCELLED
     }
 
     @Override
@@ -268,11 +323,13 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    // Đóng phiên đấu giá bình thường → FINISHED, giữ winner
+    // Close auction normally -> FINISHED, holds winner
     public void closeAuction(long auctionId) throws AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
             manager.close();
+            // Process payment settlement immediately
+            processPayment(auctionId);
         } catch (SQLException e) {
             throw new RuntimeException("Database error during closing of auction "
                     + auctionId + ": " + e.getMessage(), e);

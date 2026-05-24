@@ -85,13 +85,14 @@ public class AdminDashboardController {
     private final ObservableList<AuctionItem> allAuctions  = FXCollections.observableArrayList();
     private final ObservableList<AuctionItem> pendingItems = FXCollections.observableArrayList();
     private Timer clockTimer;
+    private int refreshCounter = 0;
 
     private static final DateTimeFormatter UTC_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     // ── Lifecycle ─────────────────────────────────────────────
     @FXML
     public void initialize() {
-        loadMockData();
+        loadStoreData();
         setupSidebar();
         setupUsersTab();
         setupAuctionsTab();
@@ -102,10 +103,10 @@ public class AdminDashboardController {
 
     // ── Sidebar ───────────────────────────────────────────────
     private void setupSidebar() {
-        sideOverview .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideOverview);  });
-        sideUsers    .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideUsers);     });
-        sideAuctions .setOnAction(e -> { tabPane.getSelectionModel().select(1); setActive(sideAuctions);  });
-        sideApprovals.setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideApprovals); });
+        sideOverview .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideOverview);  loadStoreData(); });
+        sideUsers    .setOnAction(e -> { tabPane.getSelectionModel().select(0); setActive(sideUsers);     loadStoreData(); });
+        sideAuctions .setOnAction(e -> { tabPane.getSelectionModel().select(1); setActive(sideAuctions);  loadStoreData(); });
+        sideApprovals.setOnAction(e -> { tabPane.getSelectionModel().select(2); setActive(sideApprovals); loadStoreData(); });
     }
 
     private void setActive(Button active) {
@@ -167,15 +168,29 @@ public class AdminDashboardController {
         boolean confirm = showConfirm("Ban User",
             "Ban " + user.getUsername() + "?\nThey will lose access to the platform.");
         if (confirm) {
-            user.setRole("BANNED");
-            usersTable.refresh();
-            updateStatCards();
-            System.out.println("🚫 Banned: " + user.getUsername());
+            new Thread(() -> {
+                try {
+                    java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                    com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                    String messageId = sender.sendUpdateUser(user.getId(), "BANNED");
+                    com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                    
+                    com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    com.auction.common.protocol.UpdateUserResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.UpdateUserResPayload.class);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (res.isSuccess()) {
+                            loadStoreData();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 
     private void handleEditUser(User user) {
-        // Simple role change via choice dialog
         javafx.scene.control.ChoiceDialog<String> dialog =
             new javafx.scene.control.ChoiceDialog<>(user.getRole(), "BIDDER", "SELLER", "ADMIN");
         dialog.setTitle("Edit User Role");
@@ -183,9 +198,25 @@ public class AdminDashboardController {
         dialog.setContentText("Select new role:");
         styleDialog(dialog);
         dialog.showAndWait().ifPresent(newRole -> {
-            user.setRole(newRole);
-            usersTable.refresh();
-            System.out.println("✏️ Role updated: " + user.getUsername() + " → " + newRole);
+            new Thread(() -> {
+                try {
+                    java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                    com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                    String messageId = sender.sendUpdateUser(user.getId(), newRole);
+                    com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                    
+                    com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    com.auction.common.protocol.UpdateUserResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.UpdateUserResPayload.class);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (res.isSuccess()) {
+                            loadStoreData();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         });
     }
 
@@ -205,7 +236,7 @@ public class AdminDashboardController {
 
     // ── Auctions tab ──────────────────────────────────────────
     private void setupAuctionsTab() {
-        filterAuctionStatus.getItems().addAll("All", "Live", "Ending Soon", "Pending", "Closed");
+        filterAuctionStatus.getItems().addAll("All", "Live", "Ending Soon", "Upcoming", "Closed");
         filterAuctionStatus.getSelectionModel().selectFirst();
 
         colAucId    .setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().getAuctionId())));
@@ -246,9 +277,25 @@ public class AdminDashboardController {
         boolean confirm = showConfirm("End Auction",
             "Force-end \"" + item.getItemName() + "\"?\nThis cannot be undone.");
         if (confirm) {
-            allAuctions.remove(item);
-            updateStatCards();
-            System.out.println("🔨 Ended: " + item.getItemName());
+            new Thread(() -> {
+                try {
+                    java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                    com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                    String messageId = sender.sendAdminAction(item.getAuctionId(), "END");
+                    com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                    
+                    com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    com.auction.common.protocol.AdminActionResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.AdminActionResPayload.class);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (res.isSuccess()) {
+                            refreshStoreAuctions();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 
@@ -256,9 +303,25 @@ public class AdminDashboardController {
         boolean confirm = showConfirm("Remove Auction",
             "Remove \"" + item.getItemName() + "\" from the platform?");
         if (confirm) {
-            allAuctions.remove(item);
-            updateStatCards();
-            System.out.println("🗑️ Removed: " + item.getItemName());
+            new Thread(() -> {
+                try {
+                    java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                    com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                    String messageId = sender.sendAdminAction(item.getAuctionId(), "REMOVE");
+                    com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                    
+                    com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    com.auction.common.protocol.AdminActionResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.AdminActionResPayload.class);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (res.isSuccess()) {
+                            refreshStoreAuctions();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 
@@ -273,7 +336,7 @@ public class AdminDashboardController {
             boolean matchSt = "All".equals(status)
                 || (status.equals("Live")        && item.isRunning() && !item.isEndingSoon())
                 || (status.equals("Ending Soon") && item.isEndingSoon())
-                || (status.equals("Pending")     && item.isPending())
+                || (status.equals("Upcoming")    && item.isPending())
                 || (status.equals("Closed")      && item.isClosed());
             if (matchKw && matchSt) filtered.add(item);
         }
@@ -314,20 +377,53 @@ public class AdminDashboardController {
     }
 
     private void handleApprove(AuctionItem item) {
-        pendingItems.remove(item);
-        allAuctions.add(item);
-        updateStatCards();
-        showInfo("Approved", "\"" + item.getItemName() + "\" is now live.");
-        System.out.println("✅ Approved: " + item.getItemName());
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                String messageId = sender.sendAdminAction(item.getAuctionId(), "APPROVE");
+                com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                com.auction.common.protocol.AdminActionResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.AdminActionResPayload.class);
+                
+                javafx.application.Platform.runLater(() -> {
+                    if (res.isSuccess()) {
+                        refreshStoreAuctions();
+                        showInfo("Approved", "\"" + item.getItemName() + "\" is now live.");
+                    } else {
+                        showAlert(AlertType.ERROR, "Error", "Failed to approve: " + res.getMessage());
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void handleReject(AuctionItem item) {
         boolean confirm = showConfirm("Reject Listing",
             "Reject \"" + item.getItemName() + "\"?\nThe seller will be notified.");
         if (confirm) {
-            pendingItems.remove(item);
-            updateStatCards();
-            System.out.println("❌ Rejected: " + item.getItemName());
+            new Thread(() -> {
+                try {
+                    java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                    com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                    String messageId = sender.sendAdminAction(item.getAuctionId(), "REJECT");
+                    com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                    
+                    com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    com.auction.common.protocol.AdminActionResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.AdminActionResPayload.class);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (res.isSuccess()) {
+                            refreshStoreAuctions();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
 
@@ -335,7 +431,8 @@ public class AdminDashboardController {
     private void updateStatCards() {
         long live    = allAuctions.stream().filter(AuctionItem::isRunning).count();
         long pending = pendingItems.size();
-        double rev   = allAuctions.stream().filter(AuctionItem::isClosed)
+        double rev   = allAuctions.stream()
+            .filter(item -> item.isClosed() && item.getTotalBids() > 0)
             .mapToDouble(AuctionItem::getCurrentPrice).sum();
 
         if (cardUsers    != null) cardUsers.setText(String.valueOf(allUsers.size()));
@@ -353,6 +450,12 @@ public class AdminDashboardController {
                     if (serverTimeLabel != null)
                         serverTimeLabel.setText("Server: " +
                             LocalDateTime.now(ZoneOffset.UTC).format(UTC_FMT) + " UTC");
+                    
+                    refreshCounter++;
+                    if (refreshCounter >= 3) {
+                        refreshCounter = 0;
+                        loadStoreData(); // Auto reload admin data in background
+                    }
                 });
             }
         }, 0, 1000);
@@ -372,30 +475,95 @@ public class AdminDashboardController {
     }
 
     // ── Mock data ─────────────────────────────────────────────
-    private void loadMockData() {
-        LocalDateTime now = LocalDateTime.now();
-        allUsers.addAll(List.of(
-            new User(1L,  "@collector_a",   "collector@aureate.com", "BIDDER"),
-            new User(2L,  "@sterlinghouse", "sterling@aureate.com",  "SELLER"),
-            new User(3L,  "@marcus_gold",   "marcus@aureate.com",    "SELLER"),
-            new User(4L,  "@bidder_99",     "bidder99@gmail.com",    "BIDDER"),
-            new User(5L,  "@luxcollector",  "lux@gmail.com",         "BIDDER"),
-            new User(6L,  "@artlover22",    "artlover@gmail.com",    "BIDDER"),
-            new User(99L, "admin",          "admin@auctionpro.com",  "ADMIN")
-        ));
-        allAuctions.addAll(List.of(
-            new AuctionItem(1L,101L,2L,"@sterlinghouse","Pioneer Zenith Hybrid","LIMITED PRODUCTION 1 OF 50","Vehicles","RUNNING",180000,245000,now.minusHours(2),now.plusSeconds(7685),null,47),
-            new AuctionItem(2L,102L,3L,"@marcus_gold","Vanguard Tourbillon","ROSE GOLD SKELETON EDITION","Watches","RUNNING",70000,82400,now.minusHours(5),now.plusSeconds(704),null,31),
-            new AuctionItem(3L,103L,2L,"@sterlinghouse","Ethereal Horizon","MIXED MEDIA ON CANVAS (2024)","Art","RUNNING",12000,18900,now.minusHours(1),now.plusSeconds(31332),null,12),
-            new AuctionItem(4L,104L,3L,"@marcus_gold","Wraith Stealth Tender","CUSTOM CARBON SERIES","Vehicles","RUNNING",400000,512000,now.minusHours(3),now.plusDays(1),null,28),
-            new AuctionItem(5L,105L,2L,"@sterlinghouse","Neon Phantom","DIGITAL ART 1/1 EDITION","Art","RUNNING",6000,9500,now.minusHours(1),now.plusSeconds(5400),null,15),
-            new AuctionItem(6L,106L,3L,"@marcus_gold","Quantum X Laptop","TITANIUM EDITION 2024","Electronics","RUNNING",3000,4200,now.minusHours(4),now.plusSeconds(500),null,8)
-        ));
-        pendingItems.addAll(List.of(
-            new AuctionItem(7L,107L,2L,"@sterlinghouse","Sapphire Ring 3ct","VVS1 CERTIFIED","Jewellery","PENDING",10000,10000,now.plusDays(1),now.plusDays(8),null,0),
-            new AuctionItem(8L,108L,3L,"@marcus_gold","Rolex Daytona 2024","STAINLESS STEEL OYSTERFLEX","Watches","PENDING",25000,25000,now.plusDays(2),now.plusDays(9),null,0),
-            new AuctionItem(9L,109L,2L,"@sterlinghouse","Ferrari 488 Spider","2019 LOW MILEAGE","Vehicles","PENDING",280000,280000,now.plusDays(1),now.plusDays(7),null,0)
-        ));
+    private void loadStoreData() {
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                
+                String messageId = sender.sendListUsers();
+                com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                
+                if (resEnvelope.getType() == com.auction.common.protocol.MessageType.LIST_USERS_RES) {
+                    com.auction.common.protocol.ListUsersResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ListUsersResPayload.class);
+                    
+                    java.util.List<User> list = new java.util.ArrayList<>();
+                    for (com.auction.common.protocol.UserSummaryItem summary : res.getUsers()) {
+                        list.add(new User(summary.getId(), summary.getUsername(), summary.getEmail(), summary.getRole(), summary.getBalance()));
+                    }
+                    javafx.application.Platform.runLater(() -> {
+                        allUsers.setAll(list);
+                        applyUserFilter();
+                        updateStatCards();
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        refreshStoreAuctions();
+    }
+
+    private void refreshStoreAuctions() {
+        new Thread(() -> {
+            try {
+                java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                
+                String messageId = sender.sendListAuctions(0L, 1, 100, null);
+                com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                
+                com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                
+                if (resEnvelope.getType() == com.auction.common.protocol.MessageType.LIST_AUCTIONS_RES) {
+                    com.auction.common.protocol.ListAuctionsResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ListAuctionsResPayload.class);
+                    
+                    java.util.List<AuctionItem> liveList = new java.util.ArrayList<>();
+                    java.util.List<AuctionItem> pendingList = new java.util.ArrayList<>();
+                    
+                    for (com.auction.common.protocol.AuctionSummaryItem summary : res.getAuctions()) {
+                        AuctionItem item = new AuctionItem(
+                            summary.getAuctionId(), 
+                            0L, 
+                            summary.getSellerId(), 
+                            summary.getSellerName(), 
+                            summary.getItemName(), 
+                            summary.getDescription(), 
+                            summary.getCategory(), 
+                            summary.getStatus(), 
+                            summary.getCurrentHighestBid().doubleValue(), 
+                            summary.getCurrentHighestBid().doubleValue(), 
+                            LocalDateTime.now().minusMinutes(5), 
+                            LocalDateTime.ofInstant(summary.getEndTime(), java.time.ZoneId.systemDefault()), 
+                            null, 
+                            summary.getBidHistory() != null ? summary.getBidHistory().size() : 0, 
+                            summary.getBidHistory()
+                        );
+                        if ("OPEN".equals(summary.getStatus())) {
+                            pendingList.add(item);
+                        } else {
+                            liveList.add(item);
+                        }
+                    }
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        allAuctions.setAll(liveList);
+                        pendingItems.setAll(pendingList);
+                        if (auctionsTable != null) {
+                            applyAuctionFilter();
+                        }
+                        if (approvalsTable != null) {
+                            approvalsTable.setItems(pendingItems);
+                        }
+                        updateStatCards();
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
     // ── UI helpers ────────────────────────────────────────────
     private Button makeBtn(String text, String textColor, String bgColor) {
