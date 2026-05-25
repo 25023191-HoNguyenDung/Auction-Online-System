@@ -19,7 +19,7 @@
 
     <!-- TOP NAVBAR -->
     <top>
-        <HBox alignment="CENTER_LEFT" prefHeight="60.0" styleClass="navbar">
+        <HBox alignment="CENTER_LEFT" prefHeight="52.0" styleClass="navbar">
             <Label styleClass="nav-logo-text" text="AUCTION PRO" />
             <HBox HBox.hgrow="ALWAYS" />
             <HBox alignment="CENTER" spacing="40">
@@ -42,59 +42,63 @@
     <center>
         <HBox>
             <!-- FILTER SIDEBAR -->
-            <VBox prefHeight="760.0" prefWidth="318.0" spacing="14" styleClass="filter-sidebar">
-                <padding><Insets bottom="20" left="24" right="24" top="30" /></padding>
+            <VBox prefWidth="318.0" styleClass="filter-sidebar">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="al-scroll" style="-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;" VBox.vgrow="ALWAYS">
+                    <VBox spacing="14">
+                        <padding><Insets bottom="20" left="24" right="24" top="20" /></padding>
 
-                <Label styleClass="filter-title" text="FILTERS" />
+                        <Label styleClass="filter-title" text="FILTERS" />
 
-                <VBox spacing="12">
-                    <Label styleClass="section-title" text="CATEGORY" />
-                    <CheckBox fx:id="catVehicles" styleClass="filter-checkbox" text="Vehicles" />
-                    <CheckBox fx:id="catArts" styleClass="filter-checkbox" text="Arts" />
-                    <CheckBox fx:id="catWatches" styleClass="filter-checkbox" text="Watches" />
-                    <CheckBox fx:id="catElectronics" styleClass="filter-checkbox" text="Electronics" />
-                </VBox>
+                        <VBox spacing="12">
+                            <Label styleClass="section-title" text="CATEGORY" />
+                            <CheckBox fx:id="catVehicles" styleClass="filter-checkbox" text="Vehicles" />
+                            <CheckBox fx:id="catArts" styleClass="filter-checkbox" text="Arts" />
+                            <CheckBox fx:id="catWatches" styleClass="filter-checkbox" text="Watches" />
+                            <CheckBox fx:id="catElectronics" styleClass="filter-checkbox" text="Electronics" />
+                        </VBox>
 
-                <VBox spacing="12">
-                    <Label styleClass="section-title" text="PRICE RANGE" />
-                    <HBox spacing="12">
-                        <TextField fx:id="priceMin" prefWidth="100" promptText="Min" styleClass="price-field" />
-                        <Label style="-fx-text-fill: #8a8272; -fx-font-size: 16px;" text="—" />
-                        <TextField fx:id="priceMax" prefWidth="100" promptText="Max" styleClass="price-field" />
-                    </HBox>
-                </VBox>
+                        <VBox spacing="12">
+                            <Label styleClass="section-title" text="PRICE RANGE" />
+                            <HBox spacing="12">
+                                <TextField fx:id="priceMin" prefWidth="100" promptText="Min" styleClass="price-field" />
+                                <Label style="-fx-text-fill: #8a8272; -fx-font-size: 16px;" text="—" />
+                                <TextField fx:id="priceMax" prefWidth="100" promptText="Max" styleClass="price-field" />
+                            </HBox>
+                        </VBox>
 
-                <VBox spacing="12">
-                    <Label styleClass="section-title" text="STATUS" />
-                    <VBox spacing="15.0">
-                        <Button fx:id="statusLive" styleClass="status-btn status-live" text="Live" />
-                        <Button fx:id="statusUpcoming" styleClass="status-btn status-upcoming" text="Upcoming" />
-                        <Button fx:id="statusEndingSoon" styleClass="status-btn status-ending" text="Ending Soon" />
-                    </VBox>
-                </VBox>
+                        <VBox spacing="12">
+                            <Label styleClass="section-title" text="STATUS" />
+                            <VBox spacing="15.0">
+                                <Button fx:id="statusLive" styleClass="status-btn status-live" text="Live" />
+                                <Button fx:id="statusUpcoming" styleClass="status-btn status-upcoming" text="Upcoming" />
+                                <Button fx:id="statusEndingSoon" styleClass="status-btn status-ending" text="Ending Soon" />
+                            </VBox>
+                        </VBox>
 
-                <Button fx:id="applyFilterBtn" prefHeight="48" styleClass="btn-primary" text="APPLY FILTERS" />
-            <VBox prefWidth="270.0">
-               <children>
-                  <VBox prefHeight="226.0" prefWidth="270.0" spacing="10.0" style="-fx-background-color: linear-gradient(to bottom right, #24211a, #15140e); -fx-background-radius: 16; -fx-padding: 16; -fx-border-color: #f0b429; -fx-border-width: 1; -fx-border-radius: 16;">
-                     <children>
-                        <Label style="-fx-text-fill: #8a8272; -fx-font-size: 11px; -fx-font-weight: bold;" text="AVAILABLE BALANCES" />
-                        <Label fx:id="walletBalanceLabel" prefHeight="30.0" prefWidth="217.0" style="-fx-text-fill: #4ade80; -fx-font-size: 24px; -fx-font-weight: bold;" text="\$50,000" />
-                        <VBox spacing="10.0" style="-fx-background-color: #1e1c15; -fx-background-radius: 12; -fx-padding: 12; -fx-border-color: #2d2a22; -fx-border-radius: 12;">
+                        <Button fx:id="applyFilterBtn" prefHeight="48" styleClass="btn-primary" text="APPLY FILTERS" />
+                        <VBox prefWidth="270.0">
                            <children>
-                              <TextField fx:id="depositAmountField" promptText="Amount" styleClass="price-field" />
-                              <HBox spacing="8.0">
+                              <VBox prefWidth="270.0" spacing="10.0" style="-fx-background-color: linear-gradient(to bottom right, #24211a, #15140e); -fx-background-radius: 16; -fx-padding: 16; -fx-border-color: #f0b429; -fx-border-width: 1; -fx-border-radius: 16;">
                                  <children>
-                                    <Button fx:id="btnDeposit" maxWidth="Infinity" onAction="#handleDepositSimulation" prefHeight="32" style="-fx-font-size: 11px; -fx-padding: 6 10;" styleClass="btn-primary" text="DEPOSIT" HBox.hgrow="ALWAYS" />
-                                    <Button fx:id="btnDeposit1" maxWidth="Infinity" onAction="#handleDepositSimulation" prefHeight="32" style="-fx-font-size: 11px; -fx-padding: 6 10;" styleClass="btn-primary" text="WITHDRAW" HBox.hgrow="ALWAYS" />
+                                    <Label style="-fx-text-fill: #8a8272; -fx-font-size: 11px; -fx-font-weight: bold;" text="AVAILABLE BALANCES" />
+                                    <Label fx:id="walletBalanceLabel" prefHeight="30.0" prefWidth="217.0" style="-fx-text-fill: #4ade80; -fx-font-size: 24px; -fx-font-weight: bold;" text="\$50,000" />
+                                    <VBox spacing="10.0" style="-fx-background-color: #1e1c15; -fx-background-radius: 12; -fx-padding: 12; -fx-border-color: #2d2a22; -fx-border-radius: 12;">
+                                       <children>
+                                          <TextField fx:id="depositAmountField" promptText="Amount" styleClass="price-field" />
+                                          <HBox spacing="8.0">
+                                             <children>
+                                                <Button fx:id="btnDeposit" maxWidth="Infinity" onAction="#handleDepositSimulation" prefHeight="32" style="-fx-font-size: 11px; -fx-padding: 6 10;" styleClass="btn-primary" text="DEPOSIT" HBox.hgrow="ALWAYS" />
+                                                <Button fx:id="btnDeposit1" maxWidth="Infinity" onAction="#handleDepositSimulation" prefHeight="32" style="-fx-font-size: 11px; -fx-padding: 6 10;" styleClass="btn-primary" text="WITHDRAW" HBox.hgrow="ALWAYS" />
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </VBox>
                                  </children>
-                              </HBox>
+                              </VBox>
                            </children>
                         </VBox>
-                     </children>
-                  </VBox>
-               </children>
-            </VBox>
+                    </VBox>
+                </ScrollPane>
             </VBox>
 
             <!-- MAIN AUCTION AREA -->

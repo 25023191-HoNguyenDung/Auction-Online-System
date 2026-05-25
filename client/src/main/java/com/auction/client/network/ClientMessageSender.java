@@ -104,6 +104,27 @@ public class ClientMessageSender {
         return envelope.getMessageId();
     }
 
+    public String sendRegisterAutoBid(long userId, long auctionId, java.math.BigDecimal maxBid, java.math.BigDecimal increment) {
+        RegisterAutoBidReqPayload payload = new RegisterAutoBidReqPayload(userId, auctionId, maxBid, increment);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.REGISTER_AUTOBID_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendCancelAutoBid(long userId, long auctionId) {
+        CancelAutoBidReqPayload payload = new CancelAutoBidReqPayload(userId, auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.CANCEL_AUTOBID_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendGetAutoBid(long userId, long auctionId) {
+        GetAutoBidReqPayload payload = new GetAutoBidReqPayload(userId, auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.GET_AUTOBID_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
     // Gửi mọi loại message
     private void send(MessageEnvelope envelope) {
         String json = mapper.toJson(envelope);

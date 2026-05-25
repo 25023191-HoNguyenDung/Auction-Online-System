@@ -40,7 +40,6 @@ public class AdminDashboardController {
     // ── Stat cards ────────────────────────────────────────────
     @FXML private Label cardUsers;
     @FXML private Label cardAuctions;
-    @FXML private Label cardRevenue;
     @FXML private Label cardPending;
     @FXML private Label serverTimeLabel;
 
@@ -431,13 +430,9 @@ public class AdminDashboardController {
     private void updateStatCards() {
         long live    = allAuctions.stream().filter(AuctionItem::isRunning).count();
         long pending = pendingItems.size();
-        double rev   = allAuctions.stream()
-            .filter(item -> item.isClosed() && item.getTotalBids() > 0)
-            .mapToDouble(AuctionItem::getCurrentPrice).sum();
 
         if (cardUsers    != null) cardUsers.setText(String.valueOf(allUsers.size()));
         if (cardAuctions != null) cardAuctions.setText(String.valueOf(live));
-        if (cardRevenue  != null) cardRevenue.setText(rev > 0 ? String.format("$%,.0f", rev) : "$2.4M");
         if (cardPending  != null) cardPending.setText(String.valueOf(pending));
     }
 

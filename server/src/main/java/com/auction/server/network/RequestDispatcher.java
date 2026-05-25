@@ -24,6 +24,9 @@ import com.auction.server.dao.AuctionDao;
 import com.auction.server.dao.jdbc.JdbcAuctionDao;
 import com.auction.server.config.DatabaseConfig;
 
+import com.auction.server.service.AutoBidService;
+import com.auction.server.model.AutoBidProfile;
+
 // dispatch requests to the appropriate handlers
 public class RequestDispatcher {
     private final AuctionServiceImpl auctionService;
@@ -31,6 +34,7 @@ public class RequestDispatcher {
     private final ProtocolMapper mapper;
     private final ItemDao itemDao; // NEW ADDITION
     private final AuctionDao auctionDao; // NEW ADDITION
+    private final AutoBidService autoBidService;
     private final Object writeLock = new Object();
 
     public RequestDispatcher() {
@@ -39,6 +43,7 @@ public class RequestDispatcher {
         this.mapper = new ProtocolMapper();
         this.itemDao = new JdbcItemDao(); // NEW ADDITION
         this.auctionDao = new JdbcAuctionDao(); // NEW ADDITION
+        this.autoBidService = new AutoBidService(this.auctionService);
     }
 
 
@@ -61,6 +66,18 @@ public class RequestDispatcher {
                 }
                 case PLACE_BID_REQ: {
                     handlePlaceBid(envelope, correlationId, out);
+                    break;
+                }
+                case REGISTER_AUTOBID_REQ: {
+                    handleRegisterAutoBid(envelope, correlationId, out);
+                    break;
+                }
+                case CANCEL_AUTOBID_REQ: {
+                    handleCancelAutoBid(envelope, correlationId, out);
+                    break;
+                }
+                case GET_AUTOBID_REQ: {
+                    handleGetAutoBid(envelope, correlationId, out);
                     break;
                 }
                 case SUBSCRIBE_REQ: {
@@ -220,6 +237,65 @@ public class RequestDispatcher {
         );
         send(out, mapper.buildResponse(MessageType.PLACE_BID_RES, correlationId, res)); // gửi kq về client
         // publisher.publish() và autoBidService.processAutoBids() đã được gọi trong AuctionServiceImpl.placeBid()
+    }
+
+    private void handleRegisterAutoBid(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        RegisterAutoBidReqPayload req = mapper.parsePayload(envelope, RegisterAutoBidReqPayload.class);
+        try {
+            autoBidService.registerAutoBid(req.getUserId(), req.getAuctionId(), req.getMaxBid(), req.getIncrement());
+            
+            // Kích hoạt tiến trình AutoBid lập tức sau khi đăng ký thành công
+            Auction auction = auctionService.getAuctionById(req.getAuctionId());
+            autoBidService.processAutoBids(req.getAuctionId(), auction.getCurrent_price(), auction.getWinner_bidder_id());
+
+            RegisterAutoBidResPayload res = new RegisterAutoBidResPayload(true, "AutoBid registered successfully!");
+            send(out, mapper.buildResponse(MessageType.REGISTER_AUTOBID_RES, correlationId, res));
+        } catch (Exception e) {
+            send(out, mapper.buildResponse(MessageType.REGISTER_AUTOBID_RES, correlationId, new RegisterAutoBidResPayload(false, e.getMessage())));
+        }
+    }
+
+    private void handleCancelAutoBid(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        CancelAutoBidReqPayload req = mapper.parsePayload(envelope, CancelAutoBidReqPayload.class);
+        try {
+            boolean success = autoBidService.cancelAutoBid(req.getUserId(), req.getAuctionId());
+            if (success) {
+                CancelAutoBidResPayload res = new CancelAutoBidResPayload(true, "AutoBid canceled successfully!");
+                send(out, mapper.buildResponse(MessageType.CANCEL_AUTOBID_RES, correlationId, res));
+            } else {
+                CancelAutoBidResPayload res = new CancelAutoBidResPayload(false, "No active AutoBid profile found to cancel.");
+                send(out, mapper.buildResponse(MessageType.CANCEL_AUTOBID_RES, correlationId, res));
+            }
+        } catch (Exception e) {
+            send(out, mapper.buildResponse(MessageType.CANCEL_AUTOBID_RES, correlationId, new CancelAutoBidResPayload(false, e.getMessage())));
+        }
+    }
+
+    private void handleGetAutoBid(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        GetAutoBidReqPayload req = mapper.parsePayload(envelope, GetAutoBidReqPayload.class);
+        try {
+            Optional<AutoBidProfile> profileOpt = autoBidService.getAutoBidProfile(req.getUserId(), req.getAuctionId());
+            if (profileOpt.isPresent()) {
+                AutoBidProfile profile = profileOpt.get();
+                Auction auction = auctionService.getAuctionById(req.getAuctionId());
+                java.math.BigDecimal nextBid = auction.getCurrent_price().add(profile.getIncrement());
+                boolean isExpired = (auction.getCurrent_price().compareTo(profile.getMax_bid()) > 0)
+                        || (profile.getUser_id() != auction.getWinner_bidder_id() && nextBid.compareTo(profile.getMax_bid()) > 0);
+                if (isExpired) {
+                    autoBidService.cancelAutoBid(profile.getUser_id(), profile.getAuction_id());
+                    GetAutoBidResPayload res = new GetAutoBidResPayload(false, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO);
+                    send(out, mapper.buildResponse(MessageType.GET_AUTOBID_RES, correlationId, res));
+                } else {
+                    GetAutoBidResPayload res = new GetAutoBidResPayload(true, profile.getMax_bid(), profile.getIncrement());
+                    send(out, mapper.buildResponse(MessageType.GET_AUTOBID_RES, correlationId, res));
+                }
+            } else {
+                GetAutoBidResPayload res = new GetAutoBidResPayload(false, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO);
+                send(out, mapper.buildResponse(MessageType.GET_AUTOBID_RES, correlationId, res));
+            }
+        } catch (Exception e) {
+            sendError(out, correlationId, ErrorCode.INTERNAL_ERROR, e.getMessage());
+        }
     }
 
     // Message->JSON r gửi

@@ -11,10 +11,7 @@ import com.auction.client.sessions.UserSession;
 import com.auction.client.util.NavigationUtils;
 import com.auction.client.network.ClientMessageSender;
 import com.auction.client.network.ServerEventListener;
-import com.auction.common.protocol.MessageEnvelope;
-import com.auction.common.protocol.MessageType;
-import com.auction.common.protocol.ProtocolMapper;
-import com.auction.common.protocol.ErrorPayload;
+import com.auction.common.protocol.*;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -51,6 +48,18 @@ public class BidController {
     @FXML private Button    quickBid4;
     @FXML private Label     messageLabel;
     @FXML private Button    confirmBidButton;
+
+    // ── AutoBid FXML Injections ──
+    @FXML private Button btnManualMode;
+    @FXML private Button btnAutoMode;
+    @FXML private javafx.scene.layout.VBox manualBidSection;
+    @FXML private javafx.scene.layout.VBox autoBidSection;
+    @FXML private Label balanceLabelAuto;
+    @FXML private TextField autoMaxBidField;
+    @FXML private TextField autoIncrementField;
+    @FXML private Label autoBidStatusLabel;
+    @FXML private Button btnActivateAutoBid;
+    @FXML private Button btnCancelAutoBid;
 
     @FXML private ListView<String> bidHistoryList;
     @FXML private Label            bidCountLabel;
@@ -93,6 +102,7 @@ public class BidController {
             priceChart.setCursor(javafx.scene.Cursor.HAND);
             priceChart.setOnMouseClicked(event -> showEnlargedChart());
         }
+        updateModeTabStyles(true);
     }
 
     // ── Item injection (called by NavigationUtils) ────────────
@@ -162,6 +172,13 @@ public class BidController {
             Platform.runLater(() -> {
                 double newPrice = payload.getNewHighestBid().doubleValue();
                 
+                // Synchronize Anti-Sniping locally on client
+                int secondsLeft = currentItem.secondsLeft();
+                if (secondsLeft > 0 && secondsLeft <= 30) {
+                    currentItem.setEndTime(currentItem.getEndTime().plusSeconds(60));
+                    System.out.println("[AntiSnipe] Extended local end time by 60 seconds. New end time: " + currentItem.getEndTime());
+                }
+
                 // Update local attributes of the item
                 currentItem.setCurrentPrice(newPrice);
                 currentItem.setTotalBids(currentItem.getTotalBids() + 1);
@@ -203,16 +220,20 @@ public class BidController {
                 // Refresh history list and price curve
                 seedMockHistory(currentItem);
                 updateChartData(currentItem.getBidHistory(), currentItem.getStartingPrice());
+                
+                // Re-fetch auto bid status to keep UI in sync
+                fetchAutoBidStatus();
 
                 System.out.println("⚡ Real-time bid update received! New highest bid: " + fmt(newPrice) + " by " + bidderName);
             });
         });
+        fetchAutoBidStatus();
     }
 
     // ── Balance label ─────────────────────────────────────────
     private void refreshBalanceLabel() {
+        double bal = UserSession.getInstance().getBalance();
         if (balanceLabel != null) {
-            double bal = UserSession.getInstance().getBalance();
             balanceLabel.setText(fmt(bal));
             if (bal >= 10_000) {
                 balanceLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 16px; -fx-font-weight: bold;");
@@ -220,6 +241,16 @@ public class BidController {
                 balanceLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 16px; -fx-font-weight: bold;");
             } else {
                 balanceLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 16px; -fx-font-weight: bold;");
+            }
+        }
+        if (balanceLabelAuto != null) {
+            balanceLabelAuto.setText(fmt(bal));
+            if (bal >= 10_000) {
+                balanceLabelAuto.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 16px; -fx-font-weight: bold;");
+            } else if (bal >= 1_000) {
+                balanceLabelAuto.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 16px; -fx-font-weight: bold;");
+            } else {
+                balanceLabelAuto.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 16px; -fx-font-weight: bold;");
             }
         }
     }
@@ -295,6 +326,11 @@ public class BidController {
     @FXML
     private void handleConfirmBid() {
         hideMessage();
+
+        if (isCurrentUserLeading()) {
+            showError("Bạn đang dẫn đầu phiên đấu giá. Không thể tự đặt giá cao hơn chính mình!");
+            return;
+        }
 
         String raw = bidAmountField.getText().trim().replace(",", "");
         if (raw.isEmpty()) { showError("Please enter a bid amount."); return; }
@@ -681,5 +717,265 @@ public class BidController {
             case "electronics"                    -> "💻";
             default                               -> "⭐";
         };
+    }
+
+    // ── AutoBid Actions & Logic ──
+    @FXML
+    private void handleManualModeClick() {
+        hideMessage();
+        updateModeTabStyles(true);
+        manualBidSection.setVisible(true);
+        manualBidSection.setManaged(true);
+        autoBidSection.setVisible(false);
+        autoBidSection.setManaged(false);
+    }
+
+    @FXML
+    private void handleAutoModeClick() {
+        hideMessage();
+        updateModeTabStyles(false);
+        manualBidSection.setVisible(false);
+        manualBidSection.setManaged(false);
+        autoBidSection.setVisible(true);
+        autoBidSection.setManaged(true);
+    }
+
+    private void updateModeTabStyles(boolean manual) {
+        if (btnManualMode != null && btnAutoMode != null) {
+            if (manual) {
+                btnManualMode.setStyle("-fx-background-color: #f0b429; -fx-text-fill: #0d0c08; -fx-font-weight: bold;");
+                btnAutoMode.setStyle("-fx-background-color: transparent; -fx-text-fill: #8a8272; -fx-font-weight: normal;");
+            } else {
+                btnManualMode.setStyle("-fx-background-color: transparent; -fx-text-fill: #8a8272; -fx-font-weight: normal;");
+                btnAutoMode.setStyle("-fx-background-color: #f0b429; -fx-text-fill: #0d0c08; -fx-font-weight: bold;");
+            }
+        }
+    }
+
+    @FXML
+    private void handleActivateAutoBid() {
+        hideMessage();
+
+        if (bidHistoryList == null || bidHistoryList.getItems().isEmpty()) {
+            showError("Chưa có lượt đặt giá nào. Hãy đặt giá khởi điểm thủ công trước khi kích hoạt AutoBid.");
+            return;
+        }
+
+        if (isCurrentUserLeading()) {
+            showError("Bạn đang dẫn đầu phiên đấu giá. Chỉ có thể kích hoạt AutoBid sau khi người khác đặt giá cao hơn.");
+            return;
+        }
+
+        String rawMax = autoMaxBidField.getText().trim().replace(",", "");
+        String rawInc = autoIncrementField.getText().trim().replace(",", "");
+
+        if (rawMax.isEmpty() || rawInc.isEmpty()) {
+            showError("Please enter both Max Bid and Increment values.");
+            return;
+        }
+
+        double maxBid;
+        double increment;
+        try {
+            maxBid = Double.parseDouble(rawMax);
+            increment = Double.parseDouble(rawInc);
+        } catch (NumberFormatException ex) {
+            showError("Invalid input - numeric values only.");
+            return;
+        }
+
+        if (maxBid <= 0 || increment <= 0) {
+            showError("Both values must be positive.");
+            return;
+        }
+
+        if (maxBid <= currentBid + increment) {
+            showError("Max Bid must be higher than current bid + increment ($" + String.format("%,.0f", currentBid + increment) + ").");
+            return;
+        }
+
+        double balance = UserSession.getInstance().getBalance();
+        if (maxBid > balance) {
+            showError(String.format("Insufficient balance. Your balance is %s.", fmt(balance)));
+            return;
+        }
+
+        btnActivateAutoBid.setDisable(true);
+        showSuccess("Activating AutoBid...");
+
+        new Thread(() -> {
+            try {
+                CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
+                ClientMessageSender sender = new ClientMessageSender();
+                long userId = UserSession.getInstance().getCurrentUser().getId();
+                long auctionId = currentItem.getAuctionId();
+
+                String messageId = sender.sendRegisterAutoBid(userId, auctionId, new java.math.BigDecimal(maxBid), new java.math.BigDecimal(increment));
+                ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+
+                MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                Platform.runLater(() -> {
+                    btnActivateAutoBid.setDisable(false);
+                    if (resEnvelope.getType() == MessageType.ERROR_RES) {
+                        try {
+                            ErrorPayload err = new ProtocolMapper().parsePayload(resEnvelope, ErrorPayload.class);
+                            showError("Failed: " + err.getMessage());
+                        } catch (Exception ex) {
+                            showError("AutoBid registration rejected by server.");
+                        }
+                    } else {
+                        try {
+                            RegisterAutoBidResPayload res = new ProtocolMapper().parsePayload(resEnvelope, RegisterAutoBidResPayload.class);
+                            if (res.isSuccess()) {
+                                showSuccess("AutoBid activated successfully!");
+                                fetchAutoBidStatus();
+                            } else {
+                                showError("Failed: " + res.getMessage());
+                            }
+                        } catch (Exception ex) {
+                            showError("Failed to parse response.");
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Platform.runLater(() -> {
+                    btnActivateAutoBid.setDisable(false);
+                    showError("Timeout connecting to server.");
+                });
+            }
+        }).start();
+    }
+
+    @FXML
+    private void handleCancelAutoBid() {
+        hideMessage();
+        btnCancelAutoBid.setDisable(true);
+        showSuccess("Canceling AutoBid...");
+
+        new Thread(() -> {
+            try {
+                CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
+                ClientMessageSender sender = new ClientMessageSender();
+                long userId = UserSession.getInstance().getCurrentUser().getId();
+                long auctionId = currentItem.getAuctionId();
+
+                String messageId = sender.sendCancelAutoBid(userId, auctionId);
+                ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+
+                MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                Platform.runLater(() -> {
+                    btnCancelAutoBid.setDisable(false);
+                    if (resEnvelope.getType() == MessageType.ERROR_RES) {
+                        try {
+                            ErrorPayload err = new ProtocolMapper().parsePayload(resEnvelope, ErrorPayload.class);
+                            showError("Failed: " + err.getMessage());
+                        } catch (Exception ex) {
+                            showError("AutoBid cancellation rejected by server.");
+                        }
+                    } else {
+                        try {
+                            CancelAutoBidResPayload res = new ProtocolMapper().parsePayload(resEnvelope, CancelAutoBidResPayload.class);
+                            if (res.isSuccess()) {
+                                showSuccess("AutoBid canceled successfully!");
+                                fetchAutoBidStatus();
+                            } else {
+                                showError("Failed: " + res.getMessage());
+                            }
+                        } catch (Exception ex) {
+                            showError("Failed to parse response.");
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Platform.runLater(() -> {
+                    btnCancelAutoBid.setDisable(false);
+                    showError("Timeout connecting to server.");
+                });
+            }
+        }).start();
+    }
+
+    private void fetchAutoBidStatus() {
+        if (currentItem == null || !UserSession.getInstance().isLoggedIn()) return;
+
+        new Thread(() -> {
+            try {
+                CompletableFuture<MessageEnvelope> responseFuture = new CompletableFuture<>();
+                ClientMessageSender sender = new ClientMessageSender();
+                long userId = UserSession.getInstance().getCurrentUser().getId();
+                long auctionId = currentItem.getAuctionId();
+
+                String messageId = sender.sendGetAutoBid(userId, auctionId);
+                ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+
+                MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                Platform.runLater(() -> {
+                    if (resEnvelope.getType() == MessageType.GET_AUTOBID_RES) {
+                        try {
+                            GetAutoBidResPayload payload = new ProtocolMapper().parsePayload(resEnvelope, GetAutoBidResPayload.class);
+                            if (payload.isActive()) {
+                                // Prefill fields
+                                autoMaxBidField.setText(String.format("%.0f", payload.getMaxBid().doubleValue()));
+                                autoIncrementField.setText(String.format("%.0f", payload.getIncrement().doubleValue()));
+                                
+                                // Disable fields
+                                autoMaxBidField.setDisable(true);
+                                autoIncrementField.setDisable(true);
+                                
+                                // Adjust button visibility
+                                btnActivateAutoBid.setVisible(false);
+                                btnActivateAutoBid.setManaged(false);
+                                btnCancelAutoBid.setVisible(true);
+                                btnCancelAutoBid.setManaged(true);
+                                
+                                // Update status label
+                                autoBidStatusLabel.setText("🤖 AutoBid is active up to $" + String.format("%,.0f", payload.getMaxBid().doubleValue()) + " (increment: $" + String.format("%,.0f", payload.getIncrement().doubleValue()) + ")");
+                            } else {
+                                // Enable fields
+                                autoMaxBidField.clear();
+                                autoIncrementField.clear();
+                                autoMaxBidField.setDisable(false);
+                                autoIncrementField.setDisable(false);
+                                
+                                // Adjust button visibility
+                                btnActivateAutoBid.setVisible(true);
+                                btnActivateAutoBid.setManaged(true);
+                                btnCancelAutoBid.setVisible(false);
+                                btnCancelAutoBid.setManaged(false);
+                                
+                                // Update status label
+                                autoBidStatusLabel.setText("");
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                System.err.println("Failed to fetch AutoBid status: " + ex.getMessage());
+            }
+        }).start();
+    }
+
+    private boolean isCurrentUserLeading() {
+        if (bidHistoryList == null || bidHistoryList.getItems().isEmpty()) {
+            return false;
+        }
+        try {
+            String latestBid = bidHistoryList.getItems().get(0);
+            String[] parts = latestBid.split("  →  ");
+            if (parts.length > 0) {
+                String leader = parts[0].trim();
+                if (UserSession.getInstance().isLoggedIn()) {
+                    String currentUser = UserSession.getInstance().getCurrentUser().getUsername();
+                    return currentUser.equalsIgnoreCase(leader) || "You".equalsIgnoreCase(leader);
+                } else {
+                    return "You".equalsIgnoreCase(leader);
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 }
