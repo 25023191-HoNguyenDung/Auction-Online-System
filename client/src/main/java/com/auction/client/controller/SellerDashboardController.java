@@ -33,6 +33,11 @@ public class SellerDashboardController {
     @FXML private Button sideBids;
     @FXML private Button sideHistory;
 
+    // Wallet widget
+    @FXML private Label  walletBalanceLabel;
+    @FXML private Button btnWithdraw;
+    private java.util.function.Consumer<Double> balanceListener;
+
     @FXML private javafx.scene.control.TabPane tabPane;
 
     // ── Stat cards ────────────────────────────────────────────
@@ -96,6 +101,7 @@ public class SellerDashboardController {
     @FXML
     public void initialize() {
         loadSellerInfo();
+        setupWallet();
         setupSidebarButtons();
         setupMyAuctionsTab();
         setupCreateListingTab();
@@ -115,6 +121,31 @@ public class SellerDashboardController {
         if (navInitialLabel  != null) navInitialLabel.setText(initial);
         if (sideInitialLabel != null) sideInitialLabel.setText(initial);
         if (sideNameLabel    != null) sideNameLabel.setText(name);
+    }
+
+    private void setupWallet() {
+        refreshWalletLabel();
+
+        // Subscribe to balance changes
+        balanceListener = newBalance -> javafx.application.Platform.runLater(this::refreshWalletLabel);
+        UserSession.getInstance().addBalanceListener(balanceListener);
+
+        // Refresh balance from server database immediately
+        UserSession.getInstance().refreshUserBalanceFromServer();
+    }
+
+    private void refreshWalletLabel() {
+        if (walletBalanceLabel != null) {
+            double bal = UserSession.getInstance().getBalance();
+            walletBalanceLabel.setText(String.format("$%,.0f", bal));
+            if (bal >= 10_000) {
+                walletBalanceLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 20px; -fx-font-weight: bold;");
+            } else if (bal >= 1_000) {
+                walletBalanceLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 20px; -fx-font-weight: bold;");
+            } else {
+                walletBalanceLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 20px; -fx-font-weight: bold;");
+            }
+        }
     }
 
     // ── Sidebar navigation ────────────────────────────────────
@@ -642,7 +673,152 @@ public class SellerDashboardController {
     @FXML
     private void handleLogout() {
         if (refreshTimer != null) refreshTimer.cancel();
+        if (balanceListener != null) {
+            UserSession.getInstance().removeBalanceListener(balanceListener);
+        }
         NavigationUtils.logout();
+    }
+
+    @FXML
+    private void handleWithdraw() {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Withdraw Funds");
+        dialog.setHeaderText("Withdraw money from your seller wallet");
+        dialog.setContentText("Enter amount ($):");
+        
+        javafx.scene.control.DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.setStyle(
+            "-fx-background-color: #161410;" +
+            "-fx-border-color: #f0b429;" +
+            "-fx-border-width: 1.5;" +
+            "-fx-text-fill: #f0b429;"
+        );
+        
+        javafx.scene.Node headerPanel = dialogPane.lookup(".header-panel");
+        if (headerPanel != null) {
+            headerPanel.setStyle("-fx-background-color: #1e1c15;");
+        }
+        
+        javafx.scene.Node headerTextNode = dialogPane.lookup(".header-panel .label");
+        if (headerTextNode != null) {
+            headerTextNode.setStyle("-fx-text-fill: #f0b429; -fx-font-weight: bold;");
+        }
+        
+        javafx.scene.Node contentTextNode = dialogPane.lookup(".content.label");
+        if (contentTextNode != null) {
+            contentTextNode.setStyle("-fx-text-fill: #9aa0b4; -fx-font-family: 'Arial';");
+        }
+        
+        javafx.scene.control.TextField inputField = dialog.getEditor();
+        inputField.setStyle(
+            "-fx-background-color: #1e1c15;" +
+            "-fx-text-fill: #f0b429;" +
+            "-fx-border-color: #2e2a1e;" +
+            "-fx-border-radius: 4;" +
+            "-fx-background-radius: 4;"
+        );
+        
+        javafx.scene.control.Button okBtn = (javafx.scene.control.Button) dialogPane.lookupButton(javafx.scene.control.ButtonType.OK);
+        javafx.scene.control.Button cancelBtn = (javafx.scene.control.Button) dialogPane.lookupButton(javafx.scene.control.ButtonType.CANCEL);
+        
+        if (okBtn != null) {
+            okBtn.setStyle("-fx-background-color: #f0b429; -fx-text-fill: #15140e; -fx-font-weight: bold; -fx-cursor: hand;");
+        }
+        if (cancelBtn != null) {
+            cancelBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.1); -fx-text-fill: #ef4444; -fx-border-color: rgba(239,68,68,0.3); -fx-cursor: hand;");
+        }
+
+        dialog.showAndWait().ifPresent(val -> {
+            String raw = val.trim().replace(",", "");
+            if (raw.isEmpty()) {
+                showWithdrawAlert("Please enter an amount.", false);
+                return;
+            }
+            double amount;
+            try {
+                amount = Double.parseDouble(raw);
+            } catch (NumberFormatException ex) {
+                showWithdrawAlert("Invalid amount — numbers only.", false);
+                return;
+            }
+            if (amount <= 0) {
+                showWithdrawAlert("Amount must be greater than zero.", false);
+                return;
+            }
+            double currentBal = UserSession.getInstance().getBalance();
+            if (amount > currentBal) {
+                showWithdrawAlert("Insufficient balance.", false);
+                return;
+            }
+            
+            if (btnWithdraw != null) btnWithdraw.setDisable(true);
+            new Thread(() -> {
+                try {
+                    java.util.concurrent.CompletableFuture<com.auction.common.protocol.MessageEnvelope> responseFuture = new java.util.concurrent.CompletableFuture<>();
+                    com.auction.client.network.ClientMessageSender sender = new com.auction.client.network.ClientMessageSender();
+                    long userId = UserSession.getInstance().getCurrentUser().getId();
+                    String messageId = sender.sendWithdraw(userId, java.math.BigDecimal.valueOf(amount));
+                    com.auction.client.network.ServerEventListener.getActiveInstance().onResponse(messageId, responseFuture::complete);
+                    
+                    com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        if (btnWithdraw != null) btnWithdraw.setDisable(false);
+                        if (resEnvelope.getType() == com.auction.common.protocol.MessageType.ERROR_RES) {
+                            try {
+                                com.auction.common.protocol.ErrorPayload err = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ErrorPayload.class);
+                                showWithdrawAlert("Withdrawal failed: " + err.getMessage(), false);
+                            } catch (Exception ex) {
+                                showWithdrawAlert("Withdrawal failed.", false);
+                            }
+                        } else {
+                            try {
+                                com.auction.common.protocol.WithdrawResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.WithdrawResPayload.class);
+                                if (res.isSuccess()) {
+                                    UserSession.getInstance().withdraw(amount);
+                                    UserSession.getInstance().setBalance(res.getNewBalance().doubleValue());
+                                    
+                                    addHistory("Wallet", "Withdrew cash", String.format("-$%,.0f", amount), "Success");
+                                    showWithdrawAlert(String.format("$%,.0f withdrawn successfully.", amount), true);
+                                } else {
+                                    showWithdrawAlert("Withdrawal failed: " + res.getMessage(), false);
+                                }
+                            } catch (Exception ex) {
+                                showWithdrawAlert("Withdrawal failed.", false);
+                            }
+                        }
+                    });
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    javafx.application.Platform.runLater(() -> {
+                        if (btnWithdraw != null) btnWithdraw.setDisable(false);
+                        showWithdrawAlert("Network timeout. Please try again.", false);
+                    });
+                }
+            }).start();
+        });
+    }
+
+    private void showWithdrawAlert(String message, boolean success) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(success ? javafx.scene.control.Alert.AlertType.INFORMATION : javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setTitle(success ? "Success" : "Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        
+        javafx.scene.control.DialogPane alertPane = alert.getDialogPane();
+        alertPane.setStyle("-fx-background-color: #161410; -fx-border-color: #2e2a1e; -fx-border-width: 2;");
+        
+        javafx.scene.Node contentLabel = alertPane.lookup(".content");
+        if (contentLabel != null) {
+            contentLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-family: 'Arial';");
+        }
+        
+        javafx.scene.control.Button okBtn = (javafx.scene.control.Button) alertPane.lookupButton(javafx.scene.control.ButtonType.OK);
+        if (okBtn != null) {
+            okBtn.setStyle("-fx-background-color: #f0b429; -fx-text-fill: #15140e; -fx-font-weight: bold; -fx-cursor: hand;");
+        }
+        
+        alert.showAndWait();
     }
     // ── Utilities ─────────────────────────────────────────────
     private void startRefreshTimer() {

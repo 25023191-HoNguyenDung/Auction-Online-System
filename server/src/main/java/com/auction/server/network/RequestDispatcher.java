@@ -94,6 +94,10 @@ public class RequestDispatcher {
                     handleDeposit(envelope, correlationId, out);
                     break;
                 }
+                case WITHDRAW_REQ: {                 // xử lý rút tiền
+                    handleWithdraw(envelope, correlationId, out);
+                    break;
+                }
                 case SUBMIT_LISTING_REQ: {
                     handleSubmitListing(envelope, correlationId, out);
                     break;
@@ -346,6 +350,49 @@ public class RequestDispatcher {
 
         DepositResPayload res = new DepositResPayload(true, newBalance, "Nạp tiền thành công");
         send(out, mapper.buildResponse(MessageType.DEPOSIT_RES, correlationId, res));
+    }
+
+    private void handleWithdraw(MessageEnvelope envelope, String correlationId, PrintWriter out) {
+        WithdrawReqPayload req = mapper.parsePayload(envelope, WithdrawReqPayload.class);
+
+        if (req.getAmount() == null || req.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Số tiền rút phải lớn hơn 0");
+            return;
+        }
+
+        User user = userDao.findById(req.getUserId()).orElse(null);
+        if (user == null) {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Không tìm thấy user id: " + req.getUserId());
+            return;
+        }
+
+        java.math.BigDecimal currentBalance = java.math.BigDecimal.ZERO;
+        if (user instanceof com.auction.server.model.Bidder bidder) {
+            currentBalance = bidder.getAccount_balance();
+        } else if (user instanceof com.auction.server.model.Seller seller) {
+            currentBalance = seller.getAccount_balance();
+        } else {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Admin không thể rút tiền");
+            return;
+        }
+
+        if (currentBalance == null || currentBalance.compareTo(req.getAmount()) < 0) {
+            sendError(out, correlationId, ErrorCode.INVALID_MESSAGE, "Số dư không đủ để thực hiện rút tiền. Có sẵn: " + currentBalance);
+            return;
+        }
+
+        java.math.BigDecimal newBalance = currentBalance.subtract(req.getAmount());
+        if (user instanceof com.auction.server.model.Bidder bidder) {
+            bidder.setAccount_balance(newBalance);
+        } else if (user instanceof com.auction.server.model.Seller seller) {
+            seller.setAccount_balance(newBalance);
+        }
+
+        userDao.update(user);
+        System.out.println("[Withdraw] User " + req.getUserId() + " withdrew " + req.getAmount() + " → new balance: " + newBalance);
+
+        WithdrawResPayload res = new WithdrawResPayload(true, newBalance, "Rút tiền thành công");
+        send(out, mapper.buildResponse(MessageType.WITHDRAW_RES, correlationId, res));
     }
 
     private void handleSubmitListing(MessageEnvelope envelope, String correlationId, PrintWriter out) {

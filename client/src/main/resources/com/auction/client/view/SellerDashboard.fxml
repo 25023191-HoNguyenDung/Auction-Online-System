@@ -108,6 +108,20 @@
                     </HBox>
                 </VBox>
 
+                <Separator style="-fx-background-color:rgba(240,180,41,0.1);">
+                    <VBox.margin><Insets bottom="16" top="16"/></VBox.margin>
+                </Separator>
+
+                <VBox spacing="10" style="-fx-background-color: linear-gradient(to bottom right, #24211a, #15140e); -fx-background-radius: 12; -fx-padding: 14; -fx-border-color: #f0b429; -fx-border-width: 1; -fx-border-radius: 12;">
+                    <Label text="MY WALLET" style="-fx-text-fill: #8a8272; -fx-font-size: 10px; -fx-font-weight: bold; -fx-font-family: 'Arial';" />
+                    <Label fx:id="walletBalanceLabel" text="\$0" style="-fx-text-fill: #4ade80; -fx-font-size: 20px; -fx-font-weight: bold;" />
+                    <Button fx:id="btnWithdraw" text="💸 Withdraw" onAction="#handleWithdraw"
+                            maxWidth="Infinity" prefHeight="32"
+                            style="-fx-background-color: #f0b429; -fx-text-fill: #15140e;
+                                   -fx-font-size: 11px; -fx-font-family: 'Arial'; -fx-font-weight: bold;
+                                   -fx-background-radius: 6; -fx-cursor: hand;" />
+                </VBox>
+
                 <VBox VBox.vgrow="ALWAYS"/>
 
                 <Button text="🚪  Logout" onAction="#handleLogout"

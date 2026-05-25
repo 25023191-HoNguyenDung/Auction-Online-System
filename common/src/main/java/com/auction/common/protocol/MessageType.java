@@ -42,6 +42,8 @@ public enum MessageType {
     // ── Wallet ────────────────────────────────────────────────
     DEPOSIT_REQ,
     DEPOSIT_RES,
+    WITHDRAW_REQ,
+    WITHDRAW_RES,
 
     // ── Errors ────────────────────────────────────────────────
     ERROR_RES

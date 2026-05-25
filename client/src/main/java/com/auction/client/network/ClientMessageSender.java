@@ -51,6 +51,14 @@ public class ClientMessageSender {
         return envelope.getMessageId();
     }
 
+    // Gửi yêu cầu rút tiền lên server
+    public String sendWithdraw(long userId, BigDecimal amount) {
+        WithdrawReqPayload payload = new WithdrawReqPayload(userId, amount);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.WITHDRAW_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
     // Gửi yêu cầu đăng ký
     public String sendRegister(String username, String email, String password, String role) {
         RegisterReqPayload payload = new RegisterReqPayload(username, email, password, role);
