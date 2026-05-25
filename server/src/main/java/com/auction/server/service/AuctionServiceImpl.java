@@ -113,7 +113,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
     }
 
-    // Hàm đặt giá nội bộ dùng bên trong hệ thống, chỉ lưu xuống DB - không gọi processAutoBids trong AutoBidService
+    //Hàm đặt giá nội bộ dùng bên trong hệ thống, chỉ lưu xuống DB - không gọi processAutoBids trong AutoBidService
     @Override
     public BidTransaction placeBidInternal(long auctionId, long bidderId, BigDecimal amount)
             throws AuctionMisMatchException, AuctionTimeException, InvalidBidException, AuctionConnectException {
@@ -123,26 +123,32 @@ public class AuctionServiceImpl implements AuctionService {
             throw new RuntimeException("User is not a bidder: " + bidderId);
         }
 
-        // [FIX Bug 2] Kiểm tra số dư trước khi đặt giá
+        //Kiểm tra số dư trước khi đặt giá
         if (!bidder.hasEnoughBalance(amount)) {
             throw new InvalidBidException("Insufficient balance. Available: "
                     + bidder.getAccount_balance() + ", Required: " + amount);
         }
 
-        // [FIX Bug 3] Load người đang thắng hiện tại để hoàn tiền nếu bị outbid
-        Auction currentAuction = auctionDao.findById(auctionId)
-                .orElseThrow(() -> new RuntimeException("Auction not found: " + auctionId));
-        long previousWinnerId = currentAuction.getWinner_bidder_id();
-        BigDecimal previousWinAmount = currentAuction.getCurrent_price();
-
-        BidTransaction bid = new BidTransaction(auctionId, bidder, amount);
-        AuctionLogicManager manager = getManager(auctionId);
         // Gọi LockManager để lấy khóa
         AuctionLockManager lockManager = AuctionLockManager.getInstance();
         lockManager.lock(auctionId);
         try {
+            Auction currentAuction = auctionDao.findById(auctionId)
+                .orElseThrow(() -> new RuntimeException("Auction not found: " + auctionId));
+            long previousWinnerId = currentAuction.getWinner_bidder_id();
+            BigDecimal previousWinAmount = currentAuction.getCurrent_price();
+
+             // Kiểm tra số dư sau lock (để tránh double-spend)
+            if (!bidder.hasEnoughBalance(amount)) {
+                throw new InvalidBidException("Insufficient balance. Available: "
+                        + bidder.getAccount_balance() + ", Required: " + amount);
+            }
+
+            BidTransaction bid = new BidTransaction(auctionId, bidder, amount);
+            AuctionLogicManager manager = getManager(auctionId);
+            try {
             transManager.executeInTransaction(conn -> {
-                // [FIX Bug 3] Hoàn tiền cho người bị outbid (nếu có)
+                //Hoàn tiền cho người bị outbid (nếu có)
                 if (previousWinnerId != 0 && previousWinnerId != bidderId) {
                     User prevUser = userDao.findById(previousWinnerId).orElse(null);
                     if (prevUser instanceof Bidder prevBidder) {
@@ -155,28 +161,28 @@ public class AuctionServiceImpl implements AuctionService {
 
                 manager.placeBid(bid);  //Thực thi luật đặt giá
 
-                // [FIX Bug 1] Trừ tiền người đặt giá mới
+                //Trừ tiền người đặt giá mới
                 bidder.deductForBid(amount);
                 userDao.update(bidder); //Cập nhật thông tin số dư người dùng
 
                 bidDao.save(bid);       //Lưu giao dịch đặt giá vào DB
             });
-        } catch (RuntimeException e) {
-            Throwable cause = e.getCause();
-            if (cause != null) {
-                if (cause instanceof AuctionMisMatchException) throw (AuctionMisMatchException) cause;
-                if (cause instanceof AuctionTimeException) throw (AuctionTimeException) cause;
-                if (cause instanceof InvalidBidException) throw (InvalidBidException) cause;
-                if (cause instanceof AuctionConnectException) throw (AuctionConnectException) cause;
-                if (cause instanceof java.sql.SQLException) throw new AuctionConnectException("Database error: " + cause.getMessage());
-            }
-            throw e;
+            } catch (RuntimeException e) {
+                Throwable cause = e.getCause();
+                if (cause != null) {
+                    if (cause instanceof AuctionMisMatchException) throw (AuctionMisMatchException) cause;
+                    if (cause instanceof AuctionTimeException) throw (AuctionTimeException) cause;
+                    if (cause instanceof InvalidBidException) throw (InvalidBidException) cause;
+                    if (cause instanceof AuctionConnectException) throw (AuctionConnectException) cause;
+                    if (cause instanceof java.sql.SQLException) throw new AuctionConnectException("Database error: " + cause.getMessage());
+                }
+                throw e;
+            } 
+            return bid;
         } finally {
             lockManager.unlock(auctionId);
         }
-        return bid;
     }
-
     // Đặt giá cho phiên đấu giá - dùng cho client
     @Override
     public BidTransaction placeBid(long auctionId, long bidderId, BigDecimal amount)
