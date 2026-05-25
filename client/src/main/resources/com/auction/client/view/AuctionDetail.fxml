@@ -83,21 +83,14 @@
                   <!-- LEFT: Image panel -->
                   <VBox spacing="15.0" HBox.hgrow="ALWAYS">
                      <children>
-                        <StackPane alignment="TOP_RIGHT" prefHeight="500.0" styleClass="ad-image-pane">
+                        <StackPane alignment="TOP_RIGHT" prefHeight="500.0" maxHeight="Infinity" styleClass="ad-image-pane" VBox.vgrow="ALWAYS">
                            <children>
-                              <Region prefHeight="500.0" styleClass="ad-image-placeholder" />
-                              <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" spacing="5.0" styleClass="ad-live-badge" StackPane.alignment="TOP_RIGHT">
-                                 <padding>
-                                    <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
-                                 </padding>
+                              <Region prefHeight="500.0" maxHeight="Infinity" styleClass="ad-image-placeholder" />
+                              <Label fx:id="badgeLabel" styleClass="al-badge-live" text="● LIVE" StackPane.alignment="TOP_RIGHT">
                                  <StackPane.margin>
                                     <Insets right="20.0" top="20.0" />
                                  </StackPane.margin>
-                                 <children>
-                                    <Rectangle arcHeight="8" arcWidth="8" fill="#4ADE80" height="8.0" width="8.0" />
-                                    <Label styleClass="text-gold" text="LIVE" />
-                                 </children>
-                              </HBox>
+                              </Label>
                            </children>
                         </StackPane>
                      </children>
@@ -143,14 +136,14 @@
                                  <children>
                                     <Label styleClass="ad-meta-label" text="Reserve Price Met" HBox.hgrow="ALWAYS" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Label styleClass="text-green" text="✔ Yes" />
+                                    <Label fx:id="reserveMetLabel" styleClass="text-green" text="✔ Yes" />
                                  </children>
                               </HBox>
                               <HBox>
                                  <children>
                                     <Label styleClass="ad-meta-label" text="Bidders Participating" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Label styleClass="ad-meta-value" text="14 active" />
+                                    <Label fx:id="biddersCountLabel" styleClass="ad-meta-value" text="0 active" />
                                  </children>
                               </HBox>
                            </children>
@@ -207,14 +200,14 @@
                                     <CategoryAxis side="BOTTOM" />
                                  </xAxis>
                                  <yAxis>
-                                    <NumberAxis autoRanging="false" lowerBound="175000" minorTickVisible="false" side="LEFT" tickUnit="5000" upperBound="186000" />
+                                    <NumberAxis autoRanging="true" forceZeroInRange="false" side="LEFT" />
                                  </yAxis>
                               </LineChart>
                               <HBox>
                                  <children>
                                     <Label styleClass="ad-chart-sublabel" text="Current Momentum" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Label styleClass="text-green" text="+2.4% LAST 10M" />
+                                    <Label fx:id="momentumLabel" styleClass="text-green" text="0.0% change" />
                                  </children>
                               </HBox>
                            </children>

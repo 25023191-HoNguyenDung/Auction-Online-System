@@ -44,7 +44,7 @@ public class AutoBidServiceTest {
     @Mock
     private AutoBidProfileDao autoBidProfileDao;
     @Mock
-    private AuctionServiceImpl auctionService;
+    private AuctionService auctionService;
     //Đối tượng thực tế dùng test
     private AutoBidService autoBidService;
     //Hằng số dữ liệu mẫu dùng chung 

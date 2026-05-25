@@ -129,11 +129,11 @@ public class AuctionListController {
             walletBalanceLabel.setText(String.format("$%,.0f", bal));
             // Green when healthy, amber when low, red when very low
             if (bal >= 10_000) {
-                walletBalanceLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 32px; -fx-font-weight: bold;");
+                walletBalanceLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 24px; -fx-font-weight: bold;");
             } else if (bal >= 1_000) {
-                walletBalanceLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 32px; -fx-font-weight: bold;");
+                walletBalanceLabel.setStyle("-fx-text-fill: #f0b429; -fx-font-size: 24px; -fx-font-weight: bold;");
             } else {
-                walletBalanceLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 32px; -fx-font-weight: bold;");
+                walletBalanceLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 24px; -fx-font-weight: bold;");
             }
         }
     }
@@ -359,6 +359,7 @@ public class AuctionListController {
         VBox card = new VBox();
         card.getStyleClass().add("al-card");
         card.setPrefWidth(340);
+        card.setMaxWidth(Double.MAX_VALUE);
 
         // Image area
         StackPane imagePane = new StackPane();

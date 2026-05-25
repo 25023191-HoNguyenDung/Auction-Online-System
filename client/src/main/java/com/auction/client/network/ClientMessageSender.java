@@ -51,6 +51,14 @@ public class ClientMessageSender {
         return envelope.getMessageId();
     }
 
+    // Gửi yêu cầu rút tiền lên server
+    public String sendWithdraw(long userId, BigDecimal amount) {
+        WithdrawReqPayload payload = new WithdrawReqPayload(userId, amount);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.WITHDRAW_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
     // Gửi yêu cầu đăng ký
     public String sendRegister(String username, String email, String password, String role) {
         RegisterReqPayload payload = new RegisterReqPayload(username, email, password, role);
@@ -84,6 +92,43 @@ public class ClientMessageSender {
     public String sendUpdateUser(long userId, String newRole) {
         UpdateUserReqPayload payload = new UpdateUserReqPayload(userId, newRole);
         MessageEnvelope envelope = mapper.buildRequest(MessageType.UPDATE_USER_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendSubscribe(long auctionId) {
+        SubscriptionReqPayload payload = new SubscriptionReqPayload();
+        payload.setAuctionId(auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.SUBSCRIBE_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendUnsubscribe(long auctionId) {
+        SubscriptionReqPayload payload = new SubscriptionReqPayload();
+        payload.setAuctionId(auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.UNSUBSCRIBE_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendRegisterAutoBid(long userId, long auctionId, java.math.BigDecimal maxBid, java.math.BigDecimal increment) {
+        RegisterAutoBidReqPayload payload = new RegisterAutoBidReqPayload(userId, auctionId, maxBid, increment);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.REGISTER_AUTOBID_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendCancelAutoBid(long userId, long auctionId) {
+        CancelAutoBidReqPayload payload = new CancelAutoBidReqPayload(userId, auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.CANCEL_AUTOBID_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendGetAutoBid(long userId, long auctionId) {
+        GetAutoBidReqPayload payload = new GetAutoBidReqPayload(userId, auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.GET_AUTOBID_REQ, payload);
         send(envelope);
         return envelope.getMessageId();
     }

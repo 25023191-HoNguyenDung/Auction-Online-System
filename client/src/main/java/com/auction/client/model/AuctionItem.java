@@ -114,4 +114,5 @@ public class AuctionItem {
     public void setTotalBids(int totalBids) { this.totalBids = totalBids; }
     public void setStatus(String status) { this.status = status; }
     public void setBidHistory(List<String> bidHistory) { this.bidHistory = bidHistory; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 }

@@ -27,8 +27,20 @@ public class NavigationUtils {
             Stage stage = getCurrentStage();
             if (stage != null) {
                 stage.setTitle(title + " — Auction Pro");
+                root.setOpacity(0.0);
                 stage.setScene(scene);
+                if (!stage.isMaximized() && !stage.isFullScreen()) {
+                    stage.sizeToScene();
+                }
+                stage.setMinWidth(root.prefWidth(-1) + 16);
+                stage.setMinHeight(root.prefHeight(-1) + 40);
                 stage.show();
+
+                javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(
+                    javafx.util.Duration.millis(300), root);
+                fade.setFromValue(0.0);
+                fade.setToValue(1.0);
+                fade.play();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,8 +66,20 @@ public class NavigationUtils {
             Stage stage = getCurrentStage();
             if (stage != null) {
                 stage.setTitle(item.getItemName() + " — Auction Pro");
+                root.setOpacity(0.0);
                 stage.setScene(scene);
+                if (!stage.isMaximized() && !stage.isFullScreen()) {
+                    stage.sizeToScene();
+                }
+                stage.setMinWidth(root.prefWidth(-1) + 16);
+                stage.setMinHeight(root.prefHeight(-1) + 40);
                 stage.show();
+
+                javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(
+                    javafx.util.Duration.millis(300), root);
+                fade.setFromValue(0.0);
+                fade.setToValue(1.0);
+                fade.play();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -81,8 +105,20 @@ public class NavigationUtils {
             Stage stage = getCurrentStage();
             if (stage != null) {
                 stage.setTitle("Place Bid — " + item.getItemName() + " — Auction Pro");
+                root.setOpacity(0.0);
                 stage.setScene(scene);
+                if (!stage.isMaximized() && !stage.isFullScreen()) {
+                    stage.sizeToScene();
+                }
+                stage.setMinWidth(root.prefWidth(-1) + 16);
+                stage.setMinHeight(root.prefHeight(-1) + 40);
                 stage.show();
+
+                javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(
+                    javafx.util.Duration.millis(300), root);
+                fade.setFromValue(0.0);
+                fade.setToValue(1.0);
+                fade.play();
             }
         } catch (IOException e) {
             e.printStackTrace();
