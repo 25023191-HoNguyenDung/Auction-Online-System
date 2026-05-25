@@ -2,6 +2,7 @@ package com.auction.client.controller;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,6 +18,8 @@ import com.auction.common.protocol.ErrorPayload;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -51,6 +54,7 @@ public class BidController {
 
     @FXML private ListView<String> bidHistoryList;
     @FXML private Label            bidCountLabel;
+    @FXML private LineChart<String, Number> priceChart;
 
     private AuctionItem currentItem;
     private double      currentBid   = 0;
@@ -84,6 +88,11 @@ public class BidController {
         // Keep bid history in sync with new transactions from this session
         transactionListener = t -> Platform.runLater(() -> prependTransaction(t));
         UserSession.getInstance().addTransactionListener(transactionListener);
+
+        if (priceChart != null) {
+            priceChart.setCursor(javafx.scene.Cursor.HAND);
+            priceChart.setOnMouseClicked(event -> showEnlargedChart());
+        }
     }
 
     // ── Item injection (called by NavigationUtils) ────────────
@@ -134,7 +143,70 @@ public class BidController {
 
         refreshBalanceLabel();
         seedMockHistory(item);
+        updateChartData(item.getBidHistory(), item.getStartingPrice());
         startCountdownTimer();
+
+        // Subscribe to real-time updates for this auction on the server
+        try {
+            ClientMessageSender sender = new ClientMessageSender();
+            sender.sendSubscribe(item.getAuctionId());
+            System.out.println(">>> Subscribed to auction " + item.getAuctionId() + " for real-time bid updates.");
+        } catch (Exception ex) {
+            System.err.println(">>> Failed to send SUBSCRIBE_REQ: " + ex.getMessage());
+        }
+
+        // Listen for real-time bid updates from the server
+        ServerEventListener.getActiveInstance().setOnBidUpdated(payload -> {
+            if (payload == null || currentItem == null || payload.getAuctionId() != currentItem.getAuctionId()) return;
+
+            Platform.runLater(() -> {
+                double newPrice = payload.getNewHighestBid().doubleValue();
+                
+                // Update local attributes of the item
+                currentItem.setCurrentPrice(newPrice);
+                currentItem.setTotalBids(currentItem.getTotalBids() + 1);
+
+                currentBid = newPrice;
+                currentBidLabel.setText(fmt(currentBid));
+                minBidLabel.setText(fmt(currentBid + 1));
+                bidAmountField.setPromptText(fmt(currentBid + 1));
+                totalBidsLabel.setText(String.valueOf(currentItem.getTotalBids()));
+
+                // Fetch bidder name (resolve from cache or fallback)
+                String bidderName = UserSession.getInstance().getUsernameById(payload.getLeaderBidderId());
+                String bidTimeString = java.time.LocalDateTime.ofInstant(payload.getBidTime(), java.time.ZoneId.systemDefault()).toString();
+
+                String entry = bidderName + "  →  " + fmt(newPrice) + "  →  " + bidTimeString;
+                if (currentItem.getBidHistory() == null) {
+                    currentItem.setBidHistory(new java.util.ArrayList<>());
+                }
+                
+                // Avoid duplicates by comparing numeric amount
+                boolean exists = false;
+                for (String hist : currentItem.getBidHistory()) {
+                    String[] parts = hist.split("  →  ");
+                    if (parts.length > 1) {
+                        try {
+                            String amtStr = parts[1].replace("$", "").replace(",", "").trim();
+                            double amount = Double.parseDouble(amtStr);
+                            if (Math.abs(amount - newPrice) < 0.01) {
+                                exists = true;
+                                break;
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+                if (!exists) {
+                    currentItem.getBidHistory().add(0, entry);
+                }
+
+                // Refresh history list and price curve
+                seedMockHistory(currentItem);
+                updateChartData(currentItem.getBidHistory(), currentItem.getStartingPrice());
+
+                System.out.println("⚡ Real-time bid update received! New highest bid: " + fmt(newPrice) + " by " + bidderName);
+            });
+        });
     }
 
     // ── Balance label ─────────────────────────────────────────
@@ -298,14 +370,16 @@ public class BidController {
                             ? UserSession.getInstance().getCurrentUser().getUsername()
                             : "You";
 
-                        String entry = bidder + "  →  " + fmt(amount);
+                        String timestamp = java.time.LocalDateTime.now().toString();
+                        String entry = bidder + "  →  " + fmt(amount) + "  →  " + timestamp;
                         if (currentItem.getBidHistory() == null) {
                             currentItem.setBidHistory(new java.util.ArrayList<>());
                         }
                         currentItem.getBidHistory().add(0, entry);
 
-                        // Reload list
+                        // Reload list and update chart
                         seedMockHistory(currentItem);
+                        updateChartData(currentItem.getBidHistory(), currentItem.getStartingPrice());
 
                         showSuccess("Bid of " + fmt(amount) + " placed successfully!");
                         System.out.println("✅ Bid placed on server: " + fmt(amount) + " on " + currentItem.getItemName());
@@ -325,14 +399,52 @@ public class BidController {
     private void prependTransaction(UserSession.Transaction t) {
         if (t.kind != UserSession.Transaction.Kind.BID) return;
         if (currentItem == null || !t.itemName.equals(currentItem.getItemName())) return;
-        String entry = (UserSession.getInstance().isLoggedIn()
-                ? UserSession.getInstance().getCurrentUser().getUsername() : "You")
-                + "  →  " + fmt(t.amount);
-        // Already added directly in handleConfirmBid; avoid duplicate
-        if (!bidHistoryList.getItems().isEmpty()
-                && bidHistoryList.getItems().get(0).equals(entry)) return;
+        
+        // Check if there is already an entry in bidHistoryList with the same amount
+        for (String item : bidHistoryList.getItems()) {
+            String[] parts = item.split("  →  ");
+            if (parts.length > 1) {
+                try {
+                    String amtStr = parts[1].replace("$", "").replace(",", "").trim();
+                    double amount = Double.parseDouble(amtStr);
+                    if (Math.abs(amount - t.amount) < 0.01) {
+                        return; // Already in the list, avoid duplicate!
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
+        String username = UserSession.getInstance().isLoggedIn()
+                ? UserSession.getInstance().getCurrentUser().getUsername() : "You";
+        String entry = username + "  →  " + fmt(t.amount) + "  →  " + t.time.toString();
+        
+        // Add to current item bid history if not already present
+        if (currentItem.getBidHistory() == null) {
+            currentItem.setBidHistory(new java.util.ArrayList<>());
+        }
+        boolean existsInHistory = false;
+        for (String hist : currentItem.getBidHistory()) {
+            String[] parts = hist.split("  →  ");
+            if (parts.length > 1) {
+                try {
+                    String amtStr = parts[1].replace("$", "").replace(",", "").trim();
+                    double amount = Double.parseDouble(amtStr);
+                    if (Math.abs(amount - t.amount) < 0.01) {
+                        existsInHistory = true;
+                        break;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        if (!existsInHistory) {
+            currentItem.getBidHistory().add(0, entry);
+        }
+
         bidHistoryList.getItems().add(0, entry);
         bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
+        
+        // Update chart data as well!
+        updateChartData(currentItem.getBidHistory(), currentItem.getStartingPrice());
     }
 
     // ── Bid history list ──────────────────────────────────────
@@ -380,6 +492,141 @@ public class BidController {
         bidCountLabel.setText(bidHistoryList.getItems().size() + " bids");
     }
 
+    private void updateChartData(List<String> history, double startingPrice) {
+        if (priceChart == null) return;
+        priceChart.getData().clear();
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Price Trend");
+
+        // Start with the starting price as the base point
+        series.getData().add(new XYChart.Data<>("Start", startingPrice));
+
+        if (history != null && !history.isEmpty()) {
+            for (int i = history.size() - 1; i >= 0; i--) {
+                String entry = history.get(i);
+                String[] parts = entry.split("  →  ");
+                if (parts.length > 1) {
+                    try {
+                        String amtStr = parts[1].replace("$", "").replace(",", "").trim();
+                        double amount = Double.parseDouble(amtStr);
+
+                        String timeLabel = "Bid " + (history.size() - i);
+                        if (parts.length > 2) {
+                            try {
+                                java.time.LocalDateTime bidTime = java.time.LocalDateTime.parse(parts[2].trim());
+                                timeLabel = bidTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                            } catch (Exception ex) {
+                                // Fallback
+                            }
+                        }
+                        series.getData().add(new XYChart.Data<>(timeLabel, amount));
+                    } catch (Exception e) {
+                        System.err.println("Error parsing bid history entry for chart: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
+        priceChart.getData().add(series);
+        installChartTooltips(series);
+    }
+
+    private void installChartTooltips(XYChart.Series<String, Number> series) {
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                if (newNode != null) {
+                    double val = data.getYValue().doubleValue();
+                    javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(String.format("$%,.0f", val));
+                    tooltip.setStyle("-fx-background-color: #1a1813; -fx-text-fill: #f0b429; -fx-font-weight: bold; -fx-border-color: #f0b429; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-font-size: 12px; -fx-padding: 6px 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 8, 0, 0, 4);");
+                    tooltip.setShowDelay(javafx.util.Duration.millis(50));
+                    javafx.scene.control.Tooltip.install(newNode, tooltip);
+                }
+            });
+            javafx.scene.Node node = data.getNode();
+            if (node != null) {
+                double val = data.getYValue().doubleValue();
+                javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(String.format("$%,.0f", val));
+                tooltip.setStyle("-fx-background-color: #1a1813; -fx-text-fill: #f0b429; -fx-font-weight: bold; -fx-border-color: #f0b429; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-font-size: 12px; -fx-padding: 6px 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 8, 0, 0, 4);");
+                tooltip.setShowDelay(javafx.util.Duration.millis(50));
+                javafx.scene.control.Tooltip.install(node, tooltip);
+            }
+        }
+    }
+
+
+    private void showEnlargedChart() {
+        if (currentItem == null) return;
+
+        javafx.stage.Stage dialog = new javafx.stage.Stage();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setTitle("Enlarged Price Curve - " + currentItem.getItemName());
+        
+        javafx.scene.chart.CategoryAxis xAxis = new javafx.scene.chart.CategoryAxis();
+        xAxis.setLabel("Time");
+        javafx.scene.chart.NumberAxis yAxis = new javafx.scene.chart.NumberAxis();
+        yAxis.setLabel("Price ($)");
+        yAxis.setAutoRanging(true);
+        yAxis.setForceZeroInRange(false);
+
+        javafx.scene.chart.LineChart<String, Number> largeChart = new javafx.scene.chart.LineChart<>(xAxis, yAxis);
+        largeChart.setCreateSymbols(true);
+        largeChart.setLegendVisible(false);
+        largeChart.getStyleClass().add("ad-price-chart");
+        largeChart.setStyle("-fx-background-color: #161410; -fx-padding: 20;");
+
+        // Clone current series data
+        javafx.scene.chart.XYChart.Series<String, Number> series = new javafx.scene.chart.XYChart.Series<>();
+        series.setName("Price Trend");
+        
+        // Add start price
+        series.getData().add(new javafx.scene.chart.XYChart.Data<>("Start", currentItem.getStartingPrice()));
+
+        List<String> history = currentItem.getBidHistory();
+        if (history != null) {
+            for (int i = history.size() - 1; i >= 0; i--) {
+                String entry = history.get(i);
+                String[] parts = entry.split("  →  ");
+                if (parts.length > 1) {
+                    try {
+                        double amount = Double.parseDouble(parts[1].replace("$", "").replace(",", "").trim());
+                        String timeLabel = "Bid " + (history.size() - i);
+                        if (parts.length > 2) {
+                            try {
+                                java.time.LocalDateTime bidTime = java.time.LocalDateTime.parse(parts[2].trim());
+                                timeLabel = bidTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+                            } catch (Exception ignored) {}
+                        }
+                        series.getData().add(new javafx.scene.chart.XYChart.Data<>(timeLabel, amount));
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+        largeChart.getData().add(series);
+        installChartTooltips(series);
+
+        javafx.scene.layout.VBox layout = new javafx.scene.layout.VBox(15, largeChart);
+        layout.setStyle("-fx-background-color: #0d0c08; -fx-padding: 25;");
+        javafx.scene.layout.VBox.setVgrow(largeChart, javafx.scene.layout.Priority.ALWAYS);
+
+        // Add a beautiful close button
+        javafx.scene.control.Button closeBtn = new javafx.scene.control.Button("Close View");
+        closeBtn.getStyleClass().add("ad-btn-back");
+        closeBtn.setOnAction(e -> dialog.close());
+        layout.getChildren().add(closeBtn);
+        layout.setAlignment(javafx.geometry.Pos.CENTER);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(layout, 800, 550);
+        java.net.URL cssUrl = getClass().getResource("/com/auction/client/css/style.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        }
+        
+        dialog.setScene(scene);
+        dialog.showAndWait();
+    }
+
+
     // ── Cleanup ───────────────────────────────────────────────
     private void cleanup() {
         stopTimer();
@@ -387,6 +634,18 @@ public class BidController {
             UserSession.getInstance().removeBalanceListener(balanceListener);
         if (transactionListener != null)
             UserSession.getInstance().removeTransactionListener(transactionListener);
+
+        if (currentItem != null) {
+            try {
+                ClientMessageSender sender = new ClientMessageSender();
+                sender.sendUnsubscribe(currentItem.getAuctionId());
+                System.out.println(">>> Unsubscribed from auction " + currentItem.getAuctionId());
+            } catch (Exception ex) {
+                System.err.println(">>> Failed to send UNSUBSCRIBE_REQ: " + ex.getMessage());
+            }
+        }
+        // Clear real-time event listener references to avoid memory leaks
+        ServerEventListener.getActiveInstance().setOnBidUpdated(null);
     }
 
     // ── Utilities ─────────────────────────────────────────────

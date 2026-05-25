@@ -17,6 +17,7 @@ public class AuctionSummaryItem {
     private Instant startTime;
     private long sellerId;
     private String sellerName;
+    private BigDecimal startingPrice;
 
     // Constructor rỗng cho Jackson giải mã JSON
     public AuctionSummaryItem() {
@@ -49,9 +50,10 @@ public class AuctionSummaryItem {
 
     public AuctionSummaryItem(long auctionId, String itemName, String description, String category, 
                               BigDecimal currentHighestBid, String status, Instant endTime, List<String> bidHistory,
-                              long sellerId, String sellerName, Instant startTime) {
+                              long sellerId, String sellerName, Instant startTime, BigDecimal startingPrice) {
         this(auctionId, itemName, description, category, currentHighestBid, status, endTime, bidHistory, sellerId, sellerName);
         this.startTime = startTime;
+        this.startingPrice = startingPrice;
     }
 
     public long getAuctionId() { return auctionId; }
@@ -86,4 +88,8 @@ public class AuctionSummaryItem {
 
     public Instant getStartTime() { return startTime; }
     public void setStartTime(Instant startTime) { this.startTime = startTime; }
+
+    public BigDecimal getStartingPrice() { return startingPrice; }
+    public void setStartingPrice(BigDecimal startingPrice) { this.startingPrice = startingPrice; }
+
 }

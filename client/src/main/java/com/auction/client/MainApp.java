@@ -40,9 +40,20 @@ public class MainApp extends Application {
         }
         
         stage.setTitle("Auction Online System");
-        stage.setResizable(false);
+        stage.setResizable(true);
+        stage.setMinWidth(996);
+        stage.setMinHeight(842);
+        
+        scene.getRoot().setOpacity(0.0);
         stage.setScene(scene);
+        stage.sizeToScene();
         stage.show();
+
+        javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(
+            javafx.util.Duration.millis(500), scene.getRoot());
+        fade.setFromValue(0.0);
+        fade.setToValue(1.0);
+        fade.play();
     }
 
     public static void main(String[] args) {
