@@ -198,7 +198,8 @@ public class RequestDispatcher {
                 bidStrings,
                 sellerId,
                 sellerName,
-                a.getStart_time() != null ? a.getStart_time().atZone(java.time.ZoneId.systemDefault()).toInstant() : null
+                a.getStart_time() != null ? a.getStart_time().atZone(java.time.ZoneId.systemDefault()).toInstant() : null,
+                a.getStarting_price()
             );
         }).toList();
         

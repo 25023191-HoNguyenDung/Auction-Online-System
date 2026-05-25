@@ -92,7 +92,7 @@ public class AuctionListViewModel {
                     summary.getDescription(), // Real description from DB
                     summary.getCategory(), // Real category from DB
                     summary.getStatus(), 
-                    summary.getCurrentHighestBid().doubleValue(), // Starting Price
+                    summary.getStartingPrice() != null ? summary.getStartingPrice().doubleValue() : summary.getCurrentHighestBid().doubleValue(), // Starting Price
                     summary.getCurrentHighestBid().doubleValue(), // Current Price
                     LocalDateTime.now().minusMinutes(5), // Temporary start time
                     LocalDateTime.ofInstant(summary.getEndTime(), ZoneId.systemDefault()), // Precise end time from DB!

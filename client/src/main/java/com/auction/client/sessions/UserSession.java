@@ -34,6 +34,7 @@ public class UserSession {
     private User    currentUser;
     private double  balance = 50_000.0;   // Đây là Tổng số dư (Total Balance)
     private final java.util.Map<String, Double> holdMap = new java.util.HashMap<>(); // holdMap giữ tiền theo phiên
+    private static final java.util.Map<Long, String> USERNAME_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     // ── Transaction log (shared with BidHistory) ──────────────
     public static class Transaction {
@@ -208,6 +209,22 @@ public class UserSession {
         refreshUserBalanceFromServer();
     }
 
+    public void cacheUsernames(List<com.auction.common.protocol.UserSummaryItem> users) {
+        if (users == null) return;
+        for (com.auction.common.protocol.UserSummaryItem u : users) {
+            if (u.getUsername() != null) {
+                USERNAME_CACHE.put(u.getId(), u.getUsername());
+            }
+        }
+    }
+
+    public String getUsernameById(long id) {
+        if (currentUser != null && currentUser.getId() == id) {
+            return currentUser.getUsername();
+        }
+        return USERNAME_CACHE.getOrDefault(id, "Bidder " + id);
+    }
+
     /**
      * Refreshes the user's balance from the server's database.
      */
@@ -224,12 +241,12 @@ public class UserSession {
                 com.auction.common.protocol.MessageEnvelope resEnvelope = responseFuture.get(3, java.util.concurrent.TimeUnit.SECONDS);
                 if (resEnvelope.getType() != com.auction.common.protocol.MessageType.ERROR_RES) {
                     com.auction.common.protocol.ListUsersResPayload res = new com.auction.common.protocol.ProtocolMapper().parsePayload(resEnvelope, com.auction.common.protocol.ListUsersResPayload.class);
+                    cacheUsernames(res.getUsers());
                     for (com.auction.common.protocol.UserSummaryItem item : res.getUsers()) {
                         if (item.getId() == currentUserId) {
                             javafx.application.Platform.runLater(() -> {
                                 setBalance(item.getBalance());
                             });
-                            break;
                         }
                     }
                 }

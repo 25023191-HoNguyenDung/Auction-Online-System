@@ -757,8 +757,29 @@
 }
 
 .ad-price-chart .default-color0.chart-line-symbol {
-    -fx-background-color: #f0b429, #1a1813;
+    -fx-background-color: #f0b429, #161410;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
 }
+
+.ad-price-chart .chart-line-symbol {
+    -fx-background-color: #f0b429, #161410;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+}
+
+.ad-price-chart .chart-line-symbol:hover {
+    -fx-background-color: #ffffff, #f0b429;
+    -fx-background-insets: 0, 1.5;
+    -fx-background-radius: 7px;
+    -fx-padding: 7px;
+    -fx-effect: dropshadow(gaussian, rgba(240, 180, 41, 0.8), 10, 0, 0, 0);
+}
+
 /* ===================== ADMIN & SELLER DASHBOARD SHARED ===================== */
 
 .al-root {

@@ -4,19 +4,26 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.Light.Distant?>
+<?import javafx.scene.effect.Lighting?>
+<?import javafx.scene.effect.Shadow?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<BorderPane prefHeight="802.0" prefWidth="980.0" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RegisterController">
+<ScrollPane fx:id="scrollPane" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="al-scroll" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.RegisterController">
+    <content>
+        <BorderPane prefHeight="802.0" prefWidth="980.0" styleClass="root-pane">
 
     <!-- NAVBAR -->
     <top>
@@ -40,11 +47,25 @@
     <!-- CENTER -->
     <center>
         <HBox>
-            <StackPane styleClass="center-pane" HBox.hgrow="ALWAYS">
-                <ImageView fitHeight="658.0" fitWidth="1021.0" pickOnBounds="true" preserveRatio="false">
+            <StackPane fx:id="centerPane" styleClass="center-pane" HBox.hgrow="ALWAYS">
+                <ImageView fitHeight="${centerPane.height}" fitWidth="${centerPane.width}" pickOnBounds="true" preserveRatio="false">
                     <image>
                         <Image url="@../image/bg.png" />
                     </image>
+               <effect>
+                  <Lighting>
+                     <bumpInput>
+                        <Shadow />
+                     </bumpInput>
+                     <light>
+                        <Light.Distant>
+                           <color>
+                              <Color red="0.5473684072494507" green="0.533177375793457" blue="0.533177375793457" />
+                           </color>
+                        </Light.Distant>
+                     </light>
+                  </Lighting>
+               </effect>
                 </ImageView>
 
                 <HBox alignment="CENTER" maxHeight="640" maxWidth="900" spacing="0" styleClass="register-card">
@@ -142,4 +163,6 @@
         </VBox>
     </bottom>
 
-</BorderPane>
+        </BorderPane>
+    </content>
+</ScrollPane>

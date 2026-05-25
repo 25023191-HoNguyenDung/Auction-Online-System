@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.effect.Light.Distant?>
 <?import javafx.scene.effect.Lighting?>
@@ -16,7 +17,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
 
-<BorderPane prefHeight="802.0" prefWidth="980.0" styleClass="root-pane" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.LoginController">
+<ScrollPane fx:id="scrollPane" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="al-scroll" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.LoginController">
+    <content>
+        <BorderPane prefHeight="802.0" prefWidth="980.0" styleClass="root-pane">
 
     <top>
         <HBox alignment="CENTER_LEFT" prefHeight="53.0" prefWidth="1120.0" styleClass="navbar">
@@ -37,8 +40,8 @@
     </top>
     <center>
         <HBox>
-            <StackPane styleClass="center-pane" HBox.hgrow="ALWAYS">
-                <ImageView fitHeight="658.0" fitWidth="1021.0" pickOnBounds="true" preserveRatio="true">
+            <StackPane fx:id="centerPane" styleClass="center-pane" HBox.hgrow="ALWAYS">
+                <ImageView fitHeight="${centerPane.height}" fitWidth="${centerPane.width}" pickOnBounds="true" preserveRatio="false">
                     <image>
                         <Image url="@../image/bg.png" />
                     </image>
@@ -143,4 +146,6 @@
         </VBox>
     </bottom>
 
-</BorderPane>
+        </BorderPane>
+    </content>
+</ScrollPane>

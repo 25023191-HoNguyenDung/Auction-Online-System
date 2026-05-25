@@ -88,6 +88,22 @@ public class ClientMessageSender {
         return envelope.getMessageId();
     }
 
+    public String sendSubscribe(long auctionId) {
+        SubscriptionReqPayload payload = new SubscriptionReqPayload();
+        payload.setAuctionId(auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.SUBSCRIBE_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
+    public String sendUnsubscribe(long auctionId) {
+        SubscriptionReqPayload payload = new SubscriptionReqPayload();
+        payload.setAuctionId(auctionId);
+        MessageEnvelope envelope = mapper.buildRequest(MessageType.UNSUBSCRIBE_REQ, payload);
+        send(envelope);
+        return envelope.getMessageId();
+    }
+
     // Gửi mọi loại message
     private void send(MessageEnvelope envelope) {
         String json = mapper.toJson(envelope);
