@@ -65,12 +65,6 @@ public class TransactionManager {
         void excecute(Connection con) throws Exception;
     }
 
-    /**
-     * PHIÊN BẢN ĐÃ SỬA:
-     * - Gọi ConnectionHolder.set(con) trước khi chạy work
-     * - Gọi ConnectionHolder.clear() trong finally
-     * → Các DAO sẽ tự động dùng chung connection này thay vì tự mở connection mới.
-     */
     public void executeInTransaction(TransactionWork work) {
         Connection con = null;
         try {
