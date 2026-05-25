@@ -6,6 +6,14 @@ public enum MessageType {
     PLACE_BID_RES,
     BID_UPDATED_EVENT,
 
+    // ── AutoBid ───────────────────────────────────────────────
+    REGISTER_AUTOBID_REQ,
+    REGISTER_AUTOBID_RES,
+    CANCEL_AUTOBID_REQ,
+    CANCEL_AUTOBID_RES,
+    GET_AUTOBID_REQ,
+    GET_AUTOBID_RES,
+
     // ── Auth ──────────────────────────────────────────────────
     LOGIN_REQ,
     LOGIN_RES,

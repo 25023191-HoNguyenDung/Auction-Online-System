@@ -17,14 +17,14 @@ public class AutoBidService {
     private static final int MAX_AUTO_BID_ROUNDS = 50;
 
     private final AutoBidProfileDao autoBidProfileDao;
-    private final AuctionServiceImpl auctionService;
+    private final AuctionService auctionService;
 
-    public AutoBidService(AutoBidProfileDao autoBidProfileDao, AuctionServiceImpl auctionService) {
+    public AutoBidService(AutoBidProfileDao autoBidProfileDao, AuctionService auctionService) {
         this.autoBidProfileDao = autoBidProfileDao;
         this.auctionService = auctionService;
     }
 
-    public AutoBidService(AuctionServiceImpl auctionService) {
+    public AutoBidService(AuctionService auctionService) {
         this(new JdbcAutoBidProfileDao(), auctionService);
     }
 
@@ -72,6 +72,8 @@ public class AutoBidService {
     public boolean placeBidAutomatically(long auctionId, long userId, BigDecimal bidAmount) {
         try {
             auctionService.placeBidInternal(auctionId, userId, bidAmount);
+            com.auction.server.observer.AuctionEventPublisher.getInstance()
+                .publish(com.auction.server.observer.AuctionEvent.bidPlaced(auctionId, bidAmount, userId));
             return true;
         } catch (AuctionTimeException e) {
             throw new RuntimeException("[AutoBid] Auction " + auctionId + " is not running.", e);
@@ -129,6 +131,20 @@ public class AutoBidService {
                 break;
             }
         }
+        
+        // Clean up expired profiles
+        for (AutoBidProfile profile : profiles) {
+            BigDecimal nextBid = currentHighestBid.add(profile.getIncrement());
+            boolean isExpired = (currentHighestBid.compareTo(profile.getMax_bid()) > 0)
+                    || (profile.getUser_id() != currentHighestBidder && nextBid.compareTo(profile.getMax_bid()) > 0);
+            if (isExpired) {
+                autoBidProfileDao.deleteById(profile.getId());
+                System.out.println("[AutoBid] Profile " + profile.getId() 
+                        + " for user " + profile.getUser_id() 
+                        + " expired (price exceeded max_bid). Deleted.");
+            }
+        }
+
         if (rounds >= MAX_AUTO_BID_ROUNDS) {
             System.err.println("[AutoBid] Reached max rounds (" + MAX_AUTO_BID_ROUNDS
                     + ") for auction " + auctionId + ". Stopping auto-bid loop.");

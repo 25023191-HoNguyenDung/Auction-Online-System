@@ -12,7 +12,7 @@
     -fx-background-color: #0d0c08;
     -fx-border-color: #2a2510;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 0 40;
+    -fx-padding: 0 24;
 }
 
 .nav-logo-text {
@@ -126,7 +126,7 @@
     -fx-background-color: #080706;
     -fx-border-color: #1e1c12;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 24 40;
+    -fx-padding: 12 24;
 }
 
 .footer-logo-text {
@@ -1160,3 +1160,30 @@
 
 .bs-bid-history .list-cell:hover    { -fx-background-color: #1a1813; }
 .bs-bid-history .list-cell:selected { -fx-background-color: rgba(240,180,41,0.08); }
+
+/* ===================== BIDSCREEN PREMIUM CARDS ===================== */
+.bs-summary-card {
+    -fx-background-color: #161410;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 15, 0, 0, 8);
+}
+
+.bs-form-card {
+    -fx-background-color: #161410;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #2e2a1e;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 15, 0, 0, 8);
+}
+
+.bs-image-pane {
+    -fx-background-color: #0b1114;
+    -fx-background-radius: 10;
+    -fx-border-color: #2e2a1e;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}

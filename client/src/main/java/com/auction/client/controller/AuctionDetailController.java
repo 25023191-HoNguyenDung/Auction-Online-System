@@ -101,6 +101,13 @@ public class AuctionDetailController {
             Platform.runLater(() -> {
                 double newPrice = payload.getNewHighestBid().doubleValue();
                 
+                // Synchronize Anti-Sniping locally on client
+                int secondsLeft = viewModel.getItem().secondsLeft();
+                if (secondsLeft > 0 && secondsLeft <= 30) {
+                    viewModel.getItem().setEndTime(viewModel.getItem().getEndTime().plusSeconds(60));
+                    System.out.println("[AntiSnipe] Extended local end time by 60 seconds. New end time: " + viewModel.getItem().getEndTime());
+                }
+
                 // Update local attributes of the item
                 viewModel.getItem().setCurrentPrice(newPrice);
                 viewModel.getItem().setTotalBids(viewModel.getItem().getTotalBids() + 1);
