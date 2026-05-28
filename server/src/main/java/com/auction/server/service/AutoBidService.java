@@ -132,7 +132,7 @@ public class AutoBidService {
             }
         }
         
-        // Clean up expired profiles
+        // Dọn dẹp các profile đã hết hiệu lực (vượt maxBid) sau khi kết thúc vòng đấu giá tự động
         for (AutoBidProfile profile : profiles) {
             BigDecimal nextBid = currentHighestBid.add(profile.getIncrement());
             boolean isExpired = (currentHighestBid.compareTo(profile.getMax_bid()) > 0)
