@@ -12,14 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * PHIÊN BẢN ĐÃ SỬA:
- * - Thêm getConn() / shouldClose() để ưu tiên dùng connection từ transaction (ConnectionHolder)
- * - Khi trong transaction: KHÔNG close connection sau mỗi câu SQL
- * - Khi ngoài transaction: tự mở + close connection như cũ
- *
- * PATH: server/src/main/java/com/auction/server/dao/jdbc/JdbcBidDao.java
- */
+
 public class JdbcBidDao implements BidDao {
 
     private final DatabaseConfig db = DatabaseConfig.getInstance();

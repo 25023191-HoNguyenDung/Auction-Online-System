@@ -16,7 +16,6 @@ public class ServerEventListener implements Runnable {
     public static ServerEventListener getActiveInstance() {
         return activeInstance;
     }
-    // ─────────────────────────────────────────────────────────────────────────
 
     private final ServerConnection connection; // knoi tới server
     private final ProtocolMapper mapper;

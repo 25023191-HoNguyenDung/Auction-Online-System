@@ -7,7 +7,6 @@ public class RegisterReqPayload {
     private String password;
     private String role;
 
-    public RegisterReqPayload() {}
 
     public RegisterReqPayload(String username, String email, String password, String role) {
         this.username = username;

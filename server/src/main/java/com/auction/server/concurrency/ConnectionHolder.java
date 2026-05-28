@@ -2,36 +2,26 @@ package com.auction.server.concurrency;
 
 import java.sql.Connection;
 
-/**
- * Lưu Connection của transaction hiện tại theo từng thread (ThreadLocal).
- * Giúp các DAO dùng chung 1 connection khi đang trong transaction,
- * thay vì mỗi DAO tự mở connection mới → commit/rollback mới có hiệu lực.
- *
- * PATH: server/src/main/java/com/auction/server/concurrency/ConnectionHolder.java
- */
+// Giữ Connection database riêng cho từng thread bằng ThreadLocal
 public class ConnectionHolder {
-
+    // mỗi thread tự giữ Connection riêng của mình
     private static final ThreadLocal<Connection> current = new ThreadLocal<>();
 
-    /** TransactionManager gọi khi mở transaction */
+    // Cất connection vào thread hiện tại
     public static void set(Connection conn) {
         current.set(conn);
     }
-
-    /**
-     * DAO gọi để lấy connection hiện tại.
-     * Trả về null nếu không có transaction đang chạy.
-     */
+    // Lấy connection của thread hiện tại ra dùng
     public static Connection get() {
         return current.get();
     }
 
-    /** TransactionManager gọi trong finally để dọn dẹp */
+
     public static void clear() {
         current.remove();
     }
 
-    /** Kiểm tra có đang trong transaction không */
+
     public static boolean hasConnection() {
         return current.get() != null;
     }

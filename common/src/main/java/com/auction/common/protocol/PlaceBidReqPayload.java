@@ -7,8 +7,6 @@ public class PlaceBidReqPayload {
     private long bidderId; // người đặt giá
     private BigDecimal amount; // giá
 
-    public PlaceBidReqPayload() {
-    }
 
     public PlaceBidReqPayload(long auctionId, long bidderId, BigDecimal amount) {
         this.auctionId = auctionId;

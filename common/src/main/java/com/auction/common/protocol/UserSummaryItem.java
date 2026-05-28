@@ -7,7 +7,6 @@ public class UserSummaryItem {
     private String role;
     private double balance;
 
-    public UserSummaryItem() {}
 
     public UserSummaryItem(long id, String username, String email, String role, double balance) {
         this.id = id;
