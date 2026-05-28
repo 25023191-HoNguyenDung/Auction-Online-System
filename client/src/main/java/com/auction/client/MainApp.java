@@ -11,17 +11,14 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // ── TỰ ĐỘNG KẾT NỐI TỚI SERVER CỔNG 1337 KHI MỞ CLIENT ─────────────────
         try {
-            // Sửa 26.134.195.52 thành 127.0.0.1
-            com.auction.client.network.ServerConnection.getInstance().connect("127.0.0.1", 1337);
+            com.auction.client.network.ServerConnection.getInstance().connect("26.134.195.52", 1337);
             com.auction.client.network.ServerEventListener listener = new com.auction.client.network.ServerEventListener();
             listener.start();
-            System.out.println(">>> Đã kết nối và lắng nghe server thành công tại 127.0.0.1:1337!");
+            System.out.println("Connected to localhost:1337!");
         } catch (Exception e) {
-            System.err.println(">>> Không thể kết nối tới Server: " + e.getMessage() + ". Vui lòng bật ServerApplication trước!");
+            System.err.println("Cannot connect to server: " + e.getMessage() + ". Please start the application first!");
         }
-        // ─────────────────────────────────────────────────────────────────────
         
         URL fxmlUrl = getClass().getResource(
             "/com/auction/client/view/Login.fxml"
