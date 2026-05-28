@@ -4,12 +4,7 @@ import com.auction.common.protocol.*;
 
 import java.math.BigDecimal;
 
-/**
- * PHIÊN BẢN ĐÃ SỬA:
- * - Thêm sendDeposit() để gửi yêu cầu nạp tiền lên server
- *
- * PATH: client/src/main/java/com/auction/client/network/ClientMessageSender.java
- */
+
 public class ClientMessageSender {
     private final ServerConnection connection;
     private final ProtocolMapper mapper;
