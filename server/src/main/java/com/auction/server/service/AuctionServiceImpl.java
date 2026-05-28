@@ -3,7 +3,6 @@ package com.auction.server.service;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.auction.common.exception.AuctionConnectException;
 import com.auction.common.exception.AuctionMisMatchException;
@@ -33,7 +32,6 @@ public class AuctionServiceImpl implements AuctionService {
     private final BidDao bidDao; // Lưu trữ và truy xuất thông tin giao dịch đặt giá
     private final UserDao userDao; // Lưu trữ và truy xuất thông tin người dùng
     // Cache xử lí các nghiệp vụ đấu giá
-    private final ConcurrentHashMap<Long, AuctionLogicManager> managerCache = new ConcurrentHashMap<>(); // Cache để lưu trữ các phiên đấu giá đang hoạt động
     private final AutoBidService autoBidService;
     private final AuctionEventPublisher publisher;
     //Quản lý transaction thông qua cơ chế Lambda
@@ -208,7 +206,7 @@ public class AuctionServiceImpl implements AuctionService {
         return bidDao.findHighestBidByAuctionId(auctionId).orElse(null);
     }
 
-    // Update auction status
+    // Cập nhật trạng thái phiên đấu giá theo thời gian
     @Override
     public void checkStatus(long auctionId) throws AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
@@ -217,7 +215,7 @@ public class AuctionServiceImpl implements AuctionService {
             manager.updateAuctionStatus();
             AuctionStatus newStatus = manager.getStatus();
             
-            // If transitioned from RUNNING to FINISHED, trigger automatic payment
+            // Nếu trạng thái từ RUNNING sang FINISHED -> xử lí thanh toán
             if (oldStatus == AuctionStatus.RUNNING && newStatus == AuctionStatus.FINISHED) {
                 processPayment(auctionId);
             }
@@ -225,19 +223,19 @@ public class AuctionServiceImpl implements AuctionService {
             throw new RuntimeException("Database error while checking status for auction "
                     + auctionId + ": " + e.getMessage(), e);
         }
-        clearCached(auctionId); // Clear cache because auction is finished
+        clearCached(auctionId);     //Dọn cache để đảm bảo dữ liệu mới nhất cho lần truy cập tiếp theo (nếu có)
     }
 
-    // Process payment after auction finishes
+    // Xử lý thanh toán sau khi kết thúc đấu giá
     @Override
     public void processPayment(long auctionId) throws AuctionTimeException, AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
-            manager.payment(); // logs
+            manager.payment(); 
             
             Auction auction = manager.getAuction();
             if (auction.getStatus() != AuctionStatus.FINISHED) {
-                return; // Only process if currently FINISHED
+                return; //Nếu chưa chuyển sang FINISHED thì không xử lý thanh toán
             }
             
             long winnerId = auction.getWinner_bidder_id();
@@ -247,17 +245,14 @@ public class AuctionServiceImpl implements AuctionService {
             if (winnerId > 0 && amount.compareTo(BigDecimal.ZERO) > 0) {
                 transManager.executeInTransaction(conn -> {
                     try {
-                        // 1. Winner's balance is already deducted when placing the bid, no need to deduct it again.
-
-                        
-                        // 2. Credit seller's balance
+                        //Chuyển tiền từ người thắng đến người bán
                         User sellerOpt = userDao.findById(sellerId).orElse(null);
                         if (sellerOpt instanceof Seller seller) {
                             seller.receivePayment(amount);
                             userDao.update(seller);
                         }
                         
-                        // 3. Mark auction as PAID
+                        //Cập nhật trạng thái sang PAID
                         auction.setStatus(AuctionStatus.PAID);
                         auctionDao.update(auction);
                         
@@ -268,7 +263,7 @@ public class AuctionServiceImpl implements AuctionService {
                     }
                 });
             } else {
-                // No winner, transition status directly to PAID
+                // Nếu không có người thắng -> cập nhật trạng thái sanng PAID để đánh dấu đã xử lí xong
                 transManager.executeInTransaction(conn -> {
                     try {
                         auction.setStatus(AuctionStatus.PAID);
@@ -285,7 +280,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
     }
 
-    // Cancel auction
+    // Hủy phiên đấu giá 
     @Override
     public void cancelAuction(long auctionId) throws AuctionTimeException, AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
@@ -297,7 +292,7 @@ public class AuctionServiceImpl implements AuctionService {
             throw new RuntimeException("Database error during cancellation of auction "
                     + auctionId + ": " + e.getMessage(), e);
         }
-        clearCached(auctionId); // Clear cache because auction is CANCELLED
+        clearCached(auctionId); 
     }
 
     @Override
@@ -316,12 +311,12 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    // Close auction normally -> FINISHED, holds winner
+    // Đóng phiên đấu giá - chỉ dành cho Admin hoặc tự động qua scheduler, không cho phép người dùng bình thường đóng
     public void closeAuction(long auctionId) throws AuctionConnectException {
         AuctionLogicManager manager = getManager(auctionId);
         try {
             manager.close();
-            // Process payment settlement immediately
+            // Sau khi đóng phiên đấu giá, tự động xử lý thanh toán nếu có người thắng
             processPayment(auctionId);
         } catch (SQLException e) {
             throw new RuntimeException("Database error during closing of auction "
