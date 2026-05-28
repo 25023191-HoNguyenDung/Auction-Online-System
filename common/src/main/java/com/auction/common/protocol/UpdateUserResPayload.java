@@ -4,7 +4,6 @@ public class UpdateUserResPayload {
     private boolean success;
     private String message;
 
-    public UpdateUserResPayload() {}
 
     public UpdateUserResPayload(boolean success, String message) {
         this.success = success;

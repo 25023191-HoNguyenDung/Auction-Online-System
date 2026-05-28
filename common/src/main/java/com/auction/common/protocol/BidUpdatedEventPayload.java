@@ -9,8 +9,6 @@ public class BidUpdatedEventPayload {
     private long leaderBidderId;
     private Instant bidTime;
 
-    public BidUpdatedEventPayload() {
-    }
 
     public BidUpdatedEventPayload(
             long auctionId, // ID phiên đấu giá

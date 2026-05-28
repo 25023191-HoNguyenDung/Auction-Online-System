@@ -25,7 +25,7 @@ public class DatabaseConfig {
         // Sửa 26.134.195.52 thành localhost
         config.setJdbcUrl(url != null ? url : "jdbc:mysql://127.0.0.1:3306/auction_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true");
         config.setUsername(username != null ? username : "root");
-        config.setPassword(password != null ? password : "@Ducanh2007");
+        config.setPassword(password != null ? password : "Pach2308@");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setPoolName("AuctionPool");

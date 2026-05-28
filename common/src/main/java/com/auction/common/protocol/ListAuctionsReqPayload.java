@@ -7,9 +7,6 @@ public class ListAuctionsReqPayload {
     private int size;
     private String statusFilter; // trạng thái
 
-    // Constructor rỗng cho Jackson giải mã JSON
-    public ListAuctionsReqPayload() {
-    }
 
     public ListAuctionsReqPayload(long userId, int page, int size, String statusFilter) {
         this.userId = userId;
