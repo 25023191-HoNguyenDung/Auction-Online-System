@@ -1,4 +1,4 @@
-package com.auction.server.config;
+﻿package com.auction.server.config;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,16 +23,15 @@ public class DatabaseConfig {
         String password = System.getenv("DB_PASSWORD");
 
         // Sửa 26.134.195.52 thành localhost
-        config.setJdbcUrl(url != null ? url : "jdbc:mysql://127.0.0.1:3306/auction_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true");
+        config.setJdbcUrl(url != null ? url : "jdbc:mysql://localhost:3306/auction_db?useSSL=false&serverTimezone=UTC");
         config.setUsername(username != null ? username : "root");
-        config.setPassword(password != null ? password : "@Ducanh2007");
+        config.setPassword(password != null ? password : "Pach2308@");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setPoolName("AuctionPool");
         // tạo nhóm connection
         this.dataSource = new HikariDataSource(config);
     }
-
 
     public static DatabaseConfig getInstance() {
         if (instance == null) {
