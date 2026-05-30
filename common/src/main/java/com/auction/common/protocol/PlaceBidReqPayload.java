@@ -13,6 +13,7 @@ public class PlaceBidReqPayload {
         this.bidderId = bidderId;
         this.amount = amount;
     }
+    public PlaceBidReqPayload() {}
 
     public long getAuctionId() {
         return auctionId;
