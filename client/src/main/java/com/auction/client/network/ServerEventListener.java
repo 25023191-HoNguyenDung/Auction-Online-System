@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 
 // đọc message từ server và gọi hàm xử lý tương ứng
 public class ServerEventListener implements Runnable {
-    // ── BIẾN STATIC THÊM VÀO ĐỂ QUẢN LÝ LISTENER ĐANG CHẠY ─────────────────────
     private static volatile ServerEventListener activeInstance;
 
     public static ServerEventListener getActiveInstance() {
