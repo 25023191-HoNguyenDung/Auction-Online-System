@@ -38,12 +38,12 @@ public abstract class User {
             String calculatedHash = hexString.toString();
 
             // ── THÊM ĐOẠN LOG ĐỂ KIỂM TRA LỆCH Ở ĐÂU ──────────────────────────
-            System.out.println("\n====== [DEBUG ĐĂNG NHẬP] ======");
-            System.out.println("Tài khoản nhập: " + get_user_name());
-            System.out.println("Mật khẩu thô nhận được: [" + input_password + "]");
-            System.out.println("Mã băm tính toán được:   [" + calculatedHash + "]");
-            System.out.println("Mã băm thực tế trong DB: [" + password + "]");
-            System.out.println("Kết quả so sánh khớp:    " + calculatedHash.equals(password));
+            System.out.println("\n====== [LOGIN] ======");
+            System.out.println("ACCOUNT: " + get_user_name());
+            System.out.println("INPUT PASSWORD: [" + input_password + "]");
+            System.out.println("CALCULATED HASH:   [" + calculatedHash + "]");
+            System.out.println("ACTUAL HASH IN DB: [" + password + "]");
+            System.out.println("MATCH RESULT:    " + calculatedHash.equals(password));
             System.out.println("================================\n");
             // ─────────────────────────────────────────────────────────────────
 
